@@ -1,0 +1,32 @@
+{
+  "name": "algo.js",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hisahayashi/algo.js.git"
+  },
+  "keywords": [
+    "algo.js"
+  ],
+  "author": "hisa hayashi",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/hisahayashi/algo.js/issues"
+  },
+  "homepage": "https://github.com/hisahayashi/algo.js",
+  "devDependencies": {
+    "gulp": "^3.8.11",
+    "gulp-apidoc": "^0.1.3",
+    "gulp-clean": "^0.3.1",
+    "gulp-concat": "^2.5.2",
+    "gulp-order": "^1.1.1",
+    "gulp-run-sequence": "^0.3.2",
+    "gulp-uglify": "^1.2.0",
+    "gulp-watch": "^4.2.4"
+  }
+}

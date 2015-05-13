@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<title>algo.js examples: </title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+<style>
+body {
+margin: 0;
+padding: 0;
+font-size: 0;
+background-color: #000000;
+}
+canvas {
+width: 100%;
+height: 100%
+}
+</style>
+</head>
+
+<body>
+<canvas id="canvas"></canvas>
+<script type="text/javascript" src="../build/algo.js"></script>
+<!-- <script type="text/javascript" src="../src/algo.js"></script> -->
+<script type="text/javascript" src="assets/js/libs/dat.gui.min.js"></script>
+<script type="text/javascript" src="assets/js/libs/stats.min.js"></script>
+<script type="text/javascript">
+var param = {
+  id: 'canvas',
+  width: window.innerWidth,
+  height: window.innerHeight
+};
+var algo = new ALGO( param );
+
+algo.width = window.innerWidth;
+algo.height = window.innerHeight;
+algo.backgroundAuto = true;
+algo.background = 0xdddddd;
+algo.backgroundAlpha = 0.8;
+algo.depth = 0.8;
+algo.framerate = 6;
+algo.blendMode = ALGO.BLEND_ALPHA;
+
+ALGO.log( algo );
+
+algo.bind('setup', function(){
+  // ALGO.log('setup after');
+});
+
+algo.bind('frame', function(){
+  // ALGO.log('frame after');
+
+/*
+  var r = Math.random() * 10;
+  var g = Math.random() * 10;
+  var b = Math.random() * 256;
+  var hex = ALGO.ColorUtil.rgbToHex( r, g, b );
+  algo.background = hex;
+*/
+});
+
+algo.bind('resize', function(){
+  // ALGO.log('resize after');
+  var w = window.innerWidth;
+  var h = window.innerHeight;
+  algo.size( w, h );
+});
+
+/*
+var vec2 = new ALGO.Vec2f( x, y );
+
+var rectangle = new ALGO.Rectangle( x, y, w, h );
+rectangle.x = 0;
+rectangle.y = 0;
+rectangle.width = 10;
+rectangle.height = 10;
+rectangle.color = 0xffffff;
+rectangle.draw();
+
+var circle = new ALGO.Circle( x, y, radius );
+circle.x = 10;
+circle.y = 10;
+circle.scale = 10;
+circle.color = 0xffffff;
+circle.radius = 100;
+circle.draw();
+
+var triangle = new ALGO.Polygon( x, y, angles, radius );
+triangle.x = 10;
+triangle.y = 10;
+triangle.scale = 10;
+triangle.color = 0xffffff;
+triangle.radius = 100;
+triangle.draw();
+
+var line = new ALGO.Line( x, y, x1, y1 );
+line.x = 10;
+line.y = 10;
+line.scale = 10;
+line.color = 0xffffff;
+line.lineWidth = 10;
+line.moveTo( 100, 100 );
+line.lineTo( 100, 100 );
+line.draw();
+
+var particle = new ALGO.Particle( x, y );
+particle.x  = 10;
+particle.y  = 10;
+particle.color = 0xffffff;
+particle.size = 1;
+particle.draw();
+*/
+</script>
+</body>
+
+</html>
