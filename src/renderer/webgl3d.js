@@ -79,25 +79,23 @@ ALGO.WebGLRenderer = (function(ALGO) {
     resize();
 
     // uniformLocationの取得
-    uni_location = {};
-    uni_location.position = gl.getUniformLocation(program, 'position2d');
-    uni_location.matrix = gl.getUniformLocation(program, 'matrix2d');
-    uni_location.color = gl.getUniformLocation(program, 'color');
-    uni_location.point_size = gl.getUniformLocation(program, 'point_size');
+    uni_location = [];
+    uni_location[0] = gl.getUniformLocation(program, 'mvp_matrix');
+    uni_location[1]  = gl.getUniformLocation(program, 'point_size');
 
 
     // attributeLocationの取得
-    attr_location = {};
-    attr_location.position = gl.getAttribLocation(program, 'position2d');
-    attr_location.color = gl.getAttribLocation(program, 'color');
+    attr_location = [];
+    attr_location[0] = gl.getAttribLocation(program, 'position');
+    attr_location[1] = gl.getAttribLocation(program, 'color');
 
     /*
     attr_location はpositionがattributeの何番目なのかを持っている
     attributeの要素数(この場合は xyz の3要素)
      */
-    attr_stride = {};
-    attr_stride.position = 2; // vertex
-    attr_stride.color = 4; // index
+    attr_stride = [];
+    attr_stride[0] = 3; // vertex
+    attr_stride[1] = 4; // index
 
     render();
 
@@ -106,85 +104,39 @@ ALGO.WebGLRenderer = (function(ALGO) {
     // gl.viewport( 0, 0, canvas.width, canvas.height );
   };
 
-
-  function make2DProjection(width, height) {
-    // Note: This matrix flips the Y axis so 0 is at the top.
-    return [
-      2 / width, 0, 0,
-      0, -2 / height, 0, -1, 1, 1
-    ];
-  }
-
-
-  function makeTranslation(tx, ty) {
-    return [
-      1, 0, 0,
-      0, 1, 0,
-      tx, ty, 1
-    ];
-  }
-
-  function makeRotation(angleInRadians) {
-    var c = Math.cos(angleInRadians);
-    var s = Math.sin(angleInRadians);
-    return [
-      c, -s, 0,
-      s, c, 0,
-      0, 0, 1
-    ];
-  }
-
-  function makeScale(sx, sy) {
-    return [
-      sx, 0, 0,
-      0, sy, 0,
-      0, 0, 1
-    ];
-  }
-
-  function matrixMultiply(a, b) {
-    var a00 = a[0 * 3 + 0];
-    var a01 = a[0 * 3 + 1];
-    var a02 = a[0 * 3 + 2];
-    var a10 = a[1 * 3 + 0];
-    var a11 = a[1 * 3 + 1];
-    var a12 = a[1 * 3 + 2];
-    var a20 = a[2 * 3 + 0];
-    var a21 = a[2 * 3 + 1];
-    var a22 = a[2 * 3 + 2];
-    var b00 = b[0 * 3 + 0];
-    var b01 = b[0 * 3 + 1];
-    var b02 = b[0 * 3 + 2];
-    var b10 = b[1 * 3 + 0];
-    var b11 = b[1 * 3 + 1];
-    var b12 = b[1 * 3 + 2];
-    var b20 = b[2 * 3 + 0];
-    var b21 = b[2 * 3 + 1];
-    var b22 = b[2 * 3 + 2];
-    return [a00 * b00 + a01 * b10 + a02 * b20,
-      a00 * b01 + a01 * b11 + a02 * b21,
-      a00 * b02 + a01 * b12 + a02 * b22,
-      a10 * b00 + a11 * b10 + a12 * b20,
-      a10 * b01 + a11 * b11 + a12 * b21,
-      a10 * b02 + a11 * b12 + a12 * b22,
-      a20 * b00 + a21 * b10 + a22 * b20,
-      a20 * b01 + a21 * b11 + a22 * b21,
-      a20 * b02 + a21 * b12 + a22 * b22
-    ];
-  }
-
   /**
    * Init
    */
   function render() {
 
-    var translation = [100, 100];
-    var angleInRadians = 0;
-    var scale = [1, 1];
+    var cw = canvas.width;
+    var ch = canvas.height;
 
-    var projectionMatrix = make2DProjection(canvas.width, canvas.height);
+    for( var i = 0; i < children.length; i++ ){
 
-    for (var i = 0; i < children.length; i++) {
+      if( i == 0 ){
+        var vertex = [
+             0, 0,
+             cw, 0,
+             0, ch,
+             cw, ch
+        ];
+
+        var index = [
+          0, 1, 2,
+          1, 2, 3
+        ];
+
+        var positionLocation = gl.getAttribLocation(program, "position2d");
+
+        var buffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertex), gl.STATIC_DRAW);
+        gl.enableVertexAttribArray(positionLocation);
+        gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+        // gl.drawArrays(gl.TRIANGLES, 0, 6);
+        gl.drawElements(gl.TRIANGLES, index.length, gl.UNSIGNED_SHORT, 0);
+      }
 
       var object = children[i];
 
@@ -196,41 +148,20 @@ ALGO.WebGLRenderer = (function(ALGO) {
 
       // VBOの生成
       var vbo = [];
-      // Set Geometry
-      vbo.position = createVbo(vertex_position);
-      vbo.color = createVbo(vertex_color);
+      vbo[0] = createVbo(vertex_position);
+      vbo[1] = createVbo(vertex_color);
       setVBOAttribute(vbo, attr_location, attr_stride);
 
       index = object.index;
 
       // IBOの生成
-      var ibo = [];
+      var ibo  = [];
       ibo[0] = createIbo(index);
 
       // IBOをバインドして登録する
-      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo[0]);
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo[0] );
 
       var m_matrix = object.matrix;
-
-      scale[0] = object.scale;
-      scale[1] = object.scale;
-      angleInRadians = object.rotate * Math.PI / 180;
-
-      // Compute the matrices
-      var projectionMatrix = make2DProjection(canvas.width, canvas.height);
-      var translationMatrix = makeTranslation(object.x, object.y);
-      var rotationMatrix = makeRotation(angleInRadians);
-      var scaleMatrix = makeScale(scale[0], scale[1]);
-
-      // Multiply the matrices.
-      var matrix = matrixMultiply(scaleMatrix, rotationMatrix);
-      matrix = matrixMultiply(matrix, translationMatrix);
-      matrix = matrixMultiply(matrix, projectionMatrix);
-
-      // Set the matrix.
-      gl.uniformMatrix3fv(uni_location.matrix, false, matrix);
-
-      gl.drawElements(gl.TRIANGLES, index.length, gl.UNSIGNED_SHORT, 0);
 
       // object.x;
       // object.y;
@@ -238,19 +169,40 @@ ALGO.WebGLRenderer = (function(ALGO) {
       // object.height;
       // object.rotate;
       // object.scale;
-      /*
-            // 一つ目のモデルを移動するためのモデル座標変換行列
-            m.identity(m_matrix);
-            // m.translate(m_matrix, [ x, y, 0.0], m_matrix);
-            // m.scale(m_matrix, [3.0, 3.0, 3.0], m_matrix);
-            // m.rotate(m_matrix, rad, [0, 1, 0], m_matrix);
-            m.multiply(tmp_matrix, m_matrix, mvp_matrix);
-            gl.uniformMatrix4fv(uni_location.position, false, mvp_matrix);
-            // gl.drawArrays(gl.TRIANGLES, 0, 3);
-            gl.drawElements(gl.TRIANGLES, index.length, gl.UNSIGNED_SHORT, 0);
-            */
+
+      var x_ratio = object.x / cw;
+      var y_ratio = object.y / ch;
+      var x = x_ratio * sw + sx;
+      var y = -(y_ratio * sh + sy);
+
+      // 一つ目のモデルを移動するためのモデル座標変換行列
+      m.identity(m_matrix);
+      m.translate(m_matrix, [ x, y, 0.0], m_matrix);
+      // m.scale(m_matrix, [3.0, 3.0, 3.0], m_matrix);
+      // m.rotate(m_matrix, rad, [0, 1, 0], m_matrix);
+      m.multiply(tmp_matrix, m_matrix, mvp_matrix);
+      gl.uniformMatrix4fv(uni_location[0], false, mvp_matrix);
+      // gl.drawArrays(gl.TRIANGLES, 0, 3);
+      // gl.drawElements(gl.TRIANGLES, index.length, gl.UNSIGNED_SHORT, 0);
 
     }
+
+
+    // // 二つ目のモデルを移動するためのモデル座標変換行列
+    // m.identity(m_matrix);
+    // m.translate(m_matrix, [-1.5, 0.0, 0.0], m_matrix);
+    // m.rotate(m_matrix, -rad, [0, 1, 0], m_matrix);
+    // m.multiply(tmp_matrix, m_matrix, mvp_matrix);
+
+    // // uniformLocationへ座標変換行列を登録
+    // gl.uniformMatrix4fv(uni_location[0], false, mvp_matrix);
+    // gl.uniform1f(uni_location[1], point_size);
+    // // gl.drawArrays(gl.TRIANGLES, 0, 3);
+    // // gl.drawElements(gl.TRIANGLES, index.length, gl.UNSIGNED_SHORT, 0);
+    // gl.drawElements(gl.POINTS, index.length, gl.UNSIGNED_SHORT, 0);
+
+    // gl.lineWidth(4.0);
+    // gl.drawElements(gl.LINES, index.length, gl.UNSIGNED_SHORT, 0);
 
     // コンテキストの再描画
     gl.flush();
@@ -261,14 +213,30 @@ ALGO.WebGLRenderer = (function(ALGO) {
    * [resize description]
    * @return {[type]} [description]
    */
-  function resize() {
+  function resize(){
+
+    ALGO.log(canvas.width + ': ' + canvas.height);
+
     cw = canvas.width;
     ch = canvas.height;
+    // zoom = 10 : 1.0 = 25px
+    var ratio = cw / ch * 125;
+    sw = cw / ( 250 / zoom );
+    sh = ch / ( 250 / zoom );
+    sx = - sw * 0.5;
+    sy = - sh * 0.5;
 
-    m.identity(v_matrix);
-    m.identity(p_matrix);
-    m.identity(tmp_matrix);
-    m.identity(mvp_matrix);
+    sw = 20;
+    sh = 10;
+    sx = -10;
+    sy = -5;
+
+    ALGO.log( sx + ', ' + sy + ', ' + sw + ', ' + sh );
+
+    m.identity( v_matrix );
+    m.identity( p_matrix );
+    m.identity( tmp_matrix );
+    m.identity( mvp_matrix );
 
     // ビュー座標変換行列
     m.lookAt([0.0, 0.0, zoom], [0, 0, 0], [0, 1, 0], v_matrix);
@@ -280,7 +248,7 @@ ALGO.WebGLRenderer = (function(ALGO) {
     var resolution_location = gl.getUniformLocation(program, "u_resolution");
     gl.uniform2f(resolution_location, canvas.width, canvas.height);
 
-    gl.viewport(0, 0, cw, ch);
+    gl.viewport( 0, 0, cw, ch );
   };
 
   /**
@@ -368,18 +336,24 @@ ALGO.WebGLRenderer = (function(ALGO) {
     var shader_script = '';
     if (type == 'vertex') {
       shader_script = '\
-      attribute vec2 position2d;\
-      uniform mat3 matrix2d;\
-      uniform vec2 u_resolution;\
+      attribute vec3 position;\
       attribute vec4 color;\
+      uniform   mat4 mvp_matrix;\
       varying   vec4 v_color; \
       uniform float point_size;\
       \
+      attribute vec2 position2d;\
+      uniform vec2 u_resolution;\
+      \
       void main(void){\
         v_color = color;\
+        gl_Position = mvp_matrix * vec4(position, 1.0);\
         gl_PointSize = point_size;\
         \
-        gl_Position = vec4((matrix2d * vec3(position2d, 1)).xy, 0, 1);\
+        vec2 zeroToOne = position2d / u_resolution;\
+        vec2 zeroToTwo = zeroToOne * 2.0;\
+        vec2 clipSpace = zeroToTwo - 1.0;\
+        gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);\
       }';
       shader = gl.createShader(gl.VERTEX_SHADER);
     } else if (type == 'fragment') {

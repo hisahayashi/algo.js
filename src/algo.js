@@ -7,16 +7,6 @@
  * Copyright 2015 hisa hayashi, HYS INC.
  */
 
-/**
- * @api {get} /user/:id Request User information
- * @apiName GetUser
- * @apiGroup User
- *
- * @apiParam {Number} id Users unique ID.
- *
- * @apiSuccess {String} firstname Firstname of the User.
- * @apiSuccess {String} lastname  Lastname of the User.
- */
 var ALGO = (function () {
   'use strict';
 
@@ -118,6 +108,8 @@ var ALGO = (function () {
     };
     window.onresize = function () {
       if (that.resize) that.resize.call(that);
+      // renderer
+      if( that.renderer ) that.renderer.resize();
     };
     that.render.startRender();
   };
@@ -185,6 +177,16 @@ var ALGO = (function () {
   function size(w, h) {
     that.canvas.width = w;
     that.canvas.height = h;
+    that.width = w;
+    that.height = h;
+  };
+
+  function add( shape ){
+    shape.add( that );
+  };
+
+  function remove( shape ){
+    shape.remove( that );
   };
 
   ALGO.prototype = {
@@ -211,6 +213,8 @@ var ALGO = (function () {
     bind: bind,
     unbind: unbind,
     size: size,
+    add: add,
+    remove: remove,
     /**
      * Child Class
      */

@@ -7,16 +7,6 @@
  * Copyright 2015 hisa hayashi, HYS INC.
  */
 
-/**
- * @api {get} /user/:id Request User information
- * @apiName GetUser
- * @apiGroup User
- *
- * @apiParam {Number} id Users unique ID.
- *
- * @apiSuccess {String} firstname Firstname of the User.
- * @apiSuccess {String} lastname  Lastname of the User.
- */
 var ALGO = (function () {
   'use strict';
 
@@ -118,6 +108,8 @@ var ALGO = (function () {
     };
     window.onresize = function () {
       if (that.resize) that.resize.call(that);
+      // renderer
+      if( that.renderer ) that.renderer.resize();
     };
     that.render.startRender();
   };
@@ -185,6 +177,16 @@ var ALGO = (function () {
   function size(w, h) {
     that.canvas.width = w;
     that.canvas.height = h;
+    that.width = w;
+    that.height = h;
+  };
+
+  function add( shape ){
+    shape.add( that );
+  };
+
+  function remove( shape ){
+    shape.remove( that );
   };
 
   ALGO.prototype = {
@@ -211,6 +213,8 @@ var ALGO = (function () {
     bind: bind,
     unbind: unbind,
     size: size,
+    add: add,
+    remove: remove,
     /**
      * Child Class
      */
@@ -1117,19 +1121,273 @@ ALGO.Render = (function() {
  * ALGO.Shape
  */
 ALGO.Shape = (function() {
-
   'use strict';
 
-  ALGO.Shape = function() {
-    ALGO.log('ALGO.Shape');
+  /**
+   * Private Variables
+   */
+  var that;
+
+  ALGO.Shape = function(_x, _y, _angles, _radius) {
+    // ALGO.log('ALGO.Shape');
+
+    that = this;
+    that.x = _x;
+    that.y = _y;
+    that.angles = _angles;
+    that.radius = _radius;
+
+    // define
+    that.angles_ = _angles;
+    that.radius_ = _radius;
+
+    init();
+  };
+
+  /**
+   * [init description]
+   * @return {[type]} [description]
+   */
+  function init() {
+    // set matrix
+    that.matrix = new ALGO.Matrix();
+    that.matrix.create();
+
+    /* 頂点の位置を算出 */
+    var angle_points = [];
+    for (var i = 0; i < that.angles; i++) {
+      angle_points[i] = {};
+      angle_points[i].x = that.radius * Math.cos(2 * i * Math.PI / that.angles - Math.PI / 2);
+      angle_points[i].y = that.radius * Math.sin(2 * i * Math.PI / that.angles - Math.PI / 2);
+    }
+
+    var vp = [];
+    var vc = [];
+    var cl = ALGO.ColorUtil.hexToRgbNormalize( that.color );
+
+    for( i = 0; i < angle_points.length; i++ ){
+      // point
+      vp.push( angle_points[i].x );
+      vp.push( angle_points[i].y );
+
+      // color
+      vc.push( cl.r );
+      vc.push( cl.g );
+      vc.push( cl.b );
+      vc.push( that.alpha );
+    }
+    that.vertexPosition = vp;
+
+    // ALGO.log( vp );
+    // ALGO.log( vc );
+
+
+    // set vertex colors
+    // var vc = [
+    //   1.0, 0.0, 0.0, 1.0,
+    //   0.0, 1.0, 0.0, 1.0,
+    //   0.0, 0.0, 1.0, 1.0,
+    //   1.0, 1.0, 1.0, 1.0
+    // ];
+    that.vertexColors = vc;
+
+    // set index
+    var index = [];
+
+    // set index
+    for( i = 1; i < that.angles - 1; i++ ){
+      index.push( 0 );
+      index.push( i );
+      index.push( i+1 );
+    }
+
+    that.index = index;
+  };
+
+  /**
+   * [add description]
+   * @param {[type]} root [description]
+   */
+  function add(root) {
+    if (!that.id) {
+      that.id = ALGO.ShapeCtrl.createID(root.displayObjects, 8);
+    }
+    root.displayObjects.push(that.id);
+    root.children.push(that);
+  };
+
+  /**
+   * [remove description]
+   * @param  {[type]} root [description]
+   * @return {[type]}      [description]
+   */
+  function remove(root) {
+    var object_index = root.displayObjects.indexOf(id);
+    if (object_index > -1) {
+      root.displayObjects.splice(object_index, 1);
+      root.children.splice(object_index, 1);
+      that = null;
+      // ALGO.log(that);
+    }
+  };
+
+  /**
+   * [clone description]
+   * @return {[type]} [description]
+   */
+  function clone() {};
+
+  /**
+   * [clone description]
+   * @return {[type]} [description]
+   */
+  function setVertexColor(color) {
+    var vc = that.vertexColors;
+    var length = vc.length;
+    var cl = ALGO.ColorUtil.hexToRgbNormalize(color);
+
+    for (var i = 0; i < length; i += 4) {
+      vc[i] = cl.r;
+      vc[i + 1] = cl.g;
+      vc[i + 2] = cl.b;
+    }
+  };
+
+  function setVertexAlpha(alpha) {
+    var vc = that.vertexColors;
+    var length = vc.length;
+
+    for (var i = 0; i < length; i += 4) {
+      vc[i + 3] = alpha;
+    }
   };
 
   ALGO.Shape.prototype = {
-    constructor: ALGO.Shape
+    constructor: ALGO.Shape,
+    /**
+     * Property
+     */
+    name: '',
+    type: 'shape',
+    id: null,
+    x: 0,
+    y: 0,
+    width: null,
+    height: null,
+    angles: 3,
+    radius: null,
+    alpha: 1.0,
+    visible: true,
+    color: 0xffffff,
+    scale: 1,
+    rotate: 0,
+    parent: undefined,
+    matrix: undefined,
+    children: [],
+    geometry: [],
+    vertexPosition: [],
+    vertexColors: [],
+    index: [],
+
+    /**
+     * define getter/setter
+     */
+    scale_: 1,
+    radius_: null,
+    color_: 0xffffff,
+    alpha_: 1.0,
+    angle_: 3,
+
+    /**
+     * Method
+     */
+    add: add,
+    remove: remove,
+    clone: clone,
+    setVertexColor: setVertexColor,
+    setVertexAlpha: setVertexAlpha
   };
 
   return ALGO.Shape;
 }());
+
+
+/**
+ * Define Getter / Setter
+ */
+ALGO.Shape.prototype.__defineGetter__('scale', function() {
+  // ALGO.log('define getter: scale');
+  return this.scale_;
+});
+
+ALGO.Shape.prototype.__defineSetter__('scale', function(value) {
+  // ALGO.log('define setter: scale');
+  this.scale_ = value;
+});
+
+ALGO.Shape.prototype.__defineGetter__('radius', function() {
+  // ALGO.log('define getter: radius');
+  return this.radius_;
+});
+
+ALGO.Shape.prototype.__defineSetter__('radius', function(value) {
+  // ALGO.log('define setter: radius');
+  this.radius_ = value;
+});
+
+ALGO.Shape.prototype.__defineGetter__('color', function() {
+  // ALGO.log('define getter: color');
+  return this.color_;
+});
+
+ALGO.Shape.prototype.__defineSetter__('color', function(value) {
+  // ALGO.log('define setter: color');
+  this.setVertexColor(value);
+  this.color_ = value;
+});
+
+ALGO.Shape.prototype.__defineGetter__('alpha', function() {
+  // ALGO.log('define getter: alpha');
+  return this.alpha_;
+});
+
+ALGO.Shape.prototype.__defineSetter__('alpha', function(value) {
+  // ALGO.log('define setter: alpha');
+  this.setVertexAlpha(value);
+  this.alpha_ = value;
+});
+
+ALGO.Shape.prototype.__defineGetter__('angle', function() {
+  // ALGO.log('define getter: angle');
+  return this.angle_;
+});
+
+ALGO.Shape.prototype.__defineSetter__('angle', function(value) {
+  // ALGO.log('define setter: angle');
+  this.angle_ = value;
+});
+
+/**
+ * ALGO.ShapeCtrl
+ */
+ALGO.ShapeCtrl = {
+
+  createID: function( _ary, _length ){
+    var strings = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    var length = ( _length )? _length: 12;
+    var id = '';
+    for( var i = 0; i < length; i++ ){
+      var c_length = strings.length;
+      var c_index = Math.floor( Math.random() * c_length );
+      id += strings.charAt( c_index );
+    }
+    if( _ary.indexOf( id ) > -1 ){
+      arguments.callee( _ary, _length );
+    }
+    return id;
+  }
+
+};
 
 /**
  * ALGO.StringUtil
@@ -1336,6 +1594,8 @@ ALGO.prototype.backgroundAlpha = 0.5;
 ALGO.prototype.depth = 1.0;
 ALGO.prototype.framerate = 60;
 ALGO.prototype.canvas = null;
+ALGO.prototype.displayObjects = [];
+ALGO.prototype.children = [];
 
 /**
  * ALGO.WebGLRenderer
@@ -1345,8 +1605,6 @@ ALGO.WebGLRenderer = (function(ALGO) {
 
   var that;
   var gl;
-  var v_shader;
-  var f_shader;
   var vbuffers = [];
   var ibuffer = [];
   var texture = [];
@@ -1357,8 +1615,18 @@ ALGO.WebGLRenderer = (function(ALGO) {
   var index;
   var point_size = 10;
 
+  var cw, ch;
+  var sw, sh;
+  var sx, sy;
 
-  var count = 0;
+  var m;
+  var v_matrix;
+  var p_matrix;
+  var tmp_matrix;
+  var mvp_matrix;
+  var uni_location;
+
+  var zoom = 5.0;
 
   /**
    * renderer properties
@@ -1368,6 +1636,8 @@ ALGO.WebGLRenderer = (function(ALGO) {
   var backgroundAlpha;
   var backgroundAuto;
   var depth;
+  var children;
+  var displayObjects;
 
   /**
    * Constructor
@@ -1377,22 +1647,258 @@ ALGO.WebGLRenderer = (function(ALGO) {
     that = _that;
 
     updateParameter(that);
-    initContext();
-    setupShader();
-    setupVbo();
-    setupMatrix();
+
+
+
+    // webglコンテキストを取得
+    gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+
+    // 頂点シェーダとフラグメントシェーダの生成
+    var v_shader = createShader('vertex');
+    var f_shader = createShader('fragment');
+
+    // プログラムオブジェクトの生成とリンク
+    program = createProgram(v_shader, f_shader);
+
+
+
+
+    // Matrix を用いた行列関連処理
+    m = new ALGO.Matrix();
+
+    // 各種行列の生成と初期化
+    v_matrix = m.identity(m.create());
+    p_matrix = m.identity(m.create());
+
+    tmp_matrix = m.identity(m.create());
+
+    /* モデルビュープロジェクションのマトリックス */
+    mvp_matrix = m.identity(m.create());
+
+    resize();
+
+    // uniformLocationの取得
+    uni_location = {};
+    uni_location.position = gl.getUniformLocation(program, 'position2d');
+    uni_location.matrix = gl.getUniformLocation(program, 'matrix2d');
+    uni_location.color = gl.getUniformLocation(program, 'color');
+    uni_location.point_size = gl.getUniformLocation(program, 'point_size');
+
+
+    // attributeLocationの取得
+    attr_location = {};
+    attr_location.position = gl.getAttribLocation(program, 'position2d');
+    attr_location.color = gl.getAttribLocation(program, 'color');
+
+    /*
+    attr_location はpositionがattributeの何番目なのかを持っている
+    attributeの要素数(この場合は xyz の3要素)
+     */
+    attr_stride = {};
+    attr_stride.position = 2; // vertex
+    attr_stride.color = 4; // index
+
+    render();
+
+    // gl.viewport( 0, 0, screen.width, screen.height );
+    // gl.flush();
+    // gl.viewport( 0, 0, canvas.width, canvas.height );
   };
+
+
+  function make2DProjection(width, height) {
+    // Note: This matrix flips the Y axis so 0 is at the top.
+    return [
+      2 / width, 0, 0,
+      0, -2 / height, 0, -1, 1, 1
+    ];
+  }
+
+
+  function makeTranslation(tx, ty) {
+    return [
+      1, 0, 0,
+      0, 1, 0,
+      tx, ty, 1
+    ];
+  }
+
+  function makeRotation(angleInRadians) {
+    var c = Math.cos(angleInRadians);
+    var s = Math.sin(angleInRadians);
+    return [
+      c, -s, 0,
+      s, c, 0,
+      0, 0, 1
+    ];
+  }
+
+  function makeScale(sx, sy) {
+    return [
+      sx, 0, 0,
+      0, sy, 0,
+      0, 0, 1
+    ];
+  }
+
+  function matrixMultiply(a, b) {
+    var a00 = a[0 * 3 + 0];
+    var a01 = a[0 * 3 + 1];
+    var a02 = a[0 * 3 + 2];
+    var a10 = a[1 * 3 + 0];
+    var a11 = a[1 * 3 + 1];
+    var a12 = a[1 * 3 + 2];
+    var a20 = a[2 * 3 + 0];
+    var a21 = a[2 * 3 + 1];
+    var a22 = a[2 * 3 + 2];
+    var b00 = b[0 * 3 + 0];
+    var b01 = b[0 * 3 + 1];
+    var b02 = b[0 * 3 + 2];
+    var b10 = b[1 * 3 + 0];
+    var b11 = b[1 * 3 + 1];
+    var b12 = b[1 * 3 + 2];
+    var b20 = b[2 * 3 + 0];
+    var b21 = b[2 * 3 + 1];
+    var b22 = b[2 * 3 + 2];
+    return [a00 * b00 + a01 * b10 + a02 * b20,
+      a00 * b01 + a01 * b11 + a02 * b21,
+      a00 * b02 + a01 * b12 + a02 * b22,
+      a10 * b00 + a11 * b10 + a12 * b20,
+      a10 * b01 + a11 * b11 + a12 * b21,
+      a10 * b02 + a11 * b12 + a12 * b22,
+      a20 * b00 + a21 * b10 + a22 * b20,
+      a20 * b01 + a21 * b11 + a22 * b21,
+      a20 * b02 + a21 * b12 + a22 * b22
+    ];
+  }
 
   /**
    * Init
    */
-  function initContext() {
-    // webglコンテキストを取得
-    gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+  function render() {
 
+    var translation = [100, 100];
+    var angleInRadians = 0;
+    var scale = [1, 1];
+
+    var projectionMatrix = make2DProjection(canvas.width, canvas.height);
+
+    for (var i = 0; i < children.length; i++) {
+
+      var object = children[i];
+
+      // モデル(頂点)データ
+      var vertex_position = object.vertexPosition;
+
+      // 頂点の色情報を格納する配列
+      var vertex_color = object.vertexColors;
+
+      // VBOの生成
+      var vbo = [];
+      // Set Geometry
+      vbo.position = createVbo(vertex_position);
+      vbo.color = createVbo(vertex_color);
+      setVBOAttribute(vbo, attr_location, attr_stride);
+
+      index = object.index;
+
+      // IBOの生成
+      var ibo = [];
+      ibo[0] = createIbo(index);
+
+      // IBOをバインドして登録する
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo[0]);
+
+      var m_matrix = object.matrix;
+
+      scale[0] = object.scale;
+      scale[1] = object.scale;
+      angleInRadians = object.rotate * Math.PI / 180;
+
+      // Compute the matrices
+      var projectionMatrix = make2DProjection(canvas.width, canvas.height);
+      var translationMatrix = makeTranslation(object.x, object.y);
+      var rotationMatrix = makeRotation(angleInRadians);
+      var scaleMatrix = makeScale(scale[0], scale[1]);
+
+      // Multiply the matrices.
+      var matrix = matrixMultiply(scaleMatrix, rotationMatrix);
+      matrix = matrixMultiply(matrix, translationMatrix);
+      matrix = matrixMultiply(matrix, projectionMatrix);
+
+      // Set the matrix.
+      gl.uniformMatrix3fv(uni_location.matrix, false, matrix);
+
+      gl.drawElements(gl.TRIANGLES, index.length, gl.UNSIGNED_SHORT, 0);
+
+      // object.x;
+      // object.y;
+      // object.width;
+      // object.height;
+      // object.rotate;
+      // object.scale;
+      /*
+            // 一つ目のモデルを移動するためのモデル座標変換行列
+            m.identity(m_matrix);
+            // m.translate(m_matrix, [ x, y, 0.0], m_matrix);
+            // m.scale(m_matrix, [3.0, 3.0, 3.0], m_matrix);
+            // m.rotate(m_matrix, rad, [0, 1, 0], m_matrix);
+            m.multiply(tmp_matrix, m_matrix, mvp_matrix);
+            gl.uniformMatrix4fv(uni_location.position, false, mvp_matrix);
+            // gl.drawArrays(gl.TRIANGLES, 0, 3);
+            gl.drawElements(gl.TRIANGLES, index.length, gl.UNSIGNED_SHORT, 0);
+            */
+
+    }
+
+    // コンテキストの再描画
+    gl.flush();
+
+  };
+
+  /**
+   * [resize description]
+   * @return {[type]} [description]
+   */
+  function resize() {
+    cw = canvas.width;
+    ch = canvas.height;
+
+    m.identity(v_matrix);
+    m.identity(p_matrix);
+    m.identity(tmp_matrix);
+    m.identity(mvp_matrix);
+
+    // ビュー座標変換行列
+    m.lookAt([0.0, 0.0, zoom], [0, 0, 0], [0, 1, 0], v_matrix);
+    // プロジェクション座標変換行列
+    m.perspective(90, canvas.width / canvas.height, 0.01, 1000, p_matrix);
+    // 各行列を掛け合わせ座標変換行列を完成させる
+    m.multiply(p_matrix, v_matrix, tmp_matrix);
+
+    var resolution_location = gl.getUniformLocation(program, "u_resolution");
+    gl.uniform2f(resolution_location, canvas.width, canvas.height);
+
+    gl.viewport(0, 0, cw, ch);
+  };
+
+  /**
+   * [update description]
+   * @return {[type]} [description]
+   */
+  function update() {
+    // gl.drawingBufferWidth = that.width;
+    // gl.drawingBufferHeight = that.height;
+
+    updateParameter(that);
     updateDepth();
-    updateBackground();
-    updateCanvas();
+
+    if (backgroundAuto) {
+      updateBackground();
+      updateCanvas();
+    }
+
+    drawGraphic();
   };
 
   /**
@@ -1406,6 +1912,11 @@ ALGO.WebGLRenderer = (function(ALGO) {
     backgroundAlpha = that.backgroundAlpha;
     backgroundAuto = that.backgroundAuto;
     depth = that.depth;
+    children = that.children;
+    displayObjects = that.displayObjects;
+
+    // ALGO.log( that.children );
+    // ALGO.log( that.displayObjects );
   };
 
   /**
@@ -1441,159 +1952,7 @@ ALGO.WebGLRenderer = (function(ALGO) {
    * @return {[type]} [description]
    */
   function drawGraphic() {
-    setupMatrix();
-  };
-
-  /**
-   * [update description]
-   * @return {[type]} [description]
-   */
-  function update() {
-    // gl.drawingBufferWidth = that.width;
-    // gl.drawingBufferHeight = that.height;
-
-    updateParameter(that);
-    updateDepth();
-    updateBackground();
-    if (backgroundAuto) {
-      updateCanvas();
-    }
-    drawGraphic();
-  };
-
-  /**
-   * [setupShader description]
-   * @return {[type]} [description]
-   */
-  function setupShader() {
-    // ALGO.log(gl);
-
-    // 頂点シェーダとフラグメントシェーダの生成
-    v_shader = createShader('vertex');
-    f_shader = createShader('fragment');
-    // ALGO.log(v_shader);
-    // ALGO.log(f_shader);
-
-    // プログラムオブジェクトの生成とリンク
-    program = createProgram(v_shader, f_shader);
-    // ALGO.log(program);
-
-    // attributeLocationの取得
-    attr_location = [];
-    attr_location[0] = gl.getAttribLocation(program, 'position');
-    attr_location[1] = gl.getAttribLocation(program, 'color');
-    // ALGO.log(attr_location);
-  };
-
-  /**
-   * [setupVbo description]
-   * @return {[type]} [description]
-   */
-  function setupVbo() {
-    /*
-    attr_location はpositionがattributeの何番目なのかを持っている
-     */
-
-    // attributeの要素数(この場合は xyz の3要素)
-    attr_stride = [];
-    attr_stride[0] = 3;
-    attr_stride[1] = 4;
-
-    // モデル(頂点)データ
-    var vertex_position = [
-         0.0,  1.0,  0.0,
-         1.0,  0.0,  0.0,
-        -1.0,  0.0,  0.0,
-         0.0, -1.0,  0.0
-    ];
-
-    // 頂点の色情報を格納する配列
-    var vertex_color = [
-        1.0, 0.0, 0.0, 1.0,
-        0.0, 1.0, 0.0, 1.0,
-        0.0, 0.0, 1.0, 1.0,
-        1.0, 1.0, 1.0, 1.0
-    ];
-
-    // VBOの生成
-    var vbo = [];
-    vbo[0] = createVbo(vertex_position);
-    vbo[1] = createVbo(vertex_color);
-    setAttribute(vbo, attr_location, attr_stride);
-
-    index = [
-      0, 1, 2,
-      1, 2, 3
-    ];
-
-    // IBOの生成
-    var ibo = createIbo(index);
-
-    // IBOをバインドして登録する
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);
-  };
-
-  /**
-   * [setupMatrix description]
-   * @return {[type]} [description]
-   */
-  function setupMatrix() {
-
-    // Matrix を用いた行列関連処理
-    var m = new ALGO.Matrix();
-
-    // 各種行列の生成と初期化
-    var m_matrix = m.identity(m.create());
-    var v_matrix = m.identity(m.create());
-    var p_matrix = m.identity(m.create());
-
-    var tmp_matrix = m.identity(m.create());
-
-    /* モデルビュープロジェクションのマトリックス */
-    var mvp_matrix = m.identity(m.create());
-
-    // カウンタをインクリメントする
-    count += 1;
-    // カウンタを元にラジアンを算出
-    var rad = (count % 360) * Math.PI / 180;
-
-    // ビュー座標変換行列
-    m.lookAt([0.0, 0.0, 5.0], [0, 0, 0], [0, 1, 0], v_matrix);
-    // プロジェクション座標変換行列
-    m.perspective(90, canvas.width / canvas.height, 0.1, 100, p_matrix);
-    // 各行列を掛け合わせ座標変換行列を完成させる
-    m.multiply(p_matrix, v_matrix, tmp_matrix);
-
-    // uniformLocationの取得
-    var uni_location = [];
-    uni_location[0] = gl.getUniformLocation(program, 'mvp_matrix');
-    uni_location[1]  = gl.getUniformLocation(program, 'point_size');
-
-    // 一つ目のモデルを移動するためのモデル座標変換行列
-    m.identity(m_matrix);
-    m.translate(m_matrix, [1.5, 0.0, 0.0], m_matrix);
-    m.rotate(m_matrix, rad, [0, 1, 0], m_matrix);
-    m.multiply(tmp_matrix, m_matrix, mvp_matrix);
-    gl.uniformMatrix4fv(uni_location[0], false, mvp_matrix);
-    // gl.drawArrays(gl.TRIANGLES, 0, 3);
-    gl.drawElements(gl.TRIANGLES, index.length, gl.UNSIGNED_SHORT, 0);
-
-    // 二つ目のモデルを移動するためのモデル座標変換行列
-    m.identity(m_matrix);
-    m.translate(m_matrix, [-1.5, 0.0, 0.0], m_matrix);
-    m.rotate(m_matrix, -rad, [0, 1, 0], m_matrix);
-    m.multiply(tmp_matrix, m_matrix, mvp_matrix);
-
-    // uniformLocationへ座標変換行列を登録
-    gl.uniformMatrix4fv(uni_location[0], false, mvp_matrix);
-    gl.uniform1f(uni_location[1], point_size);
-    // gl.drawArrays(gl.TRIANGLES, 0, 3);
-    // gl.drawElements(gl.TRIANGLES, index.length, gl.UNSIGNED_SHORT, 0);
-    // gl.drawElements(gl.POINTS, index.length, gl.UNSIGNED_SHORT, 0);
-    gl.drawElements(gl.LINES, index.length, gl.UNSIGNED_SHORT, 0);
-
-    // コンテキストの再描画
-    gl.flush();
+    render();
   };
 
   // シェーダを生成する関数
@@ -1608,16 +1967,18 @@ ALGO.WebGLRenderer = (function(ALGO) {
     var shader_script = '';
     if (type == 'vertex') {
       shader_script = '\
-      attribute vec3 position;\
+      attribute vec2 position2d;\
+      uniform mat3 matrix2d;\
+      uniform vec2 u_resolution;\
       attribute vec4 color;\
-      uniform   mat4 mvp_matrix;\
       varying   vec4 v_color; \
       uniform float point_size;\
       \
       void main(void){\
         v_color = color;\
-        gl_Position = mvp_matrix * vec4(position, 1.0);\
         gl_PointSize = point_size;\
+        \
+        gl_Position = vec4((matrix2d * vec3(position2d, 1)).xy, 0, 1);\
       }';
       shader = gl.createShader(gl.VERTEX_SHADER);
     } else if (type == 'fragment') {
@@ -1643,27 +2004,6 @@ ALGO.WebGLRenderer = (function(ALGO) {
     } else {
       // 失敗していたらエラーログをアラートする
       alert(gl.getShaderInfoLog(shader));
-    }
-  };
-
-  // VBOをバインドし登録する関数
-  /**
-   * [setAttribute description]
-   * @param {[type]} vbo  [description]
-   * @param {[type]} attL [description]
-   * @param {[type]} attS [description]
-   */
-  function setAttribute(vbo, attL, attS) {
-    // 引数として受け取った配列を処理する
-    for (var i in vbo) {
-      // バッファをバインドする
-      gl.bindBuffer(gl.ARRAY_BUFFER, vbo[i]);
-
-      // attributeLocationを有効にする
-      gl.enableVertexAttribArray(attL[i]);
-
-      // attributeLocationを通知し登録する
-      gl.vertexAttribPointer(attL[i], attS[i], gl.FLOAT, false, 0, 0);
     }
   };
 
@@ -1738,9 +2078,31 @@ ALGO.WebGLRenderer = (function(ALGO) {
     return ibo;
   };
 
+  // VBOをバインドし登録する関数
+  /**
+   * [setVBOAttribute description]
+   * @param {[type]} vbo  [description]
+   * @param {[type]} attL [description]
+   * @param {[type]} attS [description]
+   */
+  function setVBOAttribute(vbo, attL, attS) {
+    // 引数として受け取った配列を処理する
+    for (var i in vbo) {
+      // バッファをバインドする
+      gl.bindBuffer(gl.ARRAY_BUFFER, vbo[i]);
+
+      // attributeLocationを有効にする
+      gl.enableVertexAttribArray(attL[i]);
+
+      // attributeLocationを通知し登録する
+      gl.vertexAttribPointer(attL[i], attS[i], gl.FLOAT, false, 0, 0);
+    }
+  };
+
   ALGO.WebGLRenderer.prototype = {
     constructor: ALGO.WebGLRenderer,
-    update: update
+    update: update,
+    resize: resize,
   };
 
   return ALGO.WebGLRenderer;

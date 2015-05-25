@@ -14,6 +14,7 @@ var selector = {
     'src/render.js',
     'src/matrix.js',
 
+    'src/shape/shapeCtrl.js',
     'src/shape/shape.js',
     'src/shape/circle.js',
 

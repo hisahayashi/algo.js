@@ -13,8 +13,10 @@ font-size: 0;
 background-color: #000000;
 }
 canvas {
+
 width: 100%;
-height: 100%
+height: 100%;
+
 }
 </style>
 </head>
@@ -35,17 +37,62 @@ var algo = new ALGO( param );
 
 algo.width = window.innerWidth;
 algo.height = window.innerHeight;
-algo.backgroundAuto = true;
 algo.background = 0xdddddd;
+algo.backgroundAuto = true;
 algo.backgroundAlpha = 0.8;
-algo.depth = 0.8;
-algo.framerate = 6;
+algo.depth = 1.0;
+algo.framerate = 60;
 algo.blendMode = ALGO.BLEND_ALPHA;
 
 ALGO.log( algo );
 
+var t1;
+var triangles = [];
+
 algo.bind('setup', function(){
   // ALGO.log('setup after');
+
+  t1 = new ALGO.Shape( 100, 100, 3, 10 );
+  t1.x = 0;
+  t1.y = 0;
+  t1.scale = 10;
+  t1.color = 0xffff00;
+  t1.radius = 100;
+  t1.alpha = 0.3;
+  algo.add( t1 );
+
+  t2 = new ALGO.Shape( 100, 100, 5, 10 );
+  t2.x = 100;
+  t2.y = 100;
+  t1.color = 0xffffff;
+  t2.scale = 10;
+  algo.add( t2 );
+
+  t3 = new ALGO.Shape( 100, 100, 4, 10 );
+  t3.x = 300;
+  t3.y = 300;
+  t1.color = 0x000000;
+  t3.scale = 10;
+  t3.rotate = 30;
+  algo.add( t3 );
+
+  t4 = new ALGO.Shape( 100, 100, 4, 10 );
+  t4.x = 300;
+  t4.y = 300;
+  t1.color = 0xff0000;
+  t4.scale = 10;
+  algo.add( t4 );
+
+  for( var i = 0; i < 50; i++ ){
+    var t = new ALGO.Shape( Math.random() * algo.width, Math.random() * algo.height, 3, 10 );
+    t.dx = Math.random();
+    t.dy = Math.random();
+    algo.add( t );
+    triangles.push( t );
+  }
+
+  // ALGO.log( algo.children );
+  // ALGO.log( algo.displayObjects );
 });
 
 algo.bind('frame', function(){
@@ -58,6 +105,24 @@ algo.bind('frame', function(){
   var hex = ALGO.ColorUtil.rgbToHex( r, g, b );
   algo.background = hex;
 */
+
+  t2.x = algo.width;
+  t2.y = 0;
+
+  t3.x = algo.width;
+  t3.y = algo.height;
+
+  t4.x = 0;
+  t4.y = algo.height;
+
+  t3.rotate += 1;
+
+  for( var i = 0; i < 50; i++ ){
+    var t = triangles[i];
+    t.x += t.dx;
+    t.y += t.dy;
+  }
+
 });
 
 algo.bind('resize', function(){
@@ -86,13 +151,13 @@ circle.color = 0xffffff;
 circle.radius = 100;
 circle.draw();
 
-var triangle = new ALGO.Polygon( x, y, angles, radius );
-triangle.x = 10;
-triangle.y = 10;
-triangle.scale = 10;
-triangle.color = 0xffffff;
-triangle.radius = 100;
-triangle.draw();
+var t1 = new ALGO.Polygon( x, y, angles, radius );
+t1.x = 10;
+t1.y = 10;
+t1.scale = 10;
+t1.color = 0xffffff;
+t1.radius = 100;
+t1.draw();
 
 var line = new ALGO.Line( x, y, x1, y1 );
 line.x = 10;
@@ -100,15 +165,15 @@ line.y = 10;
 line.scale = 10;
 line.color = 0xffffff;
 line.lineWidth = 10;
-line.moveTo( 100, 100 );
-line.lineTo( 100, 100 );
+line.moveTo( 100, 10 );
+line.lineTo( 100, 10 );
 line.draw();
 
 var particle = new ALGO.Particle( x, y );
 particle.x  = 10;
 particle.y  = 10;
 particle.color = 0xffffff;
-particle.size = 1;
+particle.radius = 0.5;
 particle.draw();
 */
 </script>

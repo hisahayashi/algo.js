@@ -35,3 +35,5 @@ ALGO.prototype.backgroundAlpha = 0.5;
 ALGO.prototype.depth = 1.0;
 ALGO.prototype.framerate = 60;
 ALGO.prototype.canvas = null;
+ALGO.prototype.displayObjects = [];
+ALGO.prototype.children = [];
