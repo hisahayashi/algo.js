@@ -1,3 +1,4 @@
-/src/_*.js
+*/_*.js
+**/_*.js
 node_modules
 *.DS_Store
