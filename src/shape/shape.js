@@ -129,7 +129,7 @@ ALGO.Shape = (function() {
   function setRotate(rotate){
     if( this.m ){
       var rad = rotate * Math.PI / 180;
-      this.m.rotate( this.matrix, rad, [ 0, 1, 0 ], this.matrixRotate );
+      this.m.rotate( this.matrix, rad, this.matrixRotate );
       // ALGO.log( 'rotate: ' + rotate );
       // ALGO.log( this.matrixRotate );
     }
@@ -147,7 +147,7 @@ ALGO.Shape = (function() {
     var tmpMatrix = null;
     if( this.m ){
       tmpMatrix = this.m.identity( this.m.create() );
-      this.m.multiply( this.matrix, this.matrixScale, tmpMatrix );
+      this.m.multiply( tmpMatrix, this.matrixScale, tmpMatrix );
       this.m.multiply( tmpMatrix, this.matrixRotate, tmpMatrix );
       this.m.multiply( tmpMatrix, this.matrixTranslate, tmpMatrix );
       // ALGO.log( tmpMatrix );

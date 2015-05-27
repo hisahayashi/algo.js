@@ -7,7 +7,7 @@ ALGO.Matrix3 = (function(ALGO) {
   /**
    * Constructor
    */
-  ALGO.Matrix3 = function(){
+  ALGO.Matrix3 = function() {
     // ALGO.log('ALGO.Matrix3');
     // return create();
   };
@@ -150,25 +150,27 @@ ALGO.Matrix3 = (function(ALGO) {
    * [rotate description]
    * @param  {[type]} mat   [description]
    * @param  {[type]} angle [description]
-   * @param  {[type]} axis  [description]
    * @param  {[type]} dest  [description]
    * @return {[type]}       [description]
    */
-  function rotate(mat, rad, axis, dest) {
+  function rotate(mat, rad, dest) {
     var c = Math.cos(rad);
     var s = Math.sin(rad);
-    dest[0] = mat[0] + c;
-    dest[1] = mat[1] - s;
+
+    dest[0] =  c;
+    dest[1] = -s;
     dest[2] = mat[2];
-    dest[3] = mat[3] + s;
-    dest[4] = mat[4] + c;
+
+    dest[3] = s;
+    dest[4] = c;
     dest[5] = mat[5];
+
     dest[6] = mat[6];
     dest[7] = mat[7];
     dest[8] = mat[8];
+
     return dest;
   };
-
 
   /**
    * [transpose description]
@@ -180,12 +182,15 @@ ALGO.Matrix3 = (function(ALGO) {
     dest[0] = mat[0];
     dest[1] = mat[3];
     dest[2] = mat[6];
+
     dest[3] = mat[1];
     dest[4] = mat[4];
     dest[5] = mat[7];
+
     dest[6] = mat[2];
     dest[7] = mat[5];
     dest[8] = mat[8];
+
     return dest;
   };
 
