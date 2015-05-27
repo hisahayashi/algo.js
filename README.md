@@ -13,7 +13,9 @@ algo.jsはメディアアートやモーションの実験を行うシンプル�
 - 構造がシンプルで軽量
 - （クリエイティブコーディングで使うノイズやサウンドの再生処理を包括）
 
+### デモ
 
+- [demo 01](https://rawgit.com/hisahayashi/algo.js/master/examples/index.html)
 
 
 # algo.js
@@ -31,6 +33,9 @@ And now it is in development, but it is coming soon.
 - Lightweight structure is simple
 - (Comprehensive playback processing of noise and sound to use in creative coding)
 
+### Examples
+
+- [demo 01](https://rawgit.com/hisahayashi/algo.js/master/examples/index.html)
 
 
 
