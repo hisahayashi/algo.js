@@ -1,14 +1,14 @@
 /**
- * ALGO.Matrix
+ * ALGO.Matrix4
  */
-ALGO.Matrix = (function(ALGO) {
+ALGO.Matrix4 = (function(ALGO) {
   'use strict';
 
   /**
    * Constructor
    */
-  ALGO.Matrix = function(){
-    // ALGO.log('ALGO.Matrix');
+  ALGO.Matrix4 = function(){
+    // ALGO.log('ALGO.Matrix4');
     // return create();
   };
 
@@ -420,8 +420,8 @@ ALGO.Matrix = (function(ALGO) {
     return dest;
   };
 
-  ALGO.Matrix.prototype = {
-    constructor: ALGO.Matrix,
+  ALGO.Matrix4.prototype = {
+    constructor: ALGO.Matrix4,
     create: create,
     identity: identity,
     multiply: multiply,
@@ -434,5 +434,5 @@ ALGO.Matrix = (function(ALGO) {
     inverse: inverse
   };
 
-  return ALGO.Matrix;
+  return ALGO.Matrix4;
 }(ALGO));

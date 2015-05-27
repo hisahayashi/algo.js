@@ -215,6 +215,7 @@ var ALGO = (function () {
     size: size,
     add: add,
     remove: remove,
+
     /**
      * Child Class
      */

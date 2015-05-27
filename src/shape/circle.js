@@ -1,17 +1,23 @@
 /**
  * ALGO.Circle
  */
-ALGO.Circle = (function() {
-
+ALGO.Circle = function( _x, _y, _radius ) {
   'use strict';
+  // ALGO.log( 'ALGO.Circle' );
+  this.x = _x;
+  this.y = _y;
+  this.angles = ALGO.circleResolution;
+  this.radius = _radius;
 
-  ALGO.Circle = function() {
-    ALGO.log('ALGO.Circle');
-  };
+  // define
+  this.angles_ = ALGO.circleResolution;
+  this.radius_ = _radius;
 
-  ALGO.Circle.prototype = {
-    constructor: ALGO.Circle
-  };
+  this.type = 'circle';
 
-  return ALGO.Circle;
-}());
+  this.init();
+  this.setup();
+};
+
+ALGO.Circle.prototype = Object.create( ALGO.Polygon.prototype );
+ALGO.Circle.prototype.constructor = ALGO.Circle;

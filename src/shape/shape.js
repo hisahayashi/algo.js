@@ -7,22 +7,17 @@ ALGO.Shape = (function() {
   /**
    * Private Variables
    */
-  var that;
-
-  ALGO.Shape = function(_x, _y, _angles, _radius) {
+  ALGO.Shape = function(_x, _y, _radius) {
     // ALGO.log('ALGO.Shape');
-
-    that = this;
-    that.x = _x;
-    that.y = _y;
-    that.angles = _angles;
-    that.radius = _radius;
+    this.x = _x;
+    this.y = _y;
+    this.radius = _radius;
 
     // define
-    that.angles_ = _angles;
-    that.radius_ = _radius;
+    this.radius_ = _radius;
 
-    init();
+    this.init();
+    this.setup();
   };
 
   /**
@@ -30,59 +25,40 @@ ALGO.Shape = (function() {
    * @return {[type]} [description]
    */
   function init() {
+    this.vertexPosition = [];
+    this.vertexColors = [];
+    this.index = [];
+
     // set matrix
-    that.matrix = new ALGO.Matrix();
-    that.matrix.create();
+    this.m = new ALGO.Matrix3();
+    this.matrix = this.m.identity(this.m.create());
+    this.matrixScale = this.m.identity(this.m.create());
+    this.matrixRotate = this.m.identity(this.m.create());
+    this.matrixTranslate = this.m.identity(this.m.create());
+  };
 
-    /* 頂点の位置を算出 */
-    var angle_points = [];
-    for (var i = 0; i < that.angles; i++) {
-      angle_points[i] = {};
-      angle_points[i].x = that.radius * Math.cos(2 * i * Math.PI / that.angles - Math.PI / 2);
-      angle_points[i].y = that.radius * Math.sin(2 * i * Math.PI / that.angles - Math.PI / 2);
-    }
-
-    var vp = [];
-    var vc = [];
-    var cl = ALGO.ColorUtil.hexToRgbNormalize( that.color );
-
-    for( i = 0; i < angle_points.length; i++ ){
-      // point
-      vp.push( angle_points[i].x );
-      vp.push( angle_points[i].y );
-
-      // color
-      vc.push( cl.r );
-      vc.push( cl.g );
-      vc.push( cl.b );
-      vc.push( that.alpha );
-    }
-    that.vertexPosition = vp;
-
-    // ALGO.log( vp );
-    // ALGO.log( vc );
-
-
-    // set vertex colors
-    // var vc = [
-    //   1.0, 0.0, 0.0, 1.0,
-    //   0.0, 1.0, 0.0, 1.0,
-    //   0.0, 0.0, 1.0, 1.0,
-    //   1.0, 1.0, 1.0, 1.0
-    // ];
-    that.vertexColors = vc;
-
-    // set index
-    var index = [];
-
-    // set index
-    for( i = 1; i < that.angles - 1; i++ ){
-      index.push( 0 );
-      index.push( i );
-      index.push( i+1 );
-    }
-
-    that.index = index;
+  /**
+   * [setup description]
+   * @return {[type]} [description]
+   */
+  function setup(){
+    var radius = this.radius;
+    var vp = [
+      0, -radius,
+      -radius, radius,
+      radius, radius
+    ];
+    var vc = [
+      0, 0, 0, 1,
+      0, 0, 0, 1,
+      0, 0, 0, 1
+    ];
+    var index = [
+      0, 1, 2
+    ];
+    this.vertexPosition = vp;
+    this.vertexColors = vc;
+    this.index = index;
   };
 
   /**
@@ -90,11 +66,11 @@ ALGO.Shape = (function() {
    * @param {[type]} root [description]
    */
   function add(root) {
-    if (!that.id) {
-      that.id = ALGO.ShapeCtrl.createID(root.displayObjects, 8);
+    if (!this.id) {
+      this.id = ALGO.ShapeCtrl.createID(root.displayObjects, 8);
     }
-    root.displayObjects.push(that.id);
-    root.children.push(that);
+    root.displayObjects.push(this.id);
+    root.children.push(this);
   };
 
   /**
@@ -107,8 +83,7 @@ ALGO.Shape = (function() {
     if (object_index > -1) {
       root.displayObjects.splice(object_index, 1);
       root.children.splice(object_index, 1);
-      that = null;
-      // ALGO.log(that);
+      // ALGO.log(this);
     }
   };
 
@@ -123,7 +98,7 @@ ALGO.Shape = (function() {
    * @return {[type]} [description]
    */
   function setVertexColor(color) {
-    var vc = that.vertexColors;
+    var vc = this.vertexColors;
     var length = vc.length;
     var cl = ALGO.ColorUtil.hexToRgbNormalize(color);
 
@@ -135,12 +110,49 @@ ALGO.Shape = (function() {
   };
 
   function setVertexAlpha(alpha) {
-    var vc = that.vertexColors;
+    var vc = this.vertexColors;
     var length = vc.length;
 
     for (var i = 0; i < length; i += 4) {
       vc[i + 3] = alpha;
     }
+  };
+
+  function setScale(scale){
+    if( this.m ){
+      this.m.scale( this.matrix, [ scale, scale, 0.0 ], this.matrixScale );
+      // ALGO.log( 'scale: ' + scale );
+      // ALGO.log( this.matrixScale );
+    }
+  };
+
+  function setRotate(rotate){
+    if( this.m ){
+      var rad = rotate * Math.PI / 180;
+      this.m.rotate( this.matrix, rad, [ 0, 1, 0 ], this.matrixRotate );
+      // ALGO.log( 'rotate: ' + rotate );
+      // ALGO.log( this.matrixRotate );
+    }
+  };
+
+  function setTranslate( x, y ){
+    if( this.m ){
+      this.m.translate( this.matrix, [ x, y, 0 ], this.matrixTranslate );
+      // ALGO.log( 'xy: ' + x + ', ' + y );
+      // ALGO.log( this.matrixTranslate );
+    }
+  };
+
+  function getMatrix(){
+    var tmpMatrix = null;
+    if( this.m ){
+      tmpMatrix = this.m.identity( this.m.create() );
+      this.m.multiply( this.matrix, this.matrixScale, tmpMatrix );
+      this.m.multiply( tmpMatrix, this.matrixRotate, tmpMatrix );
+      this.m.multiply( tmpMatrix, this.matrixTranslate, tmpMatrix );
+      // ALGO.log( tmpMatrix );
+    }
+    return tmpMatrix;
   };
 
   ALGO.Shape.prototype = {
@@ -163,30 +175,49 @@ ALGO.Shape = (function() {
     scale: 1,
     rotate: 0,
     parent: undefined,
+    m: undefined,
     matrix: undefined,
+    matrixScale: undefined,
+    matrixRotate: undefined,
+    matrixTranslate: undefined,
     children: [],
     geometry: [],
     vertexPosition: [],
     vertexColors: [],
+    needsUpdate: false,
     index: [],
 
     /**
      * define getter/setter
      */
+    x_: 0,
+    y_: 0,
     scale_: 1,
+    rotate_: 0,
     radius_: null,
     color_: 0xffffff,
     alpha_: 1.0,
     angle_: 3,
+    needsUpdate_: false,
 
     /**
      * Method
      */
+    init: init,
+    setup: setup,
     add: add,
     remove: remove,
     clone: clone,
+
+    /**
+     * Private Method
+     */
     setVertexColor: setVertexColor,
-    setVertexAlpha: setVertexAlpha
+    setVertexAlpha: setVertexAlpha,
+    setScale: setScale,
+    setRotate: setRotate,
+    setTranslate: setTranslate,
+    getMatrix: getMatrix
   };
 
   return ALGO.Shape;
@@ -196,6 +227,28 @@ ALGO.Shape = (function() {
 /**
  * Define Getter / Setter
  */
+ALGO.Shape.prototype.__defineGetter__('x', function() {
+  // ALGO.log('define getter: x');
+  return this.x_;
+});
+
+ALGO.Shape.prototype.__defineSetter__('x', function(value) {
+  // ALGO.log('define setter: x');
+  this.x_ = value;
+  this.setTranslate( this.x, this.y );
+});
+
+ALGO.Shape.prototype.__defineGetter__('y', function() {
+  // ALGO.log('define getter: y');
+  return this.y_;
+});
+
+ALGO.Shape.prototype.__defineSetter__('y', function(value) {
+  // ALGO.log('define setter: y');
+  this.y_ = value;
+  this.setTranslate( this.x, this.y );
+});
+
 ALGO.Shape.prototype.__defineGetter__('scale', function() {
   // ALGO.log('define getter: scale');
   return this.scale_;
@@ -203,7 +256,19 @@ ALGO.Shape.prototype.__defineGetter__('scale', function() {
 
 ALGO.Shape.prototype.__defineSetter__('scale', function(value) {
   // ALGO.log('define setter: scale');
+  this.setScale( value );
   this.scale_ = value;
+});
+
+ALGO.Shape.prototype.__defineGetter__('rotate', function() {
+  // ALGO.log('define getter: rotate');
+  return this.rotate_;
+});
+
+ALGO.Shape.prototype.__defineSetter__('rotate', function(value) {
+  // ALGO.log('define setter: rotate');
+  this.setRotate( value );
+  this.rotate_ = value;
 });
 
 ALGO.Shape.prototype.__defineGetter__('radius', function() {
@@ -246,4 +311,14 @@ ALGO.Shape.prototype.__defineGetter__('angle', function() {
 ALGO.Shape.prototype.__defineSetter__('angle', function(value) {
   // ALGO.log('define setter: angle');
   this.angle_ = value;
+});
+
+ALGO.Shape.prototype.__defineGetter__('needsUpdate', function() {
+  // ALGO.log('define getter: needsUpdate');
+  return this.needsUpdate_;
+});
+
+ALGO.Shape.prototype.__defineSetter__('needsUpdate', function(value) {
+  // ALGO.log('define setter: needsUpdate');
+  this.needsUpdate_ = value;
 });

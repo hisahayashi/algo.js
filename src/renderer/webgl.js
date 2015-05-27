@@ -13,7 +13,6 @@ ALGO.WebGLRenderer = (function(ALGO) {
   var uniform_vars;
   var attr_location;
   var attr_stride;
-  var index;
   var point_size = 10;
 
   var cw, ch;
@@ -28,6 +27,10 @@ ALGO.WebGLRenderer = (function(ALGO) {
   var uni_location;
 
   var zoom = 5.0;
+
+  var object_vbo = [];
+  var object_ibo = [];
+  var object_index = [];
 
   /**
    * renderer properties
@@ -64,17 +67,17 @@ ALGO.WebGLRenderer = (function(ALGO) {
 
 
 
-    // Matrix を用いた行列関連処理
-    m = new ALGO.Matrix();
+    // // Matrix を用いた行列関連処理
+    // m = new ALGO.Matrix4();
 
-    // 各種行列の生成と初期化
-    v_matrix = m.identity(m.create());
-    p_matrix = m.identity(m.create());
+    // // 各種行列の生成と初期化
+    // v_matrix = m.identity(m.create());
+    // p_matrix = m.identity(m.create());
 
-    tmp_matrix = m.identity(m.create());
+    // tmp_matrix = m.identity(m.create());
 
-    /* モデルビュープロジェクションのマトリックス */
-    mvp_matrix = m.identity(m.create());
+    // /* モデルビュープロジェクションのマトリックス */
+    // mvp_matrix = m.identity(m.create());
 
     resize();
 
@@ -111,126 +114,72 @@ ALGO.WebGLRenderer = (function(ALGO) {
     // Note: This matrix flips the Y axis so 0 is at the top.
     return [
       2 / width, 0, 0,
-      0, -2 / height, 0, -1, 1, 1
+      0, -2 / height, 0,
+      -1, 1, 1
     ];
   }
 
-
-  function makeTranslation(tx, ty) {
-    return [
-      1, 0, 0,
-      0, 1, 0,
-      tx, ty, 1
-    ];
-  }
-
-  function makeRotation(angleInRadians) {
-    var c = Math.cos(angleInRadians);
-    var s = Math.sin(angleInRadians);
-    return [
-      c, -s, 0,
-      s, c, 0,
-      0, 0, 1
-    ];
-  }
-
-  function makeScale(sx, sy) {
-    return [
-      sx, 0, 0,
-      0, sy, 0,
-      0, 0, 1
-    ];
-  }
-
-  function matrixMultiply(a, b) {
-    var a00 = a[0 * 3 + 0];
-    var a01 = a[0 * 3 + 1];
-    var a02 = a[0 * 3 + 2];
-    var a10 = a[1 * 3 + 0];
-    var a11 = a[1 * 3 + 1];
-    var a12 = a[1 * 3 + 2];
-    var a20 = a[2 * 3 + 0];
-    var a21 = a[2 * 3 + 1];
-    var a22 = a[2 * 3 + 2];
-    var b00 = b[0 * 3 + 0];
-    var b01 = b[0 * 3 + 1];
-    var b02 = b[0 * 3 + 2];
-    var b10 = b[1 * 3 + 0];
-    var b11 = b[1 * 3 + 1];
-    var b12 = b[1 * 3 + 2];
-    var b20 = b[2 * 3 + 0];
-    var b21 = b[2 * 3 + 1];
-    var b22 = b[2 * 3 + 2];
-    return [a00 * b00 + a01 * b10 + a02 * b20,
-      a00 * b01 + a01 * b11 + a02 * b21,
-      a00 * b02 + a01 * b12 + a02 * b22,
-      a10 * b00 + a11 * b10 + a12 * b20,
-      a10 * b01 + a11 * b11 + a12 * b21,
-      a10 * b02 + a11 * b12 + a12 * b22,
-      a20 * b00 + a21 * b10 + a22 * b20,
-      a20 * b01 + a21 * b11 + a22 * b21,
-      a20 * b02 + a21 * b12 + a22 * b22
-    ];
-  }
 
   /**
    * Init
    */
   function render() {
 
-    var translation = [100, 100];
-    var angleInRadians = 0;
-    var scale = [1, 1];
-
-    var projectionMatrix = make2DProjection(canvas.width, canvas.height);
+    var pm = new ALGO.Matrix3();
+    var projectionMatrix = make2DProjection(cw, ch);
 
     for (var i = 0; i < children.length; i++) {
 
       var object = children[i];
-
-      // モデル(頂点)データ
-      var vertex_position = object.vertexPosition;
-
-      // 頂点の色情報を格納する配列
-      var vertex_color = object.vertexColors;
+      var needsUpdate = object.needsUpdate;
 
       // VBOの生成
-      var vbo = [];
-      // Set Geometry
-      vbo.position = createVbo(vertex_position);
-      vbo.color = createVbo(vertex_color);
-      setVBOAttribute(vbo, attr_location, attr_stride);
+      if( !object_vbo[i] || needsUpdate ){
+        // モデル(頂点)データ
+        var vertex_position = object.vertexPosition;
+        // 頂点の色情報を格納する配列
+        var vertex_color = object.vertexColors;
+        // Set Geometry
+        var vbo = [];
+        vbo.position = createVbo(vertex_position);
+        vbo.color = createVbo(vertex_color);
+        object_vbo[i] = vbo;
 
-      index = object.index;
+      }
 
-      // IBOの生成
-      var ibo = [];
-      ibo[0] = createIbo(index);
+      setVBOAttribute( object_vbo[i], attr_location, attr_stride);
+
+
+      if( !object_ibo[i] || needsUpdate ){
+        var index = object.index;
+        // IBOの生成
+        var ibo = createIbo(index);
+
+        object_index[i] = index;
+        object_ibo[i] = ibo;
+      }
 
       // IBOをバインドして登録する
-      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo[0]);
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, object_ibo[i]);
 
-      var m_matrix = object.matrix;
+      var objectMatrix = object.getMatrix();
+      var matrix2 = pm.multiply(objectMatrix, projectionMatrix, [] );
 
-      scale[0] = object.scale;
-      scale[1] = object.scale;
-      angleInRadians = object.rotate * Math.PI / 180;
-
-      // Compute the matrices
-      var projectionMatrix = make2DProjection(canvas.width, canvas.height);
-      var translationMatrix = makeTranslation(object.x, object.y);
-      var rotationMatrix = makeRotation(angleInRadians);
-      var scaleMatrix = makeScale(scale[0], scale[1]);
-
-      // Multiply the matrices.
-      var matrix = matrixMultiply(scaleMatrix, rotationMatrix);
-      matrix = matrixMultiply(matrix, translationMatrix);
-      matrix = matrixMultiply(matrix, projectionMatrix);
+      if( i == 0 ){
+        // ALGO.log( matrix2 );
+        // ALGO.log( '' );
+      }
 
       // Set the matrix.
-      gl.uniformMatrix3fv(uni_location.matrix, false, matrix);
+      gl.uniformMatrix3fv(uni_location.matrix, false, matrix2);
 
-      gl.drawElements(gl.TRIANGLES, index.length, gl.UNSIGNED_SHORT, 0);
+      if( needsUpdate ){
+        object.needsUpdate = false;
+      }
+
+      // gl.drawArrays(gl.TRIANGLES, 0, 3);
+      gl.drawElements(gl.TRIANGLES, object_index[i].length, gl.UNSIGNED_SHORT, 0);
+
 
       // object.x;
       // object.y;
@@ -265,17 +214,17 @@ ALGO.WebGLRenderer = (function(ALGO) {
     cw = canvas.width;
     ch = canvas.height;
 
-    m.identity(v_matrix);
-    m.identity(p_matrix);
-    m.identity(tmp_matrix);
-    m.identity(mvp_matrix);
+    // m.identity(v_matrix);
+    // m.identity(p_matrix);
+    // m.identity(tmp_matrix);
+    // m.identity(mvp_matrix);
 
-    // ビュー座標変換行列
-    m.lookAt([0.0, 0.0, zoom], [0, 0, 0], [0, 1, 0], v_matrix);
-    // プロジェクション座標変換行列
-    m.perspective(90, canvas.width / canvas.height, 0.01, 1000, p_matrix);
-    // 各行列を掛け合わせ座標変換行列を完成させる
-    m.multiply(p_matrix, v_matrix, tmp_matrix);
+    // // ビュー座標変換行列
+    // m.lookAt([0.0, 0.0, zoom], [0, 0, 0], [0, 1, 0], v_matrix);
+    // // プロジェクション座標変換行列
+    // m.perspective(90, canvas.width / canvas.height, 0.01, 1000, p_matrix);
+    // // 各行列を掛け合わせ座標変換行列を完成させる
+    // m.multiply(p_matrix, v_matrix, tmp_matrix);
 
     var resolution_location = gl.getUniformLocation(program, "u_resolution");
     gl.uniform2f(resolution_location, canvas.width, canvas.height);
@@ -488,15 +437,15 @@ ALGO.WebGLRenderer = (function(ALGO) {
    */
   function setVBOAttribute(vbo, attL, attS) {
     // 引数として受け取った配列を処理する
-    for (var i in vbo) {
+    for (var key in vbo) {
       // バッファをバインドする
-      gl.bindBuffer(gl.ARRAY_BUFFER, vbo[i]);
+      gl.bindBuffer(gl.ARRAY_BUFFER, vbo[key]);
 
       // attributeLocationを有効にする
-      gl.enableVertexAttribArray(attL[i]);
+      gl.enableVertexAttribArray(attL[key]);
 
       // attributeLocationを通知し登録する
-      gl.vertexAttribPointer(attL[i], attS[i], gl.FLOAT, false, 0, 0);
+      gl.vertexAttribPointer(attL[key], attS[key], gl.FLOAT, false, 0, 0);
     }
   };
 

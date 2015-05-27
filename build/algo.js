@@ -215,6 +215,7 @@ var ALGO = (function () {
     size: size,
     add: add,
     remove: remove,
+
     /**
      * Child Class
      */
@@ -226,112 +227,416 @@ var ALGO = (function () {
 }());
 
 /**
- * ALGO.Circle
+ * Static Variables
  */
-ALGO.Circle = (function() {
+ALGO.debug = 1;
 
+// Blendmode
+// @see http://yomotsu.net/blog/2013/08/04/blendmode-in-webgl.html
+ALGO.BLEND_NONE = 0;
+ALGO.BLEND_ADD = 1;
+ALGO.BLEND_MULTIPLY = 2;
+ALGO.BLEND_SCREEN = 3;
+
+/**
+ * Define Getter / Setter
+ */
+ALGO.prototype.__defineGetter__('framerate', function() {
+  // ALGO.log('define getter: framerate');
+  return this.framerate_;
+});
+
+ALGO.prototype.__defineSetter__('framerate', function(value) {
+  // ALGO.log('define setter: framerate');
+  if (this.render) this.render.setFramerate(value);
+  this.framerate_ = value;
+});
+
+/**
+ * Define Getter / Setter
+ */
+ALGO.prototype.__defineGetter__('circleResolution', function() {
+  // ALGO.log('define getter: circleResolution');
+  return this.circleResolution_;
+});
+
+ALGO.prototype.__defineSetter__('circleResolution', function(value) {
+  // ALGO.log('define setter: circleResolution');
+
+  /*
+  更新時にALGO.Circleへの通知が必要かも
+   */
+  ALGO.circleResolution = value;
+
+  this.circleResolution_ = value;
+});
+
+
+// Properties
+ALGO.prototype.width = 0;
+ALGO.prototype.height = 0;
+ALGO.prototype.blendMode = ALGO.BLEND_NONE;
+ALGO.prototype.backgroundAuto = true;
+ALGO.prototype.background = 0x666666;
+ALGO.prototype.backgroundAlpha = 0.5;
+ALGO.prototype.depth = 1.0;
+ALGO.prototype.framerate = 60;
+ALGO.prototype.circleResolution = 32;
+ALGO.prototype.canvas = null;
+ALGO.prototype.displayObjects = [];
+ALGO.prototype.children = [];
+
+/**
+ * ALGO.Render
+ */
+ALGO.Render = (function() {
   'use strict';
 
-  ALGO.Circle = function() {
-    ALGO.log('ALGO.Circle');
+  var that;
+  var is_render = false;
+  var framerate;
+  var frameCount = 0;
+  var fpsInterval;
+  var startTime;
+  var now;
+  var then;
+  var elapsed;
+
+  var requestAnimation = window.requestAnimationFrame ||
+    window.webkitRequestAnimationFrame ||
+    window.mozRequestAnimationFrame ||
+    window.oRequestAnimationFrame ||
+    window.msRequestAnimationFrame ||
+    function(callback) {
+      window.setTimeout(callback, 1000 / framerate);
+    };
+
+
+  ALGO.Render = function(_that) {
+    // ALGO.log('ALGO.Render');
+    that = _that;
+    renderInit();
   };
 
-  ALGO.Circle.prototype = {
-    constructor: ALGO.Circle
+  /**
+   * renderInit
+   */
+  function renderInit() {
+    setupRequestAnimation();
+    setupNowTime();
   };
 
-  return ALGO.Circle;
+  /**
+   * setupRequestAnimation
+   */
+  function setupRequestAnimation() {}
+
+  /**
+   * setupNowTime
+   */
+  function setupNowTime() {}
+
+  /**
+   * setFramerate
+   */
+  function setFramerate(value) {
+    framerate = value;
+    fpsInterval = 1000 / framerate;
+    ALGO.log('setFramerate = ' + framerate);
+  };
+
+  /**
+   * getFramerate
+   */
+  function getFramerate() {
+    return framerate;
+  };
+
+  /**
+   * startRender
+   */
+  function startRender() {
+    is_render = true;
+
+    fpsInterval = 1000 / framerate;
+    then = Date.now();
+    startTime = then;
+
+    renderUpdate();
+  };
+
+  function stopRender() {
+    is_render = false;
+  };
+
+  /**
+   * renderUpdate
+   */
+  function renderUpdate() {
+    if (is_render) requestAnimation(renderUpdate);
+
+    now = Date.now();
+    elapsed = now - then;
+    // if enough time has elapsed, draw the next frame
+    if (elapsed > fpsInterval) {
+      // Get ready for next frame by setting then=now, but also adjust for your
+      // specified fpsInterval not being a multiple of RAF's interval (16.7ms)
+      then = now - (elapsed % fpsInterval);
+
+      // renderer
+      if( that.renderer ) that.renderer.update();
+
+      // drawing code
+      if (that.frame) that.frame.call(that);
+
+      // debug framerate
+      var sinceStart = now - startTime;
+      var currentFps = Math.round(1000 / (sinceStart / ++frameCount) * 100) / 100;
+      // ALGO.log("Elapsed time= " + Math.round(sinceStart / 1000 * 100) / 100 + " secs @ " + currentFps + " fps.");
+    }
+  };
+
+  ALGO.Render.prototype = {
+    constructor: ALGO.Render,
+    setFramerate: setFramerate,
+    getFramerate: getFramerate,
+    startRender: startRender,
+    stopRender: stopRender
+  };
+
+  return ALGO.Render;
 }());
 
 /**
- * ALGO.ColorUtil
+ * ALGO.Matrix3
  */
-ALGO.ColorUtil = {
-
-  /**
-   * [rgbToHex description]
-   * @param  {[type]} r [description]
-   * @param  {[type]} g [description]
-   * @param  {[type]} b [description]
-   * @return {[type]}   [description]
-   */
-  rgbToHex: function (r, g, b) {
-    r = Math.floor( r );
-    g = Math.floor( g );
-    b = Math.floor( b );
-    var hex = ( r << 16 ) + ( g << 8 ) + b;
-    return '0x' + hex.toString(16);
-  },
-
-  /**
-   * [hexToRgb description]
-   * @param  {[type]} hex [description]
-   * @return {[type]}     [description]
-   */
-  hexToRgb: function ( hex ) {
-    hex = hex.toString(16).replace('#', '').replace('0x', '');
-    hex = '0x' + hex;
-    var obj = {
-      r: hex >> 16,
-      g: hex >> 8 & 0xff,
-      b: hex & 0xff,
-    };
-    return obj;
-  },
-
-  /**
-   * [hexToRgb description]
-   * @param  {[type]} hex [description]
-   * @return {[type]}     [description]
-   */
-  hexToRgbNormalize: function ( hex ) {
-    var obj = ALGO.ColorUtil.hexToRgb( hex );
-    obj.r = obj.r / 256;
-    obj.g = obj.g / 256;
-    obj.b = obj.b / 256;
-    return obj;
-  },
-
-};
-
-/**
- * ALGO.log
- */
-ALGO.log = function(obj) {
-  if (window.console && window.console.log) {
-    if (ALGO.debug) window.console.log(obj);
-  }
-};
-
-/**
- * ALGO.warn
- */
-ALGO.warn = function(obj) {
-  if (window.console && window.console.warn) {
-    if (ALGO.debug) window.console.warn(obj);
-  }
-};
-
-/**
- * ALGO.error
- */
-ALGO.error = function(obj) {
-  if (window.console && window.console.error) {
-    if (ALGO.debug) window.console.error(obj);
-  }
-};
-
-/**
- * ALGO.Matrix
- */
-ALGO.Matrix = (function(ALGO) {
+ALGO.Matrix3 = (function(ALGO) {
   'use strict';
 
   /**
    * Constructor
    */
-  ALGO.Matrix = function(){
-    // ALGO.log('ALGO.Matrix');
+  ALGO.Matrix3 = function(){
+    // ALGO.log('ALGO.Matrix3');
+    // return create();
+  };
+
+  /**
+   * [create description]
+   * @return {[type]} [description]
+   */
+  function create() {
+    return new Float32Array(16);
+  };
+
+  /**
+   * [identity description]
+   * @param  {[type]} dest [description]
+   * @return {[type]}      [description]
+   */
+  function identity(dest) {
+    dest = [
+      1.0, 0.0, 0.0,
+      0.0, 1.0, 0.0,
+      0.0, 0.0, 1.0
+    ];
+    return dest;
+  };
+
+  /**
+   * [multiply description]
+   * @param  {[type]} mat1 [description]
+   * @param  {[type]} mat2 [description]
+   * @param  {[type]} dest [description]
+   * @return {[type]}      [description]
+   */
+  function multiply(mat1, mat2, dest) {
+    // var a = mat1[0] * mat2[0] + mat1[3] * mat2[1] + mat1[6] * mat2[2];
+    // var b = mat1[1] * mat2[0] + mat1[4] * mat2[1] + mat1[7] * mat2[2];
+    // var c = mat1[2] * mat2[0] + mat1[5] * mat2[1] + mat1[8] * mat2[2];
+
+    // var d = mat1[0] * mat2[3] + mat1[3] * mat2[4] + mat1[6] * mat2[5];
+    // var e = mat1[1] * mat2[3] + mat1[4] * mat2[4] + mat1[7] * mat2[5];
+    // var f = mat1[2] * mat2[3] + mat1[5] * mat2[4] + mat1[8] * mat2[5];
+
+    // var g = mat1[0] * mat2[6] + mat1[3] * mat2[7] + mat1[6] * mat2[8];
+    // var h = mat1[1] * mat2[6] + mat1[4] * mat2[7] + mat1[7] * mat2[8];
+    // var i = mat1[2] * mat2[6] + mat1[5] * mat2[7] + mat1[8] * mat2[8];
+
+    // dest[0] = a;
+    // dest[1] = b;
+    // dest[2] = c;
+    // dest[3] = d;
+    // dest[4] = e;
+    // dest[5] = f;
+    // dest[6] = g;
+    // dest[7] = h;
+    // dest[8] = i;
+
+    var a = mat1[0 * 3 + 0];
+    var b = mat1[0 * 3 + 1];
+    var c = mat1[0 * 3 + 2];
+
+    var d = mat1[1 * 3 + 0];
+    var e = mat1[1 * 3 + 1];
+    var f = mat1[1 * 3 + 2];
+
+    var g = mat1[2 * 3 + 0];
+    var h = mat1[2 * 3 + 1];
+    var i = mat1[2 * 3 + 2];
+
+    var A = mat2[0 * 3 + 0];
+    var B = mat2[0 * 3 + 1];
+    var C = mat2[0 * 3 + 2];
+
+    var D = mat2[1 * 3 + 0];
+    var E = mat2[1 * 3 + 1];
+    var F = mat2[1 * 3 + 2];
+
+    var G = mat2[2 * 3 + 0];
+    var H = mat2[2 * 3 + 1];
+    var I = mat2[2 * 3 + 2];
+
+    dest[0] = a * A + b * D + c * G;
+    dest[1] = a * B + b * E + c * H;
+    dest[2] = a * C + b * F + c * I;
+    dest[3] = d * A + e * D + f * G;
+    dest[4] = d * B + e * E + f * H;
+    dest[5] = d * C + e * F + f * I;
+    dest[6] = g * A + h * D + i * G;
+    dest[7] = g * B + h * E + i * H;
+    dest[8] = g * C + h * F + i * I;
+
+
+    return dest;
+  };
+
+  /**
+   * [scale description]
+   * @param  {[type]} mat  [description]
+   * @param  {[type]} vec  [description]
+   * @param  {[type]} dest [description]
+   * @return {[type]}      [description]
+   */
+  function scale(mat, vec, dest) {
+    dest[0] = mat[0] * vec[0];
+    dest[1] = mat[1];
+    dest[2] = mat[2];
+
+    dest[3] = mat[3];
+    dest[4] = mat[4] * vec[1];
+    dest[5] = mat[5];
+
+    dest[6] = mat[6];
+    dest[7] = mat[7];
+    dest[8] = mat[8];
+    return dest;
+  };
+
+  /**
+   * [translate description]
+   * @param  {[type]} mat  [description]
+   * @param  {[type]} vec  [description]
+   * @param  {[type]} dest [description]
+   * @return {[type]}      [description]
+   */
+  function translate(mat, vec, dest) {
+    dest[0] = mat[0];
+    dest[1] = mat[1];
+    dest[2] = mat[2];
+
+    dest[3] = mat[3];
+    dest[4] = mat[4];
+    dest[5] = mat[5];
+
+    dest[6] = mat[6] + vec[0];
+    dest[7] = mat[7] + vec[1];
+    dest[8] = mat[8];
+    return dest;
+  };
+
+  /**
+   * [rotate description]
+   * @param  {[type]} mat   [description]
+   * @param  {[type]} angle [description]
+   * @param  {[type]} axis  [description]
+   * @param  {[type]} dest  [description]
+   * @return {[type]}       [description]
+   */
+  function rotate(mat, rad, axis, dest) {
+    var c = Math.cos(rad);
+    var s = Math.sin(rad);
+    dest[0] = mat[0] + c;
+    dest[1] = mat[1] - s;
+    dest[2] = mat[2];
+    dest[3] = mat[3] + s;
+    dest[4] = mat[4] + c;
+    dest[5] = mat[5];
+    dest[6] = mat[6];
+    dest[7] = mat[7];
+    dest[8] = mat[8];
+    return dest;
+  };
+
+
+  /**
+   * [transpose description]
+   * @param  {[type]} mat  [description]
+   * @param  {[type]} dest [description]
+   * @return {[type]}      [description]
+   */
+  function transpose(mat, dest) {
+    dest[0] = mat[0];
+    dest[1] = mat[3];
+    dest[2] = mat[6];
+    dest[3] = mat[1];
+    dest[4] = mat[4];
+    dest[5] = mat[7];
+    dest[6] = mat[2];
+    dest[7] = mat[5];
+    dest[8] = mat[8];
+    return dest;
+  };
+
+  /**
+   * [inverse description]
+   * @param  {[type]} mat  [description]
+   * @param  {[type]} dest [description]
+   * @return {[type]}      [description]
+   */
+  function inverse(mat, dest) {
+    /*
+    これから書く
+     */
+    return dest;
+  };
+
+  ALGO.Matrix3.prototype = {
+    constructor: ALGO.Matrix3,
+    create: create,
+    identity: identity,
+    multiply: multiply,
+    scale: scale,
+    translate: translate,
+    rotate: rotate,
+    transpose: transpose,
+    inverse: inverse
+  };
+
+  return ALGO.Matrix3;
+}(ALGO));
+
+/**
+ * ALGO.Matrix4
+ */
+ALGO.Matrix4 = (function(ALGO) {
+  'use strict';
+
+  /**
+   * Constructor
+   */
+  ALGO.Matrix4 = function(){
+    // ALGO.log('ALGO.Matrix4');
     // return create();
   };
 
@@ -743,8 +1048,8 @@ ALGO.Matrix = (function(ALGO) {
     return dest;
   };
 
-  ALGO.Matrix.prototype = {
-    constructor: ALGO.Matrix,
+  ALGO.Matrix4.prototype = {
+    constructor: ALGO.Matrix4,
     create: create,
     identity: identity,
     multiply: multiply,
@@ -757,365 +1062,30 @@ ALGO.Matrix = (function(ALGO) {
     inverse: inverse
   };
 
-  return ALGO.Matrix;
+  return ALGO.Matrix4;
 }(ALGO));
 
 /**
- * ALGO.ObjectUtil
+ * ALGO.ShapeCtrl
  */
-ALGO.ObjectUtil = {
+ALGO.ShapeCtrl = {
 
-  /**
-   * [extend description]
-   * @param  {[type]} base_obj [description]
-   * @param  {[type]} over_obj [description]
-   * @return {[type]}          [description]
-   */
-  extend: function ( base_obj, over_obj ) {
-    var new_obj = ALGO.ObjectUtil.clone( base_obj );
-    for( key in over_obj ){
-      var value = ( over_obj[ key ] )? over_obj[ key ] : base_obj[ key ];
-      base_obj[ key ] = value;
+  createID: function( _ary, _length ){
+    var strings = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    var length = ( _length )? _length: 12;
+    var id = '';
+    for( var i = 0; i < length; i++ ){
+      var c_length = strings.length;
+      var c_index = Math.floor( Math.random() * c_length );
+      id += strings.charAt( c_index );
     }
-    return base_obj;
-  },
-
-  /**
-   * [clone description]
-   * @param  {[type]} obj [description]
-   * @return {[type]}     [description]
-   */
-  clone: function ( obj ) {
-    var new_obj = {};
-    for( key in obj ){
-      new_obj[ key ] = obj[ key ];
+    if( _ary.indexOf( id ) > -1 ){
+      arguments.callee( _ary, _length );
     }
-    return new_obj;
+    return id;
   }
 
-
 };
-
-/**
- * ALGO.PointUtil
- */
-ALGO.PointUtil = {
-
-  /**
-   * [normalize description]
-   * @param  {[type]} point [description]
-   * @param  {[type]} scale [description]
-   * @return {[type]}       [description]
-   */
-  normalize: function(point, scale) {
-    var norm = Math.sqrt(point.x * point.x + point.y * point.y);
-    if (norm != 0) { // as3 return 0,0 for a point of zero length
-      point.x = scale * point.x / norm;
-      point.y = scale * point.y / norm;
-    }
-  },
-
-  /**
-   * [normalize3 description]
-   * @param  {[type]} p     [description]
-   * @param  {[type]} scale [description]
-   * @return {[type]}       [description]
-   */
-  normalize3: function(p, scale) {
-    var norm = Math.sqrt(p.x * p.x + p.y * p.y + p.z * p.z);
-    if (norm != 0) { // as3 return 0,0 for a point of zero length
-      p.x = scale * p.x / norm;
-      p.y = scale * p.y / norm;
-      p.z = scale * p.z / norm;
-    }
-    return p;
-  },
-
-  /**
-   * [pointLength3 description]
-   * @param  {[type]} p [description]
-   * @return {[type]}   [description]
-   */
-  pointLength3: function(p) {
-    return Math.sqrt(p.x * p.x + p.y * p.y + p.z * p.z);
-  },
-
-  /**
-   * [getDistance description]
-   * @param  {[type]} p1 [description]
-   * @param  {[type]} p2 [description]
-   * @return {[type]}    [description]
-   */
-  getDistance: function(p1, p2) {
-    var nX = p2.x - p1.x;
-    var nY = p2.y - p1.y;
-    return Math.sqrt(nX * nX + nY * nY);
-  },
-
-  // 2点間の傾きを求める
-  /**
-   * [getSlope description]
-   * @param  {[type]} p1 [description]
-   * @param  {[type]} p2 [description]
-   * @return {[type]}    [description]
-   */
-  getSlope: function(p1, p2) {
-    return (p2.y - p1.y) / (p2.x - p1.x);
-  },
-
-  // 2点間の切片を求める
-  /**
-   * [getIntercept description]
-   * @param  {[type]} p1 [description]
-   * @param  {[type]} p2 [description]
-   * @param  {[type]} a  [description]
-   * @return {[type]}    [description]
-   */
-  getIntercept: function(p1, p2, a) {
-    var x = (p1.x + p2.x);
-    var y = (p1.y + p2.y);
-    return y / 2 - (a * x) / 2;
-  },
-
-  // 2点間の中点を求める
-  /**
-   * [getMidpoint description]
-   * @param  {[type]} p1 [description]
-   * @param  {[type]} p2 [description]
-   * @return {[type]}    [description]
-   */
-  getMidpoint: function(p1, p2) {
-    var p = [];
-    p.x = (p1.x + p2.x) / 2;
-    p.y = (p1.y + p2.y) / 2;
-    return p;
-  },
-
-  // 2点から垂直二等分線を求める
-  /**
-   * [getMidperpendicular description]
-   * @param  {[type]} p1 [description]
-   * @param  {[type]} p2 [description]
-   * @return {[type]}    [description]
-   */
-  getMidperpendicular: function(p1, p2) {
-
-    // 傾きを調べる
-    var a = getSlope(p1, p2);
-
-    // 垂直二等分線の傾き
-    if (checkEQ(a)) {
-      x = 1.0;
-    } else {
-      x = -1.0 / a;
-    }
-
-    // 線の中点
-    var mp = getMidpoint(p1, p2);
-
-    // 切片を求める
-    if (checkEQ(a)) {
-      y = 0;
-    } else {
-      y = mp.y - x * mp.x;
-    }
-
-    return {
-      x: x,
-      y: y
-    }
-  },
-
-  // 3点から外接円を求める、引数特殊なので注意
-  /**
-   * [getThroughPoint3 description]
-   * @param  {[type]} _p1 [description]
-   * @param  {[type]} _p2 [description]
-   * @param  {[type]} _p3 [description]
-   * @return {[type]}     [description]
-   */
-  getThroughPoint3: function(_p1, _p2, _p3) {
-
-    // 二等分線を作成
-    var p1 = getMidperpendicular(_p1, _p2);
-    var p2 = getMidperpendicular(_p1, _p3);
-
-    // 中心を算出
-    var center = [];
-    center.x = (p2.y - p1.y) / (p1.x - p2.x);
-    center.y = p1.x * center.x + p1.y;
-
-    // 半径を算出
-    var rad = Math.sqrt(Math.pow(center.x - _p1.x, 2) + Math.pow(center.y - _p1.y, 2));
-
-    return {
-      x: center.x,
-      y: center.y,
-      rad: rad
-    }
-  },
-
-  // 3点から外接円を求める、引数特殊なので注意
-  /**
-   * [getHugeTriangle description]
-   * @param  {[type]} _p1 [description]
-   * @param  {[type]} _p2 [description]
-   * @param  {[type]} _p3 [description]
-   * @return {[type]}     [description]
-   */
-  getHugeTriangle: function(_p1, _p2, _p3) {
-    var obj = getThroughPoint3(_p1, _p2, _p3);
-
-    var x1 = obj.x - Math.sqrt(3) * obj.rad;
-    var y1 = obj.y - obj.rad;
-    var x2 = obj.x + Math.sqrt(3) * obj.rad;
-    var y2 = obj.y - obj.rad;
-    var x3 = obj.x;
-    var y3 = obj.y + 2 * obj.rad;
-    return [{
-      x: x1,
-      y: y1
-    }, {
-      x: x2,
-      y: y2
-    }, {
-      x: x3,
-      y: y3
-    }]
-  },
-
-  // 直線上の点かどうか判定
-  /**
-   * [checkEQ description]
-   * @param  {[type]} x [description]
-   * @return {[type]}   [description]
-   */
-  checkEQ: function(x) {
-    var eps = 0.000001;
-    return -eps <= x && x <= eps;
-  }
-};
-
-/**
- * ALGO.Render
- */
-ALGO.Render = (function() {
-  'use strict';
-
-  var that;
-  var is_render = false;
-  var framerate;
-  var frameCount = 0;
-  var fpsInterval;
-  var startTime;
-  var now;
-  var then;
-  var elapsed;
-
-  var requestAnimation = window.requestAnimationFrame ||
-    window.webkitRequestAnimationFrame ||
-    window.mozRequestAnimationFrame ||
-    window.oRequestAnimationFrame ||
-    window.msRequestAnimationFrame ||
-    function(callback) {
-      window.setTimeout(callback, 1000 / framerate);
-    };
-
-
-  ALGO.Render = function(_that) {
-    // ALGO.log('ALGO.Render');
-    that = _that;
-    renderInit();
-  };
-
-  /**
-   * renderInit
-   */
-  function renderInit() {
-    setupRequestAnimation();
-    setupNowTime();
-  };
-
-  /**
-   * setupRequestAnimation
-   */
-  function setupRequestAnimation() {}
-
-  /**
-   * setupNowTime
-   */
-  function setupNowTime() {}
-
-  /**
-   * setFramerate
-   */
-  function setFramerate(value) {
-    framerate = value;
-    fpsInterval = 1000 / framerate;
-    ALGO.log('setFramerate = ' + framerate);
-  };
-
-  /**
-   * getFramerate
-   */
-  function getFramerate() {
-    return framerate;
-  };
-
-  /**
-   * startRender
-   */
-  function startRender() {
-    is_render = true;
-
-    fpsInterval = 1000 / framerate;
-    then = Date.now();
-    startTime = then;
-
-    renderUpdate();
-  };
-
-  function stopRender() {
-    is_render = false;
-  };
-
-  /**
-   * renderUpdate
-   */
-  function renderUpdate() {
-    if (is_render) requestAnimation(renderUpdate);
-
-    now = Date.now();
-    elapsed = now - then;
-    // if enough time has elapsed, draw the next frame
-    if (elapsed > fpsInterval) {
-      // Get ready for next frame by setting then=now, but also adjust for your
-      // specified fpsInterval not being a multiple of RAF's interval (16.7ms)
-      then = now - (elapsed % fpsInterval);
-
-      // renderer
-      if( that.renderer ) that.renderer.update();
-
-      // drawing code
-      if (that.frame) that.frame.call(that);
-
-      // debug framerate
-      var sinceStart = now - startTime;
-      var currentFps = Math.round(1000 / (sinceStart / ++frameCount) * 100) / 100;
-      // ALGO.log("Elapsed time= " + Math.round(sinceStart / 1000 * 100) / 100 + " secs @ " + currentFps + " fps.");
-    }
-  };
-
-  ALGO.Render.prototype = {
-    constructor: ALGO.Render,
-    setFramerate: setFramerate,
-    getFramerate: getFramerate,
-    startRender: startRender,
-    stopRender: stopRender
-  };
-
-  return ALGO.Render;
-}());
 
 /**
  * ALGO.Shape
@@ -1126,22 +1096,17 @@ ALGO.Shape = (function() {
   /**
    * Private Variables
    */
-  var that;
-
-  ALGO.Shape = function(_x, _y, _angles, _radius) {
+  ALGO.Shape = function(_x, _y, _radius) {
     // ALGO.log('ALGO.Shape');
-
-    that = this;
-    that.x = _x;
-    that.y = _y;
-    that.angles = _angles;
-    that.radius = _radius;
+    this.x = _x;
+    this.y = _y;
+    this.radius = _radius;
 
     // define
-    that.angles_ = _angles;
-    that.radius_ = _radius;
+    this.radius_ = _radius;
 
-    init();
+    this.init();
+    this.setup();
   };
 
   /**
@@ -1149,59 +1114,40 @@ ALGO.Shape = (function() {
    * @return {[type]} [description]
    */
   function init() {
+    this.vertexPosition = [];
+    this.vertexColors = [];
+    this.index = [];
+
     // set matrix
-    that.matrix = new ALGO.Matrix();
-    that.matrix.create();
+    this.m = new ALGO.Matrix3();
+    this.matrix = this.m.identity(this.m.create());
+    this.matrixScale = this.m.identity(this.m.create());
+    this.matrixRotate = this.m.identity(this.m.create());
+    this.matrixTranslate = this.m.identity(this.m.create());
+  };
 
-    /* 頂点の位置を算出 */
-    var angle_points = [];
-    for (var i = 0; i < that.angles; i++) {
-      angle_points[i] = {};
-      angle_points[i].x = that.radius * Math.cos(2 * i * Math.PI / that.angles - Math.PI / 2);
-      angle_points[i].y = that.radius * Math.sin(2 * i * Math.PI / that.angles - Math.PI / 2);
-    }
-
-    var vp = [];
-    var vc = [];
-    var cl = ALGO.ColorUtil.hexToRgbNormalize( that.color );
-
-    for( i = 0; i < angle_points.length; i++ ){
-      // point
-      vp.push( angle_points[i].x );
-      vp.push( angle_points[i].y );
-
-      // color
-      vc.push( cl.r );
-      vc.push( cl.g );
-      vc.push( cl.b );
-      vc.push( that.alpha );
-    }
-    that.vertexPosition = vp;
-
-    // ALGO.log( vp );
-    // ALGO.log( vc );
-
-
-    // set vertex colors
-    // var vc = [
-    //   1.0, 0.0, 0.0, 1.0,
-    //   0.0, 1.0, 0.0, 1.0,
-    //   0.0, 0.0, 1.0, 1.0,
-    //   1.0, 1.0, 1.0, 1.0
-    // ];
-    that.vertexColors = vc;
-
-    // set index
-    var index = [];
-
-    // set index
-    for( i = 1; i < that.angles - 1; i++ ){
-      index.push( 0 );
-      index.push( i );
-      index.push( i+1 );
-    }
-
-    that.index = index;
+  /**
+   * [setup description]
+   * @return {[type]} [description]
+   */
+  function setup(){
+    var radius = this.radius;
+    var vp = [
+      0, -radius,
+      -radius, radius,
+      radius, radius
+    ];
+    var vc = [
+      0, 0, 0, 1,
+      0, 0, 0, 1,
+      0, 0, 0, 1
+    ];
+    var index = [
+      0, 1, 2
+    ];
+    this.vertexPosition = vp;
+    this.vertexColors = vc;
+    this.index = index;
   };
 
   /**
@@ -1209,11 +1155,11 @@ ALGO.Shape = (function() {
    * @param {[type]} root [description]
    */
   function add(root) {
-    if (!that.id) {
-      that.id = ALGO.ShapeCtrl.createID(root.displayObjects, 8);
+    if (!this.id) {
+      this.id = ALGO.ShapeCtrl.createID(root.displayObjects, 8);
     }
-    root.displayObjects.push(that.id);
-    root.children.push(that);
+    root.displayObjects.push(this.id);
+    root.children.push(this);
   };
 
   /**
@@ -1226,8 +1172,7 @@ ALGO.Shape = (function() {
     if (object_index > -1) {
       root.displayObjects.splice(object_index, 1);
       root.children.splice(object_index, 1);
-      that = null;
-      // ALGO.log(that);
+      // ALGO.log(this);
     }
   };
 
@@ -1242,7 +1187,7 @@ ALGO.Shape = (function() {
    * @return {[type]} [description]
    */
   function setVertexColor(color) {
-    var vc = that.vertexColors;
+    var vc = this.vertexColors;
     var length = vc.length;
     var cl = ALGO.ColorUtil.hexToRgbNormalize(color);
 
@@ -1254,12 +1199,49 @@ ALGO.Shape = (function() {
   };
 
   function setVertexAlpha(alpha) {
-    var vc = that.vertexColors;
+    var vc = this.vertexColors;
     var length = vc.length;
 
     for (var i = 0; i < length; i += 4) {
       vc[i + 3] = alpha;
     }
+  };
+
+  function setScale(scale){
+    if( this.m ){
+      this.m.scale( this.matrix, [ scale, scale, 0.0 ], this.matrixScale );
+      // ALGO.log( 'scale: ' + scale );
+      // ALGO.log( this.matrixScale );
+    }
+  };
+
+  function setRotate(rotate){
+    if( this.m ){
+      var rad = rotate * Math.PI / 180;
+      this.m.rotate( this.matrix, rad, [ 0, 1, 0 ], this.matrixRotate );
+      // ALGO.log( 'rotate: ' + rotate );
+      // ALGO.log( this.matrixRotate );
+    }
+  };
+
+  function setTranslate( x, y ){
+    if( this.m ){
+      this.m.translate( this.matrix, [ x, y, 0 ], this.matrixTranslate );
+      // ALGO.log( 'xy: ' + x + ', ' + y );
+      // ALGO.log( this.matrixTranslate );
+    }
+  };
+
+  function getMatrix(){
+    var tmpMatrix = null;
+    if( this.m ){
+      tmpMatrix = this.m.identity( this.m.create() );
+      this.m.multiply( this.matrix, this.matrixScale, tmpMatrix );
+      this.m.multiply( tmpMatrix, this.matrixRotate, tmpMatrix );
+      this.m.multiply( tmpMatrix, this.matrixTranslate, tmpMatrix );
+      // ALGO.log( tmpMatrix );
+    }
+    return tmpMatrix;
   };
 
   ALGO.Shape.prototype = {
@@ -1282,30 +1264,49 @@ ALGO.Shape = (function() {
     scale: 1,
     rotate: 0,
     parent: undefined,
+    m: undefined,
     matrix: undefined,
+    matrixScale: undefined,
+    matrixRotate: undefined,
+    matrixTranslate: undefined,
     children: [],
     geometry: [],
     vertexPosition: [],
     vertexColors: [],
+    needsUpdate: false,
     index: [],
 
     /**
      * define getter/setter
      */
+    x_: 0,
+    y_: 0,
     scale_: 1,
+    rotate_: 0,
     radius_: null,
     color_: 0xffffff,
     alpha_: 1.0,
     angle_: 3,
+    needsUpdate_: false,
 
     /**
      * Method
      */
+    init: init,
+    setup: setup,
     add: add,
     remove: remove,
     clone: clone,
+
+    /**
+     * Private Method
+     */
     setVertexColor: setVertexColor,
-    setVertexAlpha: setVertexAlpha
+    setVertexAlpha: setVertexAlpha,
+    setScale: setScale,
+    setRotate: setRotate,
+    setTranslate: setTranslate,
+    getMatrix: getMatrix
   };
 
   return ALGO.Shape;
@@ -1315,6 +1316,28 @@ ALGO.Shape = (function() {
 /**
  * Define Getter / Setter
  */
+ALGO.Shape.prototype.__defineGetter__('x', function() {
+  // ALGO.log('define getter: x');
+  return this.x_;
+});
+
+ALGO.Shape.prototype.__defineSetter__('x', function(value) {
+  // ALGO.log('define setter: x');
+  this.x_ = value;
+  this.setTranslate( this.x, this.y );
+});
+
+ALGO.Shape.prototype.__defineGetter__('y', function() {
+  // ALGO.log('define getter: y');
+  return this.y_;
+});
+
+ALGO.Shape.prototype.__defineSetter__('y', function(value) {
+  // ALGO.log('define setter: y');
+  this.y_ = value;
+  this.setTranslate( this.x, this.y );
+});
+
 ALGO.Shape.prototype.__defineGetter__('scale', function() {
   // ALGO.log('define getter: scale');
   return this.scale_;
@@ -1322,7 +1345,19 @@ ALGO.Shape.prototype.__defineGetter__('scale', function() {
 
 ALGO.Shape.prototype.__defineSetter__('scale', function(value) {
   // ALGO.log('define setter: scale');
+  this.setScale( value );
   this.scale_ = value;
+});
+
+ALGO.Shape.prototype.__defineGetter__('rotate', function() {
+  // ALGO.log('define getter: rotate');
+  return this.rotate_;
+});
+
+ALGO.Shape.prototype.__defineSetter__('rotate', function(value) {
+  // ALGO.log('define setter: rotate');
+  this.setRotate( value );
+  this.rotate_ = value;
 });
 
 ALGO.Shape.prototype.__defineGetter__('radius', function() {
@@ -1367,235 +1402,103 @@ ALGO.Shape.prototype.__defineSetter__('angle', function(value) {
   this.angle_ = value;
 });
 
-/**
- * ALGO.ShapeCtrl
- */
-ALGO.ShapeCtrl = {
-
-  createID: function( _ary, _length ){
-    var strings = 'abcdefghijklmnopqrstuvwxyz0123456789';
-    var length = ( _length )? _length: 12;
-    var id = '';
-    for( var i = 0; i < length; i++ ){
-      var c_length = strings.length;
-      var c_index = Math.floor( Math.random() * c_length );
-      id += strings.charAt( c_index );
-    }
-    if( _ary.indexOf( id ) > -1 ){
-      arguments.callee( _ary, _length );
-    }
-    return id;
-  }
-
-};
-
-/**
- * ALGO.StringUtil
- */
-ALGO.StringUtil = {
-
-  /**
-   * [zeroPadding description]
-   * @param  {[type]} number [description]
-   * @param  {[type]} length [description]
-   * @return {[type]}        [description]
-   */
-  zeroPadding: function (number, length) {
-    return (Array(length).join('0') + number).slice(-length);
-  },
-
-  /**
-   * [numComma description]
-   * @param  {[type]} num [description]
-   * @return {[type]}     [description]
-   */
-  numComma: function (num) {
-    return String(num).replace(/(\d)(?=(\d\d\d)+(?!\d))/g, '$1,');
-  },
-
-  /**
-   * [separate description]
-   * @param  {[type]} num [description]
-   * @return {[type]}     [description]
-   */
-  separate: function (num) {
-    return String(num).replace(/(\d)(?=(\d\d\d)+(?!\d))/g, '$1,');
-  }
-};
-
-/**
- * ALGO.Util
- */
-ALGO.Util = {
-  /**
-   * [browserLanguage description]
-   * @return {[type]} [description]
-   */
-  getBrowserLang: function () {
-    var ua = window.navigator.userAgent.toLowerCase();
-    try {
-      // chrome
-      if (ua.indexOf('chrome') != -1) {
-        return (navigator.languages[0] || navigator.browserLanguage || navigator.language || navigator.userLanguage).substr(0, 2);
-      }
-      // others
-      else {
-        return (navigator.browserLanguage || navigator.language || navigator.userLanguage).substr(0, 2);
-      }
-    } catch (e) {
-      return undefined;
-    }
-  },
-
-  /**
-   * [isSmartDevice description]
-   * @return {Boolean} [description]
-   */
-  isSmartDevice: function () {
-    var ua = navigator.userAgent;
-    var flag = false;
-
-    if ((ua.indexOf('iPhone') > 0 && ua.indexOf('iPad') == -1) || ua.indexOf('iPod') > 0 || ua.indexOf('Android') > 0 && ua.indexOf('Mobile') > 0) {
-      flag = 'smartphone';
-    } else if (ua.indexOf('iPad') > 0 || ua.indexOf('Android') > 0) {
-      flag = 'tablet';
-    }
-    return flag;
-  },
-
-  /**
-   * [getOS description]
-   * @return {[type]} [description]
-   */
-  getOS: function () {
-    var os;
-    var ua = window.navigator.userAgent.toLowerCase();
-    if (ua.match(/win/)) {
-      os = "win";
-    } else if (ua.match(/mac|ppc/)) {
-      os = "mac";
-    } else if (ua.match(/linux/)) {
-      os = "linux";
-    } else {
-      os = "other";
-    }
-    return os;
-  },
-
-  /**
-   * [getBrowser description]
-   * @return (ie6、ie7、ie8、ie9、ie10、ie11、chrome、safari、opera、firefox、unknown)
-   */
-  getBrowser: function () {
-    var ua = window.navigator.userAgent.toLowerCase();
-    var ver = window.navigator.appVersion.toLowerCase();
-    var name = 'unknown';
-
-    if (ua.indexOf("msie") != -1) {
-      if (ver.indexOf("msie 6.") != -1) {
-        name = 'ie6';
-      } else if (ver.indexOf("msie 7.") != -1) {
-        name = 'ie7';
-      } else if (ver.indexOf("msie 8.") != -1) {
-        name = 'ie8';
-      } else if (ver.indexOf("msie 9.") != -1) {
-        name = 'ie9';
-      } else if (ver.indexOf("msie 10.") != -1) {
-        name = 'ie10';
-      } else {
-        name = 'ie';
-      }
-    } else if (ua.indexOf('trident/7') != -1) {
-      name = 'ie11';
-    } else if (ua.indexOf('chrome') != -1) {
-      name = 'chrome';
-    } else if (ua.indexOf('safari') != -1) {
-      name = 'safari';
-    } else if (ua.indexOf('opera') != -1) {
-      name = 'opera';
-    } else if (ua.indexOf('firefox') != -1) {
-      name = 'firefox';
-    }
-    return name;
-  },
-
-  /**
-   * [isSupported description]
-   * @param  {[type]}  browsers [description]
-   * @return {Boolean}          [description]
-   */
-  isSupported: function (browsers) {
-    var thusBrowser = getBrowser();
-    for (var i = 0; i < browsers.length; i++) {
-      if (browsers[i] == thusBrowser) {
-        return true;
-        exit;
-      }
-    }
-    return false;
-  },
-
-  /**
-   * [getQuery description]
-   * @return {[type]} [description]
-   */
-  getQuery: function () {
-    var query = window.location.search.substring(1);
-    var parms = query.split('&');
-    var p = {};
-
-    for (var i = 0; i < parms.length; i++) {
-      var pos = parms[i].indexOf('=');
-      if (pos > 0) {
-        var key = parms[i].substring(0, pos);
-        var val = parms[i].substring(pos + 1);
-        p[key] = val;
-      }
-    }
-    return p;
-  }
-
-};
-
-/**
- * Static Variables
- */
-ALGO.debug = 1;
-
-// Blendmode
-// @see http://yomotsu.net/blog/2013/08/04/blendmode-in-webgl.html
-ALGO.BLEND_NONE = 0;
-ALGO.BLEND_ADD = 1;
-ALGO.BLEND_MULTIPLY = 2;
-ALGO.BLEND_SCREEN = 3;
-
-/**
- * Define Getter / Setter
- */
-ALGO.prototype.__defineGetter__('framerate', function() {
-  // ALGO.log('define getter: framerate');
-  return this.framerate_;
+ALGO.Shape.prototype.__defineGetter__('needsUpdate', function() {
+  // ALGO.log('define getter: needsUpdate');
+  return this.needsUpdate_;
 });
 
-ALGO.prototype.__defineSetter__('framerate', function(value) {
-  // ALGO.log('define setter: framerate');
-  if (this.render) this.render.setFramerate(value);
-  this.framerate_ = value;
+ALGO.Shape.prototype.__defineSetter__('needsUpdate', function(value) {
+  // ALGO.log('define setter: needsUpdate');
+  this.needsUpdate_ = value;
 });
 
+/**
+ * ALGO.Polygon
+ */
+ALGO.Polygon = function( _x, _y, _angles, _radius ) {
+  'use strict';
+  // ALGO.log( 'ALGO.Polygon' );
+  this.x = _x;
+  this.y = _y;
+  this.angles = _angles;
+  this.radius = _radius;
 
-// Properties
-ALGO.prototype.width = 0;
-ALGO.prototype.height = 0;
-ALGO.prototype.blendMode = ALGO.BLEND_NONE;
-ALGO.prototype.backgroundAuto = true;
-ALGO.prototype.background = 0x666666;
-ALGO.prototype.backgroundAlpha = 0.5;
-ALGO.prototype.depth = 1.0;
-ALGO.prototype.framerate = 60;
-ALGO.prototype.canvas = null;
-ALGO.prototype.displayObjects = [];
-ALGO.prototype.children = [];
+  // define
+  this.angles_ = _angles;
+  this.radius_ = _radius;
+
+  this.type = 'polygon';
+
+  this.init();
+  this.setup();
+};
+
+ALGO.Polygon.prototype = Object.create( ALGO.Shape.prototype );
+ALGO.Polygon.prototype.constructor = ALGO.Polygon;
+
+ALGO.Polygon.prototype.setup = function(){
+  /* 頂点の位置を算出 */
+  var angle_points = [];
+  for (var i = 0; i < this.angles; i++) {
+    angle_points[i] = {};
+    angle_points[i].x = this.radius * Math.cos(2 * i * Math.PI / this.angles - Math.PI / 2);
+    angle_points[i].y = this.radius * Math.sin(2 * i * Math.PI / this.angles - Math.PI / 2);
+  }
+
+  var vp = [];
+  var vc = [];
+  var cl = ALGO.ColorUtil.hexToRgbNormalize( this.color );
+
+  for( i = 0; i < angle_points.length; i++ ){
+    // point
+    vp.push( angle_points[i].x );
+    vp.push( angle_points[i].y );
+
+    // color
+    vc.push( cl.r );
+    vc.push( cl.g );
+    vc.push( cl.b );
+    vc.push( this.alpha );
+  }
+  this.vertexPosition = vp;
+  this.vertexColors = vc;
+
+  // set index
+  var index = [];
+
+  // set index
+  for( i = 1; i < this.angles - 1; i++ ){
+    index.push( 0 );
+    index.push( i );
+    index.push( i+1 );
+  }
+
+  this.index = index;
+};
+
+/**
+ * ALGO.Circle
+ */
+ALGO.Circle = function( _x, _y, _radius ) {
+  'use strict';
+  // ALGO.log( 'ALGO.Circle' );
+  this.x = _x;
+  this.y = _y;
+  this.angles = ALGO.circleResolution;
+  this.radius = _radius;
+
+  // define
+  this.angles_ = ALGO.circleResolution;
+  this.radius_ = _radius;
+
+  this.type = 'circle';
+
+  this.init();
+  this.setup();
+};
+
+ALGO.Circle.prototype = Object.create( ALGO.Polygon.prototype );
+ALGO.Circle.prototype.constructor = ALGO.Circle;
 
 /**
  * ALGO.WebGLRenderer
@@ -1612,7 +1515,6 @@ ALGO.WebGLRenderer = (function(ALGO) {
   var uniform_vars;
   var attr_location;
   var attr_stride;
-  var index;
   var point_size = 10;
 
   var cw, ch;
@@ -1627,6 +1529,10 @@ ALGO.WebGLRenderer = (function(ALGO) {
   var uni_location;
 
   var zoom = 5.0;
+
+  var object_vbo = [];
+  var object_ibo = [];
+  var object_index = [];
 
   /**
    * renderer properties
@@ -1663,17 +1569,17 @@ ALGO.WebGLRenderer = (function(ALGO) {
 
 
 
-    // Matrix を用いた行列関連処理
-    m = new ALGO.Matrix();
+    // // Matrix を用いた行列関連処理
+    // m = new ALGO.Matrix4();
 
-    // 各種行列の生成と初期化
-    v_matrix = m.identity(m.create());
-    p_matrix = m.identity(m.create());
+    // // 各種行列の生成と初期化
+    // v_matrix = m.identity(m.create());
+    // p_matrix = m.identity(m.create());
 
-    tmp_matrix = m.identity(m.create());
+    // tmp_matrix = m.identity(m.create());
 
-    /* モデルビュープロジェクションのマトリックス */
-    mvp_matrix = m.identity(m.create());
+    // /* モデルビュープロジェクションのマトリックス */
+    // mvp_matrix = m.identity(m.create());
 
     resize();
 
@@ -1710,126 +1616,72 @@ ALGO.WebGLRenderer = (function(ALGO) {
     // Note: This matrix flips the Y axis so 0 is at the top.
     return [
       2 / width, 0, 0,
-      0, -2 / height, 0, -1, 1, 1
+      0, -2 / height, 0,
+      -1, 1, 1
     ];
   }
 
-
-  function makeTranslation(tx, ty) {
-    return [
-      1, 0, 0,
-      0, 1, 0,
-      tx, ty, 1
-    ];
-  }
-
-  function makeRotation(angleInRadians) {
-    var c = Math.cos(angleInRadians);
-    var s = Math.sin(angleInRadians);
-    return [
-      c, -s, 0,
-      s, c, 0,
-      0, 0, 1
-    ];
-  }
-
-  function makeScale(sx, sy) {
-    return [
-      sx, 0, 0,
-      0, sy, 0,
-      0, 0, 1
-    ];
-  }
-
-  function matrixMultiply(a, b) {
-    var a00 = a[0 * 3 + 0];
-    var a01 = a[0 * 3 + 1];
-    var a02 = a[0 * 3 + 2];
-    var a10 = a[1 * 3 + 0];
-    var a11 = a[1 * 3 + 1];
-    var a12 = a[1 * 3 + 2];
-    var a20 = a[2 * 3 + 0];
-    var a21 = a[2 * 3 + 1];
-    var a22 = a[2 * 3 + 2];
-    var b00 = b[0 * 3 + 0];
-    var b01 = b[0 * 3 + 1];
-    var b02 = b[0 * 3 + 2];
-    var b10 = b[1 * 3 + 0];
-    var b11 = b[1 * 3 + 1];
-    var b12 = b[1 * 3 + 2];
-    var b20 = b[2 * 3 + 0];
-    var b21 = b[2 * 3 + 1];
-    var b22 = b[2 * 3 + 2];
-    return [a00 * b00 + a01 * b10 + a02 * b20,
-      a00 * b01 + a01 * b11 + a02 * b21,
-      a00 * b02 + a01 * b12 + a02 * b22,
-      a10 * b00 + a11 * b10 + a12 * b20,
-      a10 * b01 + a11 * b11 + a12 * b21,
-      a10 * b02 + a11 * b12 + a12 * b22,
-      a20 * b00 + a21 * b10 + a22 * b20,
-      a20 * b01 + a21 * b11 + a22 * b21,
-      a20 * b02 + a21 * b12 + a22 * b22
-    ];
-  }
 
   /**
    * Init
    */
   function render() {
 
-    var translation = [100, 100];
-    var angleInRadians = 0;
-    var scale = [1, 1];
-
-    var projectionMatrix = make2DProjection(canvas.width, canvas.height);
+    var pm = new ALGO.Matrix3();
+    var projectionMatrix = make2DProjection(cw, ch);
 
     for (var i = 0; i < children.length; i++) {
 
       var object = children[i];
-
-      // モデル(頂点)データ
-      var vertex_position = object.vertexPosition;
-
-      // 頂点の色情報を格納する配列
-      var vertex_color = object.vertexColors;
+      var needsUpdate = object.needsUpdate;
 
       // VBOの生成
-      var vbo = [];
-      // Set Geometry
-      vbo.position = createVbo(vertex_position);
-      vbo.color = createVbo(vertex_color);
-      setVBOAttribute(vbo, attr_location, attr_stride);
+      if( !object_vbo[i] || needsUpdate ){
+        // モデル(頂点)データ
+        var vertex_position = object.vertexPosition;
+        // 頂点の色情報を格納する配列
+        var vertex_color = object.vertexColors;
+        // Set Geometry
+        var vbo = [];
+        vbo.position = createVbo(vertex_position);
+        vbo.color = createVbo(vertex_color);
+        object_vbo[i] = vbo;
 
-      index = object.index;
+      }
 
-      // IBOの生成
-      var ibo = [];
-      ibo[0] = createIbo(index);
+      setVBOAttribute( object_vbo[i], attr_location, attr_stride);
+
+
+      if( !object_ibo[i] || needsUpdate ){
+        var index = object.index;
+        // IBOの生成
+        var ibo = createIbo(index);
+
+        object_index[i] = index;
+        object_ibo[i] = ibo;
+      }
 
       // IBOをバインドして登録する
-      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo[0]);
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, object_ibo[i]);
 
-      var m_matrix = object.matrix;
+      var objectMatrix = object.getMatrix();
+      var matrix2 = pm.multiply(objectMatrix, projectionMatrix, [] );
 
-      scale[0] = object.scale;
-      scale[1] = object.scale;
-      angleInRadians = object.rotate * Math.PI / 180;
-
-      // Compute the matrices
-      var projectionMatrix = make2DProjection(canvas.width, canvas.height);
-      var translationMatrix = makeTranslation(object.x, object.y);
-      var rotationMatrix = makeRotation(angleInRadians);
-      var scaleMatrix = makeScale(scale[0], scale[1]);
-
-      // Multiply the matrices.
-      var matrix = matrixMultiply(scaleMatrix, rotationMatrix);
-      matrix = matrixMultiply(matrix, translationMatrix);
-      matrix = matrixMultiply(matrix, projectionMatrix);
+      if( i == 0 ){
+        // ALGO.log( matrix2 );
+        // ALGO.log( '' );
+      }
 
       // Set the matrix.
-      gl.uniformMatrix3fv(uni_location.matrix, false, matrix);
+      gl.uniformMatrix3fv(uni_location.matrix, false, matrix2);
 
-      gl.drawElements(gl.TRIANGLES, index.length, gl.UNSIGNED_SHORT, 0);
+      if( needsUpdate ){
+        object.needsUpdate = false;
+      }
+
+      // gl.drawArrays(gl.TRIANGLES, 0, 3);
+      gl.drawElements(gl.TRIANGLES, object_index[i].length, gl.UNSIGNED_SHORT, 0);
+
 
       // object.x;
       // object.y;
@@ -1864,17 +1716,17 @@ ALGO.WebGLRenderer = (function(ALGO) {
     cw = canvas.width;
     ch = canvas.height;
 
-    m.identity(v_matrix);
-    m.identity(p_matrix);
-    m.identity(tmp_matrix);
-    m.identity(mvp_matrix);
+    // m.identity(v_matrix);
+    // m.identity(p_matrix);
+    // m.identity(tmp_matrix);
+    // m.identity(mvp_matrix);
 
-    // ビュー座標変換行列
-    m.lookAt([0.0, 0.0, zoom], [0, 0, 0], [0, 1, 0], v_matrix);
-    // プロジェクション座標変換行列
-    m.perspective(90, canvas.width / canvas.height, 0.01, 1000, p_matrix);
-    // 各行列を掛け合わせ座標変換行列を完成させる
-    m.multiply(p_matrix, v_matrix, tmp_matrix);
+    // // ビュー座標変換行列
+    // m.lookAt([0.0, 0.0, zoom], [0, 0, 0], [0, 1, 0], v_matrix);
+    // // プロジェクション座標変換行列
+    // m.perspective(90, canvas.width / canvas.height, 0.01, 1000, p_matrix);
+    // // 各行列を掛け合わせ座標変換行列を完成させる
+    // m.multiply(p_matrix, v_matrix, tmp_matrix);
 
     var resolution_location = gl.getUniformLocation(program, "u_resolution");
     gl.uniform2f(resolution_location, canvas.width, canvas.height);
@@ -2087,15 +1939,15 @@ ALGO.WebGLRenderer = (function(ALGO) {
    */
   function setVBOAttribute(vbo, attL, attS) {
     // 引数として受け取った配列を処理する
-    for (var i in vbo) {
+    for (var key in vbo) {
       // バッファをバインドする
-      gl.bindBuffer(gl.ARRAY_BUFFER, vbo[i]);
+      gl.bindBuffer(gl.ARRAY_BUFFER, vbo[key]);
 
       // attributeLocationを有効にする
-      gl.enableVertexAttribArray(attL[i]);
+      gl.enableVertexAttribArray(attL[key]);
 
       // attributeLocationを通知し登録する
-      gl.vertexAttribPointer(attL[i], attS[i], gl.FLOAT, false, 0, 0);
+      gl.vertexAttribPointer(attL[key], attS[key], gl.FLOAT, false, 0, 0);
     }
   };
 
@@ -2107,3 +1959,485 @@ ALGO.WebGLRenderer = (function(ALGO) {
 
   return ALGO.WebGLRenderer;
 }(ALGO));
+
+/**
+ * ALGO.log
+ */
+ALGO.log = function(obj) {
+  if (window.console && window.console.log) {
+    if (ALGO.debug) window.console.log(obj);
+  }
+};
+
+/**
+ * ALGO.warn
+ */
+ALGO.warn = function(obj) {
+  if (window.console && window.console.warn) {
+    if (ALGO.debug) window.console.warn(obj);
+  }
+};
+
+/**
+ * ALGO.error
+ */
+ALGO.error = function(obj) {
+  if (window.console && window.console.error) {
+    if (ALGO.debug) window.console.error(obj);
+  }
+};
+
+/**
+ * ALGO.PointUtil
+ */
+ALGO.PointUtil = {
+
+  /**
+   * [normalize description]
+   * @param  {[type]} point [description]
+   * @param  {[type]} scale [description]
+   * @return {[type]}       [description]
+   */
+  normalize: function(point, scale) {
+    var norm = Math.sqrt(point.x * point.x + point.y * point.y);
+    if (norm != 0) { // as3 return 0,0 for a point of zero length
+      point.x = scale * point.x / norm;
+      point.y = scale * point.y / norm;
+    }
+  },
+
+  /**
+   * [normalize3 description]
+   * @param  {[type]} p     [description]
+   * @param  {[type]} scale [description]
+   * @return {[type]}       [description]
+   */
+  normalize3: function(p, scale) {
+    var norm = Math.sqrt(p.x * p.x + p.y * p.y + p.z * p.z);
+    if (norm != 0) { // as3 return 0,0 for a point of zero length
+      p.x = scale * p.x / norm;
+      p.y = scale * p.y / norm;
+      p.z = scale * p.z / norm;
+    }
+    return p;
+  },
+
+  /**
+   * [pointLength3 description]
+   * @param  {[type]} p [description]
+   * @return {[type]}   [description]
+   */
+  pointLength3: function(p) {
+    return Math.sqrt(p.x * p.x + p.y * p.y + p.z * p.z);
+  },
+
+  /**
+   * [getDistance description]
+   * @param  {[type]} p1 [description]
+   * @param  {[type]} p2 [description]
+   * @return {[type]}    [description]
+   */
+  getDistance: function(p1, p2) {
+    var nX = p2.x - p1.x;
+    var nY = p2.y - p1.y;
+    return Math.sqrt(nX * nX + nY * nY);
+  },
+
+  // 2点間の傾きを求める
+  /**
+   * [getSlope description]
+   * @param  {[type]} p1 [description]
+   * @param  {[type]} p2 [description]
+   * @return {[type]}    [description]
+   */
+  getSlope: function(p1, p2) {
+    return (p2.y - p1.y) / (p2.x - p1.x);
+  },
+
+  // 2点間の切片を求める
+  /**
+   * [getIntercept description]
+   * @param  {[type]} p1 [description]
+   * @param  {[type]} p2 [description]
+   * @param  {[type]} a  [description]
+   * @return {[type]}    [description]
+   */
+  getIntercept: function(p1, p2, a) {
+    var x = (p1.x + p2.x);
+    var y = (p1.y + p2.y);
+    return y / 2 - (a * x) / 2;
+  },
+
+  // 2点間の中点を求める
+  /**
+   * [getMidpoint description]
+   * @param  {[type]} p1 [description]
+   * @param  {[type]} p2 [description]
+   * @return {[type]}    [description]
+   */
+  getMidpoint: function(p1, p2) {
+    var p = [];
+    p.x = (p1.x + p2.x) / 2;
+    p.y = (p1.y + p2.y) / 2;
+    return p;
+  },
+
+  // 2点から垂直二等分線を求める
+  /**
+   * [getMidperpendicular description]
+   * @param  {[type]} p1 [description]
+   * @param  {[type]} p2 [description]
+   * @return {[type]}    [description]
+   */
+  getMidperpendicular: function(p1, p2) {
+
+    // 傾きを調べる
+    var a = getSlope(p1, p2);
+
+    // 垂直二等分線の傾き
+    if (checkEQ(a)) {
+      x = 1.0;
+    } else {
+      x = -1.0 / a;
+    }
+
+    // 線の中点
+    var mp = getMidpoint(p1, p2);
+
+    // 切片を求める
+    if (checkEQ(a)) {
+      y = 0;
+    } else {
+      y = mp.y - x * mp.x;
+    }
+
+    return {
+      x: x,
+      y: y
+    }
+  },
+
+  // 3点から外接円を求める、引数特殊なので注意
+  /**
+   * [getThroughPoint3 description]
+   * @param  {[type]} _p1 [description]
+   * @param  {[type]} _p2 [description]
+   * @param  {[type]} _p3 [description]
+   * @return {[type]}     [description]
+   */
+  getThroughPoint3: function(_p1, _p2, _p3) {
+
+    // 二等分線を作成
+    var p1 = getMidperpendicular(_p1, _p2);
+    var p2 = getMidperpendicular(_p1, _p3);
+
+    // 中心を算出
+    var center = [];
+    center.x = (p2.y - p1.y) / (p1.x - p2.x);
+    center.y = p1.x * center.x + p1.y;
+
+    // 半径を算出
+    var rad = Math.sqrt(Math.pow(center.x - _p1.x, 2) + Math.pow(center.y - _p1.y, 2));
+
+    return {
+      x: center.x,
+      y: center.y,
+      rad: rad
+    }
+  },
+
+  // 3点から外接円を求める、引数特殊なので注意
+  /**
+   * [getHugeTriangle description]
+   * @param  {[type]} _p1 [description]
+   * @param  {[type]} _p2 [description]
+   * @param  {[type]} _p3 [description]
+   * @return {[type]}     [description]
+   */
+  getHugeTriangle: function(_p1, _p2, _p3) {
+    var obj = getThroughPoint3(_p1, _p2, _p3);
+
+    var x1 = obj.x - Math.sqrt(3) * obj.rad;
+    var y1 = obj.y - obj.rad;
+    var x2 = obj.x + Math.sqrt(3) * obj.rad;
+    var y2 = obj.y - obj.rad;
+    var x3 = obj.x;
+    var y3 = obj.y + 2 * obj.rad;
+    return [{
+      x: x1,
+      y: y1
+    }, {
+      x: x2,
+      y: y2
+    }, {
+      x: x3,
+      y: y3
+    }]
+  },
+
+  // 直線上の点かどうか判定
+  /**
+   * [checkEQ description]
+   * @param  {[type]} x [description]
+   * @return {[type]}   [description]
+   */
+  checkEQ: function(x) {
+    var eps = 0.000001;
+    return -eps <= x && x <= eps;
+  }
+};
+
+/**
+ * ALGO.StringUtil
+ */
+ALGO.StringUtil = {
+
+  /**
+   * [zeroPadding description]
+   * @param  {[type]} number [description]
+   * @param  {[type]} length [description]
+   * @return {[type]}        [description]
+   */
+  zeroPadding: function (number, length) {
+    return (Array(length).join('0') + number).slice(-length);
+  },
+
+  /**
+   * [numComma description]
+   * @param  {[type]} num [description]
+   * @return {[type]}     [description]
+   */
+  numComma: function (num) {
+    return String(num).replace(/(\d)(?=(\d\d\d)+(?!\d))/g, '$1,');
+  },
+
+  /**
+   * [separate description]
+   * @param  {[type]} num [description]
+   * @return {[type]}     [description]
+   */
+  separate: function (num) {
+    return String(num).replace(/(\d)(?=(\d\d\d)+(?!\d))/g, '$1,');
+  }
+};
+
+/**
+ * ALGO.ObjectUtil
+ */
+ALGO.ObjectUtil = {
+
+  /**
+   * [extend description]
+   * @param  {[type]} base_obj [description]
+   * @param  {[type]} over_obj [description]
+   * @return {[type]}          [description]
+   */
+  extend: function ( base_obj, over_obj ) {
+    var new_obj = ALGO.ObjectUtil.clone( base_obj );
+    for( key in over_obj ){
+      var value = ( over_obj[ key ] )? over_obj[ key ] : base_obj[ key ];
+      base_obj[ key ] = value;
+    }
+    return base_obj;
+  },
+
+  /**
+   * [clone description]
+   * @param  {[type]} obj [description]
+   * @return {[type]}     [description]
+   */
+  clone: function ( obj ) {
+    var new_obj = {};
+    for( key in obj ){
+      new_obj[ key ] = obj[ key ];
+    }
+    return new_obj;
+  }
+
+
+};
+
+/**
+ * ALGO.ColorUtil
+ */
+ALGO.ColorUtil = {
+
+  /**
+   * [rgbToHex description]
+   * @param  {[type]} r [description]
+   * @param  {[type]} g [description]
+   * @param  {[type]} b [description]
+   * @return {[type]}   [description]
+   */
+  rgbToHex: function (r, g, b) {
+    r = Math.floor( r );
+    g = Math.floor( g );
+    b = Math.floor( b );
+    var hex = ( r << 16 ) + ( g << 8 ) + b;
+    return '0x' + hex.toString(16);
+  },
+
+  /**
+   * [hexToRgb description]
+   * @param  {[type]} hex [description]
+   * @return {[type]}     [description]
+   */
+  hexToRgb: function ( hex ) {
+    hex = hex.toString(16).replace('#', '').replace('0x', '');
+    hex = '0x' + hex;
+    var obj = {
+      r: hex >> 16,
+      g: hex >> 8 & 0xff,
+      b: hex & 0xff,
+    };
+    return obj;
+  },
+
+  /**
+   * [hexToRgb description]
+   * @param  {[type]} hex [description]
+   * @return {[type]}     [description]
+   */
+  hexToRgbNormalize: function ( hex ) {
+    var obj = ALGO.ColorUtil.hexToRgb( hex );
+    obj.r = obj.r / 256;
+    obj.g = obj.g / 256;
+    obj.b = obj.b / 256;
+    return obj;
+  },
+
+};
+
+/**
+ * ALGO.Util
+ */
+ALGO.Util = {
+  /**
+   * [browserLanguage description]
+   * @return {[type]} [description]
+   */
+  getBrowserLang: function () {
+    var ua = window.navigator.userAgent.toLowerCase();
+    try {
+      // chrome
+      if (ua.indexOf('chrome') != -1) {
+        return (navigator.languages[0] || navigator.browserLanguage || navigator.language || navigator.userLanguage).substr(0, 2);
+      }
+      // others
+      else {
+        return (navigator.browserLanguage || navigator.language || navigator.userLanguage).substr(0, 2);
+      }
+    } catch (e) {
+      return undefined;
+    }
+  },
+
+  /**
+   * [isSmartDevice description]
+   * @return {Boolean} [description]
+   */
+  isSmartDevice: function () {
+    var ua = navigator.userAgent;
+    var flag = false;
+
+    if ((ua.indexOf('iPhone') > 0 && ua.indexOf('iPad') == -1) || ua.indexOf('iPod') > 0 || ua.indexOf('Android') > 0 && ua.indexOf('Mobile') > 0) {
+      flag = 'smartphone';
+    } else if (ua.indexOf('iPad') > 0 || ua.indexOf('Android') > 0) {
+      flag = 'tablet';
+    }
+    return flag;
+  },
+
+  /**
+   * [getOS description]
+   * @return {[type]} [description]
+   */
+  getOS: function () {
+    var os;
+    var ua = window.navigator.userAgent.toLowerCase();
+    if (ua.match(/win/)) {
+      os = "win";
+    } else if (ua.match(/mac|ppc/)) {
+      os = "mac";
+    } else if (ua.match(/linux/)) {
+      os = "linux";
+    } else {
+      os = "other";
+    }
+    return os;
+  },
+
+  /**
+   * [getBrowser description]
+   * @return (ie6、ie7、ie8、ie9、ie10、ie11、chrome、safari、opera、firefox、unknown)
+   */
+  getBrowser: function () {
+    var ua = window.navigator.userAgent.toLowerCase();
+    var ver = window.navigator.appVersion.toLowerCase();
+    var name = 'unknown';
+
+    if (ua.indexOf("msie") != -1) {
+      if (ver.indexOf("msie 6.") != -1) {
+        name = 'ie6';
+      } else if (ver.indexOf("msie 7.") != -1) {
+        name = 'ie7';
+      } else if (ver.indexOf("msie 8.") != -1) {
+        name = 'ie8';
+      } else if (ver.indexOf("msie 9.") != -1) {
+        name = 'ie9';
+      } else if (ver.indexOf("msie 10.") != -1) {
+        name = 'ie10';
+      } else {
+        name = 'ie';
+      }
+    } else if (ua.indexOf('trident/7') != -1) {
+      name = 'ie11';
+    } else if (ua.indexOf('chrome') != -1) {
+      name = 'chrome';
+    } else if (ua.indexOf('safari') != -1) {
+      name = 'safari';
+    } else if (ua.indexOf('opera') != -1) {
+      name = 'opera';
+    } else if (ua.indexOf('firefox') != -1) {
+      name = 'firefox';
+    }
+    return name;
+  },
+
+  /**
+   * [isSupported description]
+   * @param  {[type]}  browsers [description]
+   * @return {Boolean}          [description]
+   */
+  isSupported: function (browsers) {
+    var thusBrowser = getBrowser();
+    for (var i = 0; i < browsers.length; i++) {
+      if (browsers[i] == thusBrowser) {
+        return true;
+        exit;
+      }
+    }
+    return false;
+  },
+
+  /**
+   * [getQuery description]
+   * @return {[type]} [description]
+   */
+  getQuery: function () {
+    var query = window.location.search.substring(1);
+    var parms = query.split('&');
+    var p = {};
+
+    for (var i = 0; i < parms.length; i++) {
+      var pos = parms[i].indexOf('=');
+      if (pos > 0) {
+        var key = parms[i].substring(0, pos);
+        var val = parms[i].substring(pos + 1);
+        p[key] = val;
+      }
+    }
+    return p;
+  }
+
+};

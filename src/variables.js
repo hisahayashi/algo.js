@@ -24,6 +24,25 @@ ALGO.prototype.__defineSetter__('framerate', function(value) {
   this.framerate_ = value;
 });
 
+/**
+ * Define Getter / Setter
+ */
+ALGO.prototype.__defineGetter__('circleResolution', function() {
+  // ALGO.log('define getter: circleResolution');
+  return this.circleResolution_;
+});
+
+ALGO.prototype.__defineSetter__('circleResolution', function(value) {
+  // ALGO.log('define setter: circleResolution');
+
+  /*
+  更新時にALGO.Circleへの通知が必要かも
+   */
+  ALGO.circleResolution = value;
+
+  this.circleResolution_ = value;
+});
+
 
 // Properties
 ALGO.prototype.width = 0;
@@ -34,6 +53,7 @@ ALGO.prototype.background = 0x666666;
 ALGO.prototype.backgroundAlpha = 0.5;
 ALGO.prototype.depth = 1.0;
 ALGO.prototype.framerate = 60;
+ALGO.prototype.circleResolution = 32;
 ALGO.prototype.canvas = null;
 ALGO.prototype.displayObjects = [];
 ALGO.prototype.children = [];

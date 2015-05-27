@@ -12,10 +12,13 @@ var selector = {
     'src/algo.js',
     'src/variables.js',
     'src/render.js',
-    'src/matrix.js',
+
+    'src/math/matrix3.js',
+    'src/math/matrix4.js',
 
     'src/shape/shapeCtrl.js',
     'src/shape/shape.js',
+    'src/shape/polygon.js',
     'src/shape/circle.js',
 
     'src/renderer/webgl.js',
@@ -36,7 +39,7 @@ var selector = {
  */
 gulp.task('concat', function () {
   return gulp.src(selector.algo_src)
-    .pipe(order(selector.algo_src))
+    .pipe(order(selector.algo_src, {base: '.'}))
     .pipe(concat('algo.js'))
     .pipe(gulp.dest('build'))
     .pipe(concat('algo.min.js'))
