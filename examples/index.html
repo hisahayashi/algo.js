@@ -1,19 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 <title>algo.js examples: </title>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 <style>
 body {
-margin: 0;
-padding: 0;
-font-size: 0;
-background-color: #000000;
+  margin: 0;
+  padding: 0;
+  font-size: 0;
+  background-color: #000000;
 }
+
 canvas {
-width: 100%;
-height: 100%;
+  width: 100%;
+  height: 100%;
 }
 </style>
 </head>
@@ -25,98 +27,45 @@ height: 100%;
 <script type="text/javascript" src="assets/js/libs/dat.gui.min.js"></script>
 <script type="text/javascript" src="assets/js/libs/stats.min.js"></script>
 <script type="text/javascript">
-var num = 100;
+var stats = new Stats();
 var param = {
   id: 'canvas',
   width: window.innerWidth,
   height: window.innerHeight
 };
-var algo = new ALGO( param );
+var algo = new ALGO(param);
+algo.background = 0xffffff;
+algo.circleResolution = 128;
+algo.framerate = 12;
 
-algo.width = window.innerWidth;
-algo.height = window.innerHeight;
-algo.background = 0xdddddd;
-algo.backgroundAuto = true;
-algo.backgroundAlpha = 0.8;
-algo.depth = 1.0;
-algo.framerate = 60;
-algo.circleResolution = 32;
-algo.blendMode = ALGO.BLEND_ALPHA;
+ALGO.log(algo);
 
-ALGO.log( algo );
+var circle;
 
-var t1,t2,t3,t4;
-var triangles = [];
+algo.bind('setup', function() {
+  circle = new ALGO.Circle(0, 0, 200);
+  circle.color = 0x003399;
+  algo.add(circle);
 
-algo.bind('setup', function(){
-  t1 = new ALGO.Circle( 100, 100, 10 );
-  t1.x = 0;
-  t1.y = 0;
-  t1.scale = 10;
-  t1.color = 0xffff00;
-  t1.radius = 100;
-  t1.alpha = 0.3;
-  algo.add( t1 );
-
-  t2 = new ALGO.Polygon( 100, 100, 5, 10 );
-  t2.x = 100;
-  t2.y = 100;
-  t2.color = 0xffffff;
-  t2.scale = 10;
-  algo.add( t2 );
-
-  t3 = new ALGO.Polygon( 100, 100, 4, 10 );
-  t3.x = 300;
-  t3.y = 300;
-  t3.color = 0x000000;
-  t3.scale = 10;
-  t3.rotate = 30;
-  algo.add( t3 );
-
-  t4 = new ALGO.Polygon( 100, 100, 4, 10 );
-  t4.x = 300;
-  t4.y = 300;
-  t4.color = 0xff0000;
-  t4.scale = 10;
-  algo.add( t4 );
-
-  for( var i = 0; i < num; i++ ){
-    var t = new ALGO.Circle( Math.random() * algo.width, Math.random() * algo.height, 5 );
-    t.dx = Math.random();
-    t.dy = Math.random();
-    algo.add( t );
-    triangles.push( t );
-  }
+  // stats
+  stats.domElement.style.position = 'fixed';
+  stats.domElement.style.right = '0px';
+  stats.domElement.style.top = '0px';
+  document.body.appendChild(stats.domElement);
 });
 
-algo.bind('frame', function(){
-  t2.x = algo.width;
-  t2.y = 0;
-  t2.needsUpdate = true;
-
-  t3.x = algo.width;
-  t3.y = algo.height;
-  t3.rotate += 1;
-  t3.needsUpdate = true;
-
-  t4.x = 0;
-  t4.y = algo.height;
-  t4.needsUpdate = true;
-
-
-  for( var i = 0; i < num; i++ ){
-    var t = triangles[i];
-    t.x += t.dx;
-    t.y += t.dy;
-  }
-
+algo.bind('frame', function() {
+  circle.x = algo.width * 0.5;
+  circle.y = algo.height * 0.5;
+  // stats
+  stats.update();
 });
 
-algo.bind('resize', function(){
+algo.bind('resize', function() {
   // ALGO.log('resize after');
   var w = window.innerWidth;
   var h = window.innerHeight;
-  algo.size( w, h );
+  algo.size(w, h);
 });
 </script>
 </body>

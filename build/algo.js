@@ -279,7 +279,6 @@ ALGO.prototype.blendMode = ALGO.BLEND_NONE;
 ALGO.prototype.backgroundAuto = true;
 ALGO.prototype.background = 0x666666;
 ALGO.prototype.backgroundAlpha = 0.5;
-ALGO.prototype.depth = 1.0;
 ALGO.prototype.framerate = 60;
 ALGO.prototype.circleResolution = 32;
 ALGO.prototype.canvas = null;

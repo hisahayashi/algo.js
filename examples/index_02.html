@@ -7,16 +7,15 @@
 <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 <style>
 body {
-margin: 0;
-padding: 0;
-font-size: 0;
-background-color: #000000;
+  margin: 0;
+  padding: 0;
+  font-size: 0;
+  background-color: #000000;
 }
+
 canvas {
-
-width: 100%;
-height: 100%;
-
+  width: 100%;
+  height: 100%;
 }
 </style>
 </head>
@@ -28,102 +27,87 @@ height: 100%;
 <script type="text/javascript" src="assets/js/libs/dat.gui.min.js"></script>
 <script type="text/javascript" src="assets/js/libs/stats.min.js"></script>
 <script type="text/javascript">
+var stats = new Stats();
+var num = 1000;
 var param = {
   id: 'canvas',
   width: window.innerWidth,
   height: window.innerHeight
 };
-var algo = new ALGO( param );
-
+var algo = new ALGO(param);
 algo.width = window.innerWidth;
 algo.height = window.innerHeight;
-algo.background = 0xdddddd;
+algo.background = 0xffffff;
 algo.backgroundAuto = true;
 algo.backgroundAlpha = 0.8;
-algo.depth = 1.0;
-algo.framerate = 12;
+algo.framerate = 60;
 algo.circleResolution = 32;
 algo.blendMode = ALGO.BLEND_ALPHA;
 
-ALGO.log( algo );
+ALGO.log(algo);
 
-var t1;
 var triangles = [];
 
-algo.bind('setup', function(){
-  // ALGO.log('setup after');
+algo.bind('setup', function() {
+  var aw = algo.width;
+  var ah = algo.height;
 
-  t1 = new ALGO.Polygon( 100, 100, 3, 10 );
-  t1.x = 0;
-  t1.y = 0;
-  t1.scale = 10;
-  t1.color = 0xffff00;
-  t1.radius = 100;
-  t1.alpha = 0.3;
-  algo.add( t1 );
+  for (var i = 0; i < num; i++) {
+    var x = Math.random() * aw;
+    var y = Math.random() * ah;
+
+    var r = Math.floor( Math.random() * 255 * 0.2 );
+    var g = Math.floor( Math.random() * 255 * 0.2 );
+    var b = Math.floor( Math.random() * 255 );
+    var hex = ALGO.ColorUtil.rgbToHex( r, g, b );
+
+    var t = new ALGO.Polygon( x, y, 6, 4 );
+    t.dx = Math.random() * 4 - 2;
+    t.dy = Math.random() * 4 - 2;
+    t.color = hex;
+    algo.add(t);
+    triangles.push(t);
+  }
+
+  // stats
+  stats.domElement.style.position = 'fixed';
+  stats.domElement.style.right = '0px';
+  stats.domElement.style.top = '0px';
+  document.body.appendChild(stats.domElement);
 });
 
-algo.bind('frame', function(){
+algo.bind('frame', function() {
+  var aw = algo.width;
+  var ah = algo.height;
 
-  t1.x = algo.width / 2;
-  t1.y = algo.height / 2;
-  t1.rotate += 3;
-  // t1.scale += 0.1;
-  t1.needsUpdate = true;
+  for (var i = 0; i < num; i++) {
+    var t = triangles[i];
+    t.x += t.dx;
+    t.y += t.dy;
 
+    if( t.x > aw ){
+      t.x = 0;
+    } else if( t.x < 0 ){
+      t.x = aw;
+    }
+
+    if( t.y > ah ){
+      t.y = 0;
+    } else if( t.y < 0 ){
+      t.y = ah;
+    }
+  }
+
+  // stats
+  stats.update();
 });
 
-algo.bind('resize', function(){
+algo.bind('resize', function() {
   // ALGO.log('resize after');
   var w = window.innerWidth;
   var h = window.innerHeight;
-  algo.size( w, h );
+  algo.size(w, h);
 });
-
-/*
-var vec2 = new ALGO.Vec2f( x, y );
-
-var rectangle = new ALGO.Rectangle( x, y, w, h );
-rectangle.x = 0;
-rectangle.y = 0;
-rectangle.width = 10;
-rectangle.height = 10;
-rectangle.color = 0xffffff;
-rectangle.draw();
-
-var circle = new ALGO.Circle( x, y, radius );
-circle.x = 10;
-circle.y = 10;
-circle.scale = 10;
-circle.color = 0xffffff;
-circle.radius = 100;
-circle.draw();
-
-var t1 = new ALGO.Polygon( x, y, angles, radius );
-t1.x = 10;
-t1.y = 10;
-t1.scale = 10;
-t1.color = 0xffffff;
-t1.radius = 100;
-t1.draw();
-
-var line = new ALGO.Line( x, y, x1, y1 );
-line.x = 10;
-line.y = 10;
-line.scale = 10;
-line.color = 0xffffff;
-line.lineWidth = 10;
-line.moveTo( 100, 10 );
-line.lineTo( 100, 10 );
-line.draw();
-
-var particle = new ALGO.Particle( x, y );
-particle.x  = 10;
-particle.y  = 10;
-particle.color = 0xffffff;
-particle.radius = 0.5;
-particle.draw();
-*/
 </script>
 </body>
 
