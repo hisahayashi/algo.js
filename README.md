@@ -15,7 +15,7 @@ algo.jsはメディアアートやモーションの実験を行うシンプル�
 
 ### デモ
 
-- [demo 01](https://rawgit.com/hisahayashi/algo.js/master/examples/index.html "demo")
+- <a href="https://rawgit.com/hisahayashi/algo.js/master/examples/index.html" target="_blank">Example 01</a>
 
 
 # algo.js
@@ -35,7 +35,7 @@ And now it is in development, but it is coming soon.
 
 ### Examples
 
-- [demo 01](https://rawgit.com/hisahayashi/algo.js/master/examples/index.html "demo")
+- <a href="https://rawgit.com/hisahayashi/algo.js/master/examples/index.html" target="_blank">Example 01</a>
 
 
 
