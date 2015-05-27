@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 <title>algo.js examples: </title>
 <meta charset="utf-8">
@@ -12,8 +13,10 @@ font-size: 0;
 background-color: #000000;
 }
 canvas {
+
 width: 100%;
 height: 100%;
+
 }
 </style>
 </head>
@@ -25,7 +28,12 @@ height: 100%;
 <script type="text/javascript" src="assets/js/libs/dat.gui.min.js"></script>
 <script type="text/javascript" src="assets/js/libs/stats.min.js"></script>
 <script type="text/javascript">
-var num = 100;
+
+var polygon = new ALGO.Polygon( 100, 100, 3, 10 );
+ALGO.log( polygon.scale );
+
+var NUM = 100;
+
 var param = {
   id: 'canvas',
   width: window.innerWidth,
@@ -49,6 +57,8 @@ var t1,t2,t3,t4;
 var triangles = [];
 
 algo.bind('setup', function(){
+  // ALGO.log('setup after');
+
   t1 = new ALGO.Circle( 100, 100, 10 );
   t1.x = 0;
   t1.y = 0;
@@ -80,16 +90,29 @@ algo.bind('setup', function(){
   t4.scale = 10;
   algo.add( t4 );
 
-  for( var i = 0; i < num; i++ ){
+  for( var i = 0; i < NUM; i++ ){
     var t = new ALGO.Circle( Math.random() * algo.width, Math.random() * algo.height, 5 );
     t.dx = Math.random();
     t.dy = Math.random();
     algo.add( t );
     triangles.push( t );
   }
+
+  // ALGO.log( algo.children );
+  // ALGO.log( algo.displayObjects );
 });
 
 algo.bind('frame', function(){
+  // ALGO.log('frame after');
+
+/*
+  var r = Math.random() * 10;
+  var g = Math.random() * 10;
+  var b = Math.random() * 256;
+  var hex = ALGO.ColorUtil.rgbToHex( r, g, b );
+  algo.background = hex;
+*/
+
   t2.x = algo.width;
   t2.y = 0;
   t2.needsUpdate = true;
@@ -105,10 +128,11 @@ algo.bind('frame', function(){
   t4.needsUpdate = true;
 
 
-  for( var i = 0; i < num; i++ ){
+  for( var i = 0; i < NUM; i++ ){
     var t = triangles[i];
     t.x += t.dx;
     t.y += t.dy;
+    // t.needsUpdate = true;
   }
 
 });
@@ -119,6 +143,51 @@ algo.bind('resize', function(){
   var h = window.innerHeight;
   algo.size( w, h );
 });
+
+/*
+var vec2 = new ALGO.Vec2f( x, y );
+
+var rectangle = new ALGO.Rectangle( x, y, w, h );
+rectangle.x = 0;
+rectangle.y = 0;
+rectangle.width = 10;
+rectangle.height = 10;
+rectangle.color = 0xffffff;
+rectangle.draw();
+
+var circle = new ALGO.Circle( x, y, radius );
+circle.x = 10;
+circle.y = 10;
+circle.scale = 10;
+circle.color = 0xffffff;
+circle.radius = 100;
+circle.draw();
+
+var t1 = new ALGO.Polygon( x, y, angles, radius );
+t1.x = 10;
+t1.y = 10;
+t1.scale = 10;
+t1.color = 0xffffff;
+t1.radius = 100;
+t1.draw();
+
+var line = new ALGO.Line( x, y, x1, y1 );
+line.x = 10;
+line.y = 10;
+line.scale = 10;
+line.color = 0xffffff;
+line.lineWidth = 10;
+line.moveTo( 100, 10 );
+line.lineTo( 100, 10 );
+line.draw();
+
+var particle = new ALGO.Particle( x, y );
+particle.x  = 10;
+particle.y  = 10;
+particle.color = 0xffffff;
+particle.radius = 0.5;
+particle.draw();
+*/
 </script>
 </body>
 
