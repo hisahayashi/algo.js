@@ -22,42 +22,28 @@ ALGO.Polygon = function( _x, _y, _angles, _radius ) {
 ALGO.Polygon.prototype = Object.create( ALGO.Shape.prototype );
 ALGO.Polygon.prototype.constructor = ALGO.Polygon;
 
-ALGO.Polygon.prototype.setup = function(){
+/**
+ * [setupGeometry description]
+ */
+ ALGO.Polygon.prototype.setGeometry = function(){
   /* 頂点の位置を算出 */
-  var angle_points = [];
+  var geometry = this.geometry = [];
   for (var i = 0; i < this.angles; i++) {
-    angle_points[i] = {};
-    angle_points[i].x = this.radius * Math.cos(2 * i * Math.PI / this.angles - Math.PI / 2);
-    angle_points[i].y = this.radius * Math.sin(2 * i * Math.PI / this.angles - Math.PI / 2);
+    geometry[i] = {};
+    geometry[i].x = Math.cos(2 * i * Math.PI / this.angles - Math.PI / 2);
+    geometry[i].y = Math.sin(2 * i * Math.PI / this.angles - Math.PI / 2);
   }
+};
 
-  var vp = [];
-  var vc = [];
-  var cl = ALGO.ColorUtil.hexToRgbNormalize( this.color );
-
-  for( i = 0; i < angle_points.length; i++ ){
-    // point
-    vp.push( angle_points[i].x );
-    vp.push( angle_points[i].y );
-
-    // color
-    vc.push( cl.r );
-    vc.push( cl.g );
-    vc.push( cl.b );
-    vc.push( this.alpha );
-  }
-  this.vertexPosition = vp;
-  this.vertexColors = vc;
-
+/**
+ * [setIndex description]
+ */
+ ALGO.Polygon.prototype.setIndex = function(){
   // set index
-  var index = [];
-
-  // set index
+  var index = this.index = [];
   for( i = 1; i < this.angles - 1; i++ ){
     index.push( 0 );
     index.push( i );
     index.push( i+1 );
   }
-
-  this.index = index;
 };

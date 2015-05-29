@@ -20,6 +20,7 @@ var selector = {
     'src/shape/shape.js',
     'src/shape/polygon.js',
     'src/shape/circle.js',
+    'src/shape/rectangle.js',
 
     'src/renderer/webgl.js',
 

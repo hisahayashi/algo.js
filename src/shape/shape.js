@@ -11,9 +11,11 @@ ALGO.Shape = (function() {
     // ALGO.log('ALGO.Shape');
     this.x = _x;
     this.y = _y;
+    this.angles = 3;
     this.radius = _radius;
 
     // define
+    this.angles_ = 3;
     this.radius_ = _radius;
 
     this.init();
@@ -25,6 +27,8 @@ ALGO.Shape = (function() {
    * @return {[type]} [description]
    */
   function init() {
+    // initialize
+    this.geometry = [];
     this.vertexPosition = [];
     this.vertexColors = [];
     this.index = [];
@@ -42,23 +46,17 @@ ALGO.Shape = (function() {
    * @return {[type]} [description]
    */
   function setup(){
-    var radius = this.radius;
-    var vp = [
-      0, -radius,
-      -radius, radius,
-      radius, radius
-    ];
-    var vc = [
-      0, 0, 0, 1,
-      0, 0, 0, 1,
-      0, 0, 0, 1
-    ];
-    var index = [
-      0, 1, 2
-    ];
-    this.vertexPosition = vp;
-    this.vertexColors = vc;
-    this.index = index;
+    // setup vertex
+    this.setGeometry();
+    this.setVertexPosition();
+    this.setVertexColor( this.color );
+    this.setVertexAlpha( this.alpha );
+    this.setIndex();
+
+    // setup matrix
+    this.setScale( this.scale );
+    this.setRotate( this.rotate );
+    this.setTranslate( this.x, this.y );
   };
 
   /**
@@ -94,33 +92,95 @@ ALGO.Shape = (function() {
   function clone() {};
 
   /**
-   * [clone description]
-   * @return {[type]} [description]
+   * [setupGeometry description]
    */
-  function setVertexColor(color) {
-    var vc = this.vertexColors;
-    var length = vc.length;
-    var cl = ALGO.ColorUtil.hexToRgbNormalize(color);
+  function setGeometry(){
+    var geometry = this.geometry;
+    geometry[0] = {
+      x: 0.00,
+      y: -1.00
+    };
+    geometry[1] = {
+      x: -0.87,
+      y: 0.50
+    };
+    geometry[2] = {
+      x: 0.87,
+      y: 0.50
+    };
+    // for( var i = 0; i < 3; i++ ){
+    //   var rot = i * ( 360 / 3 ) + 180;
+    //   var rad = rot * Math.PI / 180;
+    //   geometry[i] = { x: Math.sin( rad ), y: Math.cos( rad ) };
+    // }
+  };
 
-    for (var i = 0; i < length; i += 4) {
-      vc[i] = cl.r;
-      vc[i + 1] = cl.g;
-      vc[i + 2] = cl.b;
+  /**
+   * [setVertexPosition description]
+   */
+  function setVertexPosition(){
+    var vp = this.vertexPosition;
+    var length = this.geometry.length;
+    for( var i = 0; i < length; i++ ){
+      // point
+      vp.push( this.geometry[i].x );
+      vp.push( this.geometry[i].y );
     }
   };
 
+  /**
+   * [clone description]
+   */
+  function setVertexColor(color) {
+    var vc = this.vertexColors;
+    var length = this.geometry.length;
+    var cl = ALGO.ColorUtil.hexToRgbNormalize(color);
+
+    for (var i = 0; i < length; i++) {
+      var num = i * 4;
+      vc[num] = cl.r;
+      vc[num + 1] = cl.g;
+      vc[num + 2] = cl.b;
+    }
+  };
+
+  /**
+   * [setVertexAlpha description]
+   */
   function setVertexAlpha(alpha) {
     var vc = this.vertexColors;
-    var length = vc.length;
+    var length = this.geometry.length;
 
-    for (var i = 0; i < length; i += 4) {
-      vc[i + 3] = alpha;
+    for (var i = 0; i < length; i++) {
+      var num = i * 4;
+      vc[num + 3] = alpha;
     }
+  };
+
+  /**
+   * [setIndex description]
+   */
+  function setIndex(){
+    var index = [
+      0, 1, 2
+    ];
+    this.index = index;
   };
 
   function setScale(scale){
     if( this.m ){
-      this.m.scale( this.matrix, [ scale, scale, 0.0 ], this.matrixScale );
+      var scaleX = this.radius * scale;
+      var scaleY = this.radius * scale;
+
+      /*
+      子クラスで分岐するというイケてない処理
+       */
+      // if( this.type == 'rectangle' ){
+      //   scaleX = this.width * scale;
+      //   scaleY = this.height * scale;
+      // }
+
+      this.m.scale( this.matrix, [ scaleX, scaleY, 0.0 ], this.matrixScale );
       // ALGO.log( 'scale: ' + scale );
       // ALGO.log( this.matrixScale );
     }
@@ -147,8 +207,11 @@ ALGO.Shape = (function() {
     var tmpMatrix = null;
     if( this.m ){
       tmpMatrix = this.m.identity( this.m.create() );
+      // scale
       this.m.multiply( tmpMatrix, this.matrixScale, tmpMatrix );
+      // rotate
       this.m.multiply( tmpMatrix, this.matrixRotate, tmpMatrix );
+      // translate
       this.m.multiply( tmpMatrix, this.matrixTranslate, tmpMatrix );
       // ALGO.log( tmpMatrix );
     }
@@ -165,9 +228,9 @@ ALGO.Shape = (function() {
     id: null,
     x: 0,
     y: 0,
-    width: null,
-    height: null,
-    angles: 3,
+    // width: null,
+    // height: null,
+    angles: undefined,
     radius: null,
     alpha: 1.0,
     visible: true,
@@ -185,6 +248,7 @@ ALGO.Shape = (function() {
     vertexPosition: [],
     vertexColors: [],
     needsUpdate: false,
+    geometry: [],
     index: [],
 
     /**
@@ -197,7 +261,7 @@ ALGO.Shape = (function() {
     radius_: null,
     color_: 0xffffff,
     alpha_: 1.0,
-    angle_: 3,
+    angle_: undefined,
     needsUpdate_: false,
 
     /**
@@ -212,8 +276,11 @@ ALGO.Shape = (function() {
     /**
      * Private Method
      */
+    setGeometry: setGeometry,
+    setVertexPosition: setVertexPosition,
     setVertexColor: setVertexColor,
     setVertexAlpha: setVertexAlpha,
+    setIndex: setIndex,
     setScale: setScale,
     setRotate: setRotate,
     setTranslate: setTranslate,
@@ -278,6 +345,7 @@ ALGO.Shape.prototype.__defineGetter__('radius', function() {
 
 ALGO.Shape.prototype.__defineSetter__('radius', function(value) {
   // ALGO.log('define setter: radius');
+  this.setScale( this.scale );
   this.radius_ = value;
 });
 

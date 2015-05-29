@@ -45,31 +45,17 @@ algo.blendMode = ALGO.BLEND_ALPHA;
 
 ALGO.log(algo);
 
-var t1, t2, t3, t4;
+var rectangle;
 
 algo.bind('setup', function() {
-  t1 = new ALGO.Circle(0, 0, 10);
-  t1.color = 0x99ffcc;
-  t1.scale = 10;
-  t1.radius = 100;
-  t1.alpha = 0.3;
-  algo.add(t1);
 
-  t2 = new ALGO.Polygon(0, 0, 5, 10);
-  t2.color = 0x3399cc;
-  t2.scale = 10;
-  algo.add(t2);
-
-  t3 = new ALGO.Polygon(0, 0, 4, 10);
-  t3.color = 0xff6600;
-  t3.scale = 10;
-  t3.rotate = 30;
-  algo.add(t3);
-
-  t4 = new ALGO.Polygon(0, 0, 8, 10);
-  t4.color = 0xff0033;
-  t4.scale = 10;
-  algo.add(t4);
+  rectangle = new ALGO.Rectangle(0, 0, 100, 30);
+  rectangle.color = 0x0066cc;
+  rectangle.scale = 1;
+  rectangle.width = 150;
+  rectangle.height = 10;
+  rectangle.alpha = 0.3;
+  algo.add(rectangle);
 
   // stats
   stats.domElement.style.position = 'fixed';
@@ -82,25 +68,14 @@ algo.bind('frame', function() {
   var aw = algo.width;
   var ah = algo.height;
 
-  t1.x = aw * 0.2;
-  t1.y = ah * 0.5;
-  t1.rotate += 1;
-  t1.needsUpdate = true;
+  rectangle.x = aw * 0.5;
+  rectangle.y = ah * 0.5;
+  rectangle.rotate += 2;
 
-  t2.x = aw * 0.4;
-  t2.y = ah * 0.5;
-  t2.rotate += 1;
-  t2.needsUpdate = true;
+  rectangle.width = Math.sin( rectangle.rotate * Math.PI / 180 ) * 300;
+  // rectangle.height = Math.cos( rectangle.rotate * Math.PI / 180 ) * 100;
 
-  t3.x = aw * 0.6;
-  t3.y = ah * 0.5;
-  t3.rotate += 1;
-  t3.needsUpdate = true;
-
-  t4.x = aw * 0.8;
-  t4.y = ah * 0.5;
-  t4.rotate += 1;
-  t4.needsUpdate = true;
+  rectangle.needsUpdate = true;
 
   // stats
   stats.update();

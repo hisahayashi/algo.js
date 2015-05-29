@@ -45,31 +45,22 @@ algo.blendMode = ALGO.BLEND_ALPHA;
 
 ALGO.log(algo);
 
-var t1, t2, t3, t4;
+var shape;
+var rot = 0;
 
 algo.bind('setup', function() {
-  t1 = new ALGO.Circle(0, 0, 10);
-  t1.color = 0x99ffcc;
-  t1.scale = 10;
-  t1.radius = 100;
-  t1.alpha = 0.3;
-  algo.add(t1);
 
-  t2 = new ALGO.Polygon(0, 0, 5, 10);
-  t2.color = 0x3399cc;
-  t2.scale = 10;
-  algo.add(t2);
+  shape = new ALGO.Shape(0, 0, 250);
+  shape.color = 0x0066cc;
+  shape.scale = 1;
+  // shape.width = 150;
+  // shape.height = 10;
+  shape.alpha = 0.3;
+  algo.add(shape);
 
-  t3 = new ALGO.Polygon(0, 0, 4, 10);
-  t3.color = 0xff6600;
-  t3.scale = 10;
-  t3.rotate = 30;
-  algo.add(t3);
-
-  t4 = new ALGO.Polygon(0, 0, 8, 10);
-  t4.color = 0xff0033;
-  t4.scale = 10;
-  algo.add(t4);
+  ALGO.log( shape.geometry );
+  ALGO.log( shape.vertexPosition );
+  ALGO.log( shape.vertexColors );
 
   // stats
   stats.domElement.style.position = 'fixed';
@@ -82,25 +73,19 @@ algo.bind('frame', function() {
   var aw = algo.width;
   var ah = algo.height;
 
-  t1.x = aw * 0.2;
-  t1.y = ah * 0.5;
-  t1.rotate += 1;
-  t1.needsUpdate = true;
+  rot += 2;
 
-  t2.x = aw * 0.4;
-  t2.y = ah * 0.5;
-  t2.rotate += 1;
-  t2.needsUpdate = true;
+  shape.x = aw * 0.5;
+  shape.y = ah * 0.5;
+  shape.rotate = rot;
 
-  t3.x = aw * 0.6;
-  t3.y = ah * 0.5;
-  t3.rotate += 1;
-  t3.needsUpdate = true;
+  // shape.scale = Math.sin( rot * Math.PI / 180 );
+  shape.radius = Math.sin( rot * Math.PI / 180 ) * 100;
 
-  t4.x = aw * 0.8;
-  t4.y = ah * 0.5;
-  t4.rotate += 1;
-  t4.needsUpdate = true;
+  // shape.width = Math.sin( rot * Math.PI / 180 ) * 300;
+  // shape.height = Math.cos( rot * Math.PI / 180 ) * 100;
+
+  shape.needsUpdate = true;
 
   // stats
   stats.update();
