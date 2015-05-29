@@ -18,6 +18,8 @@ algo.jsはメディアアートやモーションの実験を行うシンプル�
 - <a href="https://rawgit.com/hisahayashi/algo.js/master/examples/index.html" target="_blank">Example</a>
 - <a href="https://rawgit.com/hisahayashi/algo.js/master/examples/index_01.html" target="_blank">Example 01</a>
 - <a href="https://rawgit.com/hisahayashi/algo.js/master/examples/index_02.html" target="_blank">Example 02</a>
+- <a href="https://rawgit.com/hisahayashi/algo.js/master/examples/index_03.html" target="_blank">Example 03</a>
+- <a href="https://rawgit.com/hisahayashi/algo.js/master/examples/index_04.html" target="_blank">Example 04</a>
 
 
 # algo.js
@@ -40,6 +42,8 @@ And now it is in development, but it is coming soon.
 - <a href="https://rawgit.com/hisahayashi/algo.js/master/examples/index.html" target="_blank">Example</a>
 - <a href="https://rawgit.com/hisahayashi/algo.js/master/examples/index_01.html" target="_blank">Example 01</a>
 - <a href="https://rawgit.com/hisahayashi/algo.js/master/examples/index_02.html" target="_blank">Example 02</a>
+- <a href="https://rawgit.com/hisahayashi/algo.js/master/examples/index_03.html" target="_blank">Example 03</a>
+- <a href="https://rawgit.com/hisahayashi/algo.js/master/examples/index_04.html" target="_blank">Example 04</a>
 
 
 
