@@ -28,9 +28,9 @@ ALGO.Shape = (function() {
    */
   function init() {
     // initialize
-    this.geometry = [];
-    this.vertexPosition = [];
-    this.vertexColors = [];
+    // this.geometry = [];
+    // this.vertexPosition = [];
+    // this.vertexColors = [];
     this.index = [];
 
     // set matrix
@@ -123,8 +123,9 @@ ALGO.Shape = (function() {
     var length = this.geometry.length;
     for( var i = 0; i < length; i++ ){
       // point
-      vp.push( this.geometry[i].x );
-      vp.push( this.geometry[i].y );
+      var num = i * 2;
+      vp[num] = this.geometry[i].x;
+      vp[num+1] = this.geometry[i].y;
     }
   };
 

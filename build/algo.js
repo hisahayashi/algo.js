@@ -97,8 +97,12 @@ var ALGO = (function () {
     window.onmouseup = function () {
       if (that.mouseup) that.mouseup.call(that);
     };
-    window.onmousemove = function () {
-      if (that.mousemove) that.mousemove.call(that);
+    window.onmousemove = function ( e ) {
+      if (that.mousemove){
+        var mousex = e.clientX;
+        var mousey = e.clientY;
+        that.mousemove.call(that, mousex, mousey);
+      }
     };
     window.onkeydown = function () {
       if (that.keydown) that.keydown.call(that);
@@ -1121,9 +1125,9 @@ ALGO.Shape = (function() {
    */
   function init() {
     // initialize
-    this.geometry = [];
-    this.vertexPosition = [];
-    this.vertexColors = [];
+    // this.geometry = [];
+    // this.vertexPosition = [];
+    // this.vertexColors = [];
     this.index = [];
 
     // set matrix
@@ -1216,8 +1220,9 @@ ALGO.Shape = (function() {
     var length = this.geometry.length;
     for( var i = 0; i < length; i++ ){
       // point
-      vp.push( this.geometry[i].x );
-      vp.push( this.geometry[i].y );
+      var num = i * 2;
+      vp[num] = this.geometry[i].x;
+      vp[num+1] = this.geometry[i].y;
     }
   };
 
@@ -1581,6 +1586,7 @@ ALGO.Rectangle = function( _x, _y, _width, _height ) {
 
 ALGO.Rectangle.prototype = Object.create( ALGO.Shape.prototype );
 ALGO.Rectangle.prototype.constructor = ALGO.Rectangle;
+
 ALGO.Rectangle.prototype.width = 0;
 ALGO.Rectangle.prototype.height = 0;
 ALGO.Rectangle.prototype.width_ = 0;
@@ -1650,6 +1656,79 @@ ALGO.Rectangle.prototype.__defineSetter__('height', function(value) {
   this.height_ = value;
   this.setScale( this.scale );
 });
+
+/**
+ * ALGO.Path
+ */
+ALGO.Path = function( start, end ) {
+  'use strict';
+  // ALGO.log( 'ALGO.Path' );
+  this.moveTo( start.x, start.y );
+  this.lineTo( end.x, end.y );
+
+  ALGO.log( this.geometry );
+
+  this.type = 'path';
+
+  this.init();
+  this.setup();
+};
+
+ALGO.Path.prototype = Object.create( ALGO.Shape.prototype );
+ALGO.Path.prototype.constructor = ALGO.Path;
+
+ALGO.Path.prototype.closed = false;
+
+ALGO.Path.prototype.setGeometry = function(){
+  /* 頂点の位置を算出 */
+  // var geometry = this.geometry = [];
+};
+
+ALGO.Path.prototype.setScale = function(scale){
+  if( this.m ){
+    var scaleX = scale;
+    var scaleY = scale;
+
+    this.m.scale( this.matrix, [ scaleX, scaleY, 0.0 ], this.matrixScale );
+    // ALGO.log( 'scale: ' + scale );
+    // ALGO.log( this.matrixScale );
+  }
+};
+
+ALGO.Path.prototype.moveTo = function( x, y ){
+  // ALGO.log('moveTo: ' + x + ', ' + y );
+  var vec2 = { x: x, y: y };
+  this.geometry.push( vec2 );
+
+  this.setVertexPosition();
+  this.setVertexColor( this.color );
+  this.setVertexAlpha( this.alpha );
+};
+
+ALGO.Path.prototype.lineTo = function( x, y ){
+  // ALGO.log('lineTo: ' + x + ', ' + y );
+  var vec2 = { x: x, y: y };
+  this.geometry.push( vec2 );
+
+  this.setVertexPosition();
+  this.setVertexColor( this.color );
+  this.setVertexAlpha( this.alpha );
+  // ALGO.log( 'geometry: ' + this.geometry.length + ', pos: ' + this.vertexPosition.length + ', color: ' + this.vertexColors.length );
+};
+
+ALGO.Path.prototype.close = function(){
+  this.closed = true;
+};
+
+
+ALGO.Path.prototype.clear = function(){
+  this.geometry = [];
+  this.vertexPosition = [];
+  this.vertexColors = [];
+  this.setVertexPosition();
+  this.setVertexColor( this.color );
+  this.setVertexAlpha( this.alpha );
+};
 
 /**
  * ALGO.WebGLRenderer
@@ -1802,36 +1881,46 @@ ALGO.WebGLRenderer = (function(ALGO) {
 
       setVBOAttribute( object_vbo[i], attr_location, attr_stride);
 
+      if( object.type !== 'path' && object.type !== 'particle' ){
+        if( !object_ibo[i] || needsUpdate ){
+          var index = object.index;
+          // IBOの生成
+          var ibo = createIbo(index);
 
-      if( !object_ibo[i] || needsUpdate ){
-        var index = object.index;
-        // IBOの生成
-        var ibo = createIbo(index);
+          object_index[i] = index;
+          object_ibo[i] = ibo;
+        }
 
-        object_index[i] = index;
-        object_ibo[i] = ibo;
+        // IBOをバインドして登録する
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, object_ibo[i]);
       }
-
-      // IBOをバインドして登録する
-      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, object_ibo[i]);
 
       var objectMatrix = object.getMatrix();
-      var matrix2 = pm.multiply(objectMatrix, projectionMatrix, [] );
-
-      if( i == 0 ){
-        // ALGO.log( matrix2 );
-        // ALGO.log( '' );
-      }
+      var matrix = pm.multiply(objectMatrix, projectionMatrix, [] );
 
       // Set the matrix.
-      gl.uniformMatrix3fv(uni_location.matrix, false, matrix2);
+      gl.uniformMatrix3fv(uni_location.matrix, false, matrix);
 
       if( needsUpdate ){
         object.needsUpdate = false;
       }
 
       // gl.drawArrays(gl.TRIANGLES, 0, 3);
-      gl.drawElements(gl.TRIANGLES, object_index[i].length, gl.UNSIGNED_SHORT, 0);
+
+      if( object.type == 'path' ){
+        if( object.closed ){
+          gl.drawArrays(gl.LINE_LOOP, 0, object.vertexPosition.length / 2);
+        }
+        else{
+          gl.drawArrays(gl.LINE_STRIP, 0, object.vertexPosition.length / 2);
+        }
+      }
+      else if( object.type == 'particle' ){
+        gl.drawArrays(gl.LINES, 0, object.vertexPosition.length / 2);
+      }
+      else{
+        gl.drawElements(gl.TRIANGLES, object_index[i].length, gl.UNSIGNED_SHORT, 0);
+      }
 
 
       // object.x;

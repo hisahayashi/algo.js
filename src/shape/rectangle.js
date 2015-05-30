@@ -21,6 +21,7 @@ ALGO.Rectangle = function( _x, _y, _width, _height ) {
 
 ALGO.Rectangle.prototype = Object.create( ALGO.Shape.prototype );
 ALGO.Rectangle.prototype.constructor = ALGO.Rectangle;
+
 ALGO.Rectangle.prototype.width = 0;
 ALGO.Rectangle.prototype.height = 0;
 ALGO.Rectangle.prototype.width_ = 0;

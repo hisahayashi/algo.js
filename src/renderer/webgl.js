@@ -149,36 +149,46 @@ ALGO.WebGLRenderer = (function(ALGO) {
 
       setVBOAttribute( object_vbo[i], attr_location, attr_stride);
 
+      if( object.type !== 'path' && object.type !== 'particle' ){
+        if( !object_ibo[i] || needsUpdate ){
+          var index = object.index;
+          // IBOの生成
+          var ibo = createIbo(index);
 
-      if( !object_ibo[i] || needsUpdate ){
-        var index = object.index;
-        // IBOの生成
-        var ibo = createIbo(index);
+          object_index[i] = index;
+          object_ibo[i] = ibo;
+        }
 
-        object_index[i] = index;
-        object_ibo[i] = ibo;
+        // IBOをバインドして登録する
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, object_ibo[i]);
       }
-
-      // IBOをバインドして登録する
-      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, object_ibo[i]);
 
       var objectMatrix = object.getMatrix();
-      var matrix2 = pm.multiply(objectMatrix, projectionMatrix, [] );
-
-      if( i == 0 ){
-        // ALGO.log( matrix2 );
-        // ALGO.log( '' );
-      }
+      var matrix = pm.multiply(objectMatrix, projectionMatrix, [] );
 
       // Set the matrix.
-      gl.uniformMatrix3fv(uni_location.matrix, false, matrix2);
+      gl.uniformMatrix3fv(uni_location.matrix, false, matrix);
 
       if( needsUpdate ){
         object.needsUpdate = false;
       }
 
       // gl.drawArrays(gl.TRIANGLES, 0, 3);
-      gl.drawElements(gl.TRIANGLES, object_index[i].length, gl.UNSIGNED_SHORT, 0);
+
+      if( object.type == 'path' ){
+        if( object.closed ){
+          gl.drawArrays(gl.LINE_LOOP, 0, object.vertexPosition.length / 2);
+        }
+        else{
+          gl.drawArrays(gl.LINE_STRIP, 0, object.vertexPosition.length / 2);
+        }
+      }
+      else if( object.type == 'particle' ){
+        gl.drawArrays(gl.LINES, 0, object.vertexPosition.length / 2);
+      }
+      else{
+        gl.drawElements(gl.TRIANGLES, object_index[i].length, gl.UNSIGNED_SHORT, 0);
+      }
 
 
       // object.x;

@@ -21,6 +21,7 @@ var selector = {
     'src/shape/polygon.js',
     'src/shape/circle.js',
     'src/shape/rectangle.js',
+    'src/shape/path.js',
 
     'src/renderer/webgl.js',
 

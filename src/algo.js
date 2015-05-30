@@ -97,8 +97,12 @@ var ALGO = (function () {
     window.onmouseup = function () {
       if (that.mouseup) that.mouseup.call(that);
     };
-    window.onmousemove = function () {
-      if (that.mousemove) that.mousemove.call(that);
+    window.onmousemove = function ( e ) {
+      if (that.mousemove){
+        var mousex = e.clientX;
+        var mousey = e.clientY;
+        that.mousemove.call(that, mousex, mousey);
+      }
     };
     window.onkeydown = function () {
       if (that.keydown) that.keydown.call(that);
