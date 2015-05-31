@@ -17,7 +17,6 @@ ALGO.Path = function( start, end ) {
 
 ALGO.Path.prototype = Object.create( ALGO.Shape.prototype );
 ALGO.Path.prototype.constructor = ALGO.Path;
-
 ALGO.Path.prototype.closed = false;
 
 ALGO.Path.prototype.setGeometry = function(){
@@ -61,12 +60,3 @@ ALGO.Path.prototype.close = function(){
   this.closed = true;
 };
 
-
-ALGO.Path.prototype.clear = function(){
-  this.geometry = [];
-  this.vertexPosition = [];
-  this.vertexColors = [];
-  this.setVertexPosition();
-  this.setVertexColor( this.color );
-  this.setVertexAlpha( this.alpha );
-};

@@ -28,10 +28,12 @@ ALGO.Shape = (function() {
    */
   function init() {
     // initialize
-    // this.geometry = [];
-    // this.vertexPosition = [];
-    // this.vertexColors = [];
-    this.index = [];
+    if( this.type !== 'path' ){
+      this.geometry = [];
+      this.vertexPosition = [];
+      this.vertexColors = [];
+      this.index = [];
+    }
 
     // set matrix
     this.m = new ALGO.Matrix3();
@@ -83,6 +85,20 @@ ALGO.Shape = (function() {
       root.children.splice(object_index, 1);
       // ALGO.log(this);
     }
+  };
+
+  /**
+   * [clear description]
+   * @return {[type]} [description]
+   */
+  function clear(){
+    this.geometry = [];
+    this.vertexPosition = [];
+    this.vertexColors = [];
+
+    this.setVertexPosition();
+    this.setVertexColor( this.color );
+    this.setVertexAlpha( this.alpha );
   };
 
   /**
@@ -238,12 +254,20 @@ ALGO.Shape = (function() {
     color: 0xffffff,
     scale: 1,
     rotate: 0,
-    parent: undefined,
+
+    line: false,
+    lineColor: 0xffffff,
+    lineWidth: 1,
+    fill: false,
+    fillColor: 0xffffff,
+
     m: undefined,
     matrix: undefined,
     matrixScale: undefined,
     matrixRotate: undefined,
     matrixTranslate: undefined,
+
+    parent: undefined,
     children: [],
     geometry: [],
     vertexPosition: [],

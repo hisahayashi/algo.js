@@ -29,6 +29,7 @@ ALGO.WebGLRenderer = (function(ALGO) {
   var zoom = 5.0;
 
   var object_vbo = [];
+  var object_vbo_line = [];
   var object_ibo = [];
   var object_index = [];
 
@@ -132,6 +133,8 @@ ALGO.WebGLRenderer = (function(ALGO) {
 
       var object = children[i];
       var needsUpdate = object.needsUpdate;
+      var fill_object = object.fill;
+      var line_object = object.line;
 
       // VBOの生成
       if( !object_vbo[i] || needsUpdate ){
@@ -176,18 +179,41 @@ ALGO.WebGLRenderer = (function(ALGO) {
       // gl.drawArrays(gl.TRIANGLES, 0, 3);
 
       if( object.type == 'path' ){
+        gl.lineWidth( object.lineWidth );
         if( object.closed ){
-          gl.drawArrays(gl.LINE_LOOP, 0, object.vertexPosition.length / 2);
+          gl.drawArrays(gl.LINE_LOOP, 0, vertex_position.length / 2);
         }
         else{
-          gl.drawArrays(gl.LINE_STRIP, 0, object.vertexPosition.length / 2);
+          gl.drawArrays(gl.LINE_STRIP, 0, vertex_position.length / 2);
         }
       }
       else if( object.type == 'particle' ){
-        gl.drawArrays(gl.LINES, 0, object.vertexPosition.length / 2);
+        gl.drawArrays(gl.LINES, 0, vertex_position.length / 2);
       }
       else{
         gl.drawElements(gl.TRIANGLES, object_index[i].length, gl.UNSIGNED_SHORT, 0);
+
+        var fillColor = 0x000000;
+        var fillColorRgb = { r: 0, g: 0, b: 0, alpha: 1 };
+        var vertex_fill = [];
+
+        for( var j = 0; j < vertex_position.length; j++ ){
+          var num = j * 2;
+          vertex_fill[num] = fillColorRgb.r;
+          vertex_fill[num+1] = fillColorRgb.g;
+          vertex_fill[num+2] = fillColorRgb.b;
+          vertex_fill[num+3] = fillColorRgb.alpha;
+        }
+
+        var vbo = [];
+        vbo.position = createVbo(vertex_position);
+        vbo.color = createVbo(vertex_fill);
+        object_vbo_line[i] = vbo;
+
+        setVBOAttribute( object_vbo_line[i], attr_location, attr_stride);
+
+        gl.lineWidth( 5 );
+        gl.drawArrays(gl.LINE_LOOP, 0, vertex_position.length / 2);
       }
 
 
