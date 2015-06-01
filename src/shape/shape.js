@@ -32,6 +32,7 @@ ALGO.Shape = (function() {
       this.geometry = [];
       this.vertexPosition = [];
       this.vertexColors = [];
+      this.vertexLineColors = [];
       this.index = [];
     }
 
@@ -51,8 +52,10 @@ ALGO.Shape = (function() {
     // setup vertex
     this.setGeometry();
     this.setVertexPosition();
-    this.setVertexColor( this.color );
-    this.setVertexAlpha( this.alpha );
+    this.setVertexColor( this.color, this.vertexColors );
+    this.setVertexAlpha( this.alpha, this.vertexColors );
+    this.setVertexColor( this.lineColor, this.vertexLineColors );
+    this.setVertexAlpha( this.lineAlpha, this.vertexLineColors );
     this.setIndex();
 
     // setup matrix
@@ -95,10 +98,13 @@ ALGO.Shape = (function() {
     this.geometry = [];
     this.vertexPosition = [];
     this.vertexColors = [];
+    this.vertexLineColors = [];
 
     this.setVertexPosition();
-    this.setVertexColor( this.color );
-    this.setVertexAlpha( this.alpha );
+    this.setVertexColor( this.color, this.vertexColors );
+    this.setVertexAlpha( this.alpha, this.vertexColors );
+    this.setVertexColor( this.lineColor, this.vertexLineColors );
+    this.setVertexAlpha( this.lineAlpha, this.vertexLineColors );
   };
 
   /**
@@ -148,8 +154,8 @@ ALGO.Shape = (function() {
   /**
    * [clone description]
    */
-  function setVertexColor(color) {
-    var vc = this.vertexColors;
+  function setVertexColor(color, obj) {
+    var vc = obj;
     var length = this.geometry.length;
     var cl = ALGO.ColorUtil.hexToRgbNormalize(color);
 
@@ -164,8 +170,8 @@ ALGO.Shape = (function() {
   /**
    * [setVertexAlpha description]
    */
-  function setVertexAlpha(alpha) {
-    var vc = this.vertexColors;
+  function setVertexAlpha(alpha, obj) {
+    var vc = obj;
     var length = this.geometry.length;
 
     for (var i = 0; i < length; i++) {
@@ -256,10 +262,10 @@ ALGO.Shape = (function() {
     rotate: 0,
 
     line: false,
-    lineColor: 0xffffff,
-    lineWidth: 1,
-    fill: false,
-    fillColor: 0xffffff,
+    lineColor: 0x000000,
+    lineAlpha: 1.0,
+    lineWidth: 1.0,
+    fill: true,
 
     m: undefined,
     matrix: undefined,
@@ -272,6 +278,7 @@ ALGO.Shape = (function() {
     geometry: [],
     vertexPosition: [],
     vertexColors: [],
+    vertexLineColors: [],
     needsUpdate: false,
     geometry: [],
     index: [],
@@ -289,6 +296,9 @@ ALGO.Shape = (function() {
     angle_: undefined,
     needsUpdate_: false,
 
+    lineColor_: 0x000000,
+    lineAlpha_: 1.0,
+
     /**
      * Method
      */
@@ -297,6 +307,7 @@ ALGO.Shape = (function() {
     add: add,
     remove: remove,
     clone: clone,
+    clear: clear,
 
     /**
      * Private Method
@@ -381,7 +392,7 @@ ALGO.Shape.prototype.__defineGetter__('color', function() {
 
 ALGO.Shape.prototype.__defineSetter__('color', function(value) {
   // ALGO.log('define setter: color');
-  this.setVertexColor(value);
+  this.setVertexColor(value, this.vertexColors);
   this.color_ = value;
 });
 
@@ -392,8 +403,30 @@ ALGO.Shape.prototype.__defineGetter__('alpha', function() {
 
 ALGO.Shape.prototype.__defineSetter__('alpha', function(value) {
   // ALGO.log('define setter: alpha');
-  this.setVertexAlpha(value);
+  this.setVertexAlpha(value, this.vertexColors);
   this.alpha_ = value;
+});
+
+ALGO.Shape.prototype.__defineGetter__('lineColor', function() {
+  // ALGO.log('define getter: lineColor');
+  return this.lineColor_;
+});
+
+ALGO.Shape.prototype.__defineSetter__('lineColor', function(value) {
+  // ALGO.log('define setter: lineColor');
+  this.setVertexColor(value, this.vertexLineColors);
+  this.lineColor_ = value;
+});
+
+ALGO.Shape.prototype.__defineGetter__('lineAlpha', function() {
+  // ALGO.log('define getter: lineAlpha');
+  return this.lineAlpha_;
+});
+
+ALGO.Shape.prototype.__defineSetter__('lineAlpha', function(value) {
+  // ALGO.log('define setter: lineAlpha');
+  this.setVertexAlpha(value, this.vertexLineColors);
+  this.lineAlpha_ = value;
 });
 
 ALGO.Shape.prototype.__defineGetter__('angle', function() {

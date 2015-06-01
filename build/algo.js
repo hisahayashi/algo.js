@@ -1129,6 +1129,7 @@ ALGO.Shape = (function() {
       this.geometry = [];
       this.vertexPosition = [];
       this.vertexColors = [];
+      this.vertexLineColors = [];
       this.index = [];
     }
 
@@ -1148,8 +1149,10 @@ ALGO.Shape = (function() {
     // setup vertex
     this.setGeometry();
     this.setVertexPosition();
-    this.setVertexColor( this.color );
-    this.setVertexAlpha( this.alpha );
+    this.setVertexColor( this.color, this.vertexColors );
+    this.setVertexAlpha( this.alpha, this.vertexColors );
+    this.setVertexColor( this.lineColor, this.vertexLineColors );
+    this.setVertexAlpha( this.lineAlpha, this.vertexLineColors );
     this.setIndex();
 
     // setup matrix
@@ -1192,10 +1195,13 @@ ALGO.Shape = (function() {
     this.geometry = [];
     this.vertexPosition = [];
     this.vertexColors = [];
+    this.vertexLineColors = [];
 
     this.setVertexPosition();
-    this.setVertexColor( this.color );
-    this.setVertexAlpha( this.alpha );
+    this.setVertexColor( this.color, this.vertexColors );
+    this.setVertexAlpha( this.alpha, this.vertexColors );
+    this.setVertexColor( this.lineColor, this.vertexLineColors );
+    this.setVertexAlpha( this.lineAlpha, this.vertexLineColors );
   };
 
   /**
@@ -1245,8 +1251,8 @@ ALGO.Shape = (function() {
   /**
    * [clone description]
    */
-  function setVertexColor(color) {
-    var vc = this.vertexColors;
+  function setVertexColor(color, obj) {
+    var vc = obj;
     var length = this.geometry.length;
     var cl = ALGO.ColorUtil.hexToRgbNormalize(color);
 
@@ -1261,8 +1267,8 @@ ALGO.Shape = (function() {
   /**
    * [setVertexAlpha description]
    */
-  function setVertexAlpha(alpha) {
-    var vc = this.vertexColors;
+  function setVertexAlpha(alpha, obj) {
+    var vc = obj;
     var length = this.geometry.length;
 
     for (var i = 0; i < length; i++) {
@@ -1353,10 +1359,10 @@ ALGO.Shape = (function() {
     rotate: 0,
 
     line: false,
-    lineColor: 0xffffff,
-    lineWidth: 1,
-    fill: false,
-    fillColor: 0xffffff,
+    lineColor: 0x000000,
+    lineAlpha: 1.0,
+    lineWidth: 1.0,
+    fill: true,
 
     m: undefined,
     matrix: undefined,
@@ -1369,6 +1375,7 @@ ALGO.Shape = (function() {
     geometry: [],
     vertexPosition: [],
     vertexColors: [],
+    vertexLineColors: [],
     needsUpdate: false,
     geometry: [],
     index: [],
@@ -1386,6 +1393,9 @@ ALGO.Shape = (function() {
     angle_: undefined,
     needsUpdate_: false,
 
+    lineColor_: 0x000000,
+    lineAlpha_: 1.0,
+
     /**
      * Method
      */
@@ -1394,6 +1404,7 @@ ALGO.Shape = (function() {
     add: add,
     remove: remove,
     clone: clone,
+    clear: clear,
 
     /**
      * Private Method
@@ -1478,7 +1489,7 @@ ALGO.Shape.prototype.__defineGetter__('color', function() {
 
 ALGO.Shape.prototype.__defineSetter__('color', function(value) {
   // ALGO.log('define setter: color');
-  this.setVertexColor(value);
+  this.setVertexColor(value, this.vertexColors);
   this.color_ = value;
 });
 
@@ -1489,8 +1500,30 @@ ALGO.Shape.prototype.__defineGetter__('alpha', function() {
 
 ALGO.Shape.prototype.__defineSetter__('alpha', function(value) {
   // ALGO.log('define setter: alpha');
-  this.setVertexAlpha(value);
+  this.setVertexAlpha(value, this.vertexColors);
   this.alpha_ = value;
+});
+
+ALGO.Shape.prototype.__defineGetter__('lineColor', function() {
+  // ALGO.log('define getter: lineColor');
+  return this.lineColor_;
+});
+
+ALGO.Shape.prototype.__defineSetter__('lineColor', function(value) {
+  // ALGO.log('define setter: lineColor');
+  this.setVertexColor(value, this.vertexLineColors);
+  this.lineColor_ = value;
+});
+
+ALGO.Shape.prototype.__defineGetter__('lineAlpha', function() {
+  // ALGO.log('define getter: lineAlpha');
+  return this.lineAlpha_;
+});
+
+ALGO.Shape.prototype.__defineSetter__('lineAlpha', function(value) {
+  // ALGO.log('define setter: lineAlpha');
+  this.setVertexAlpha(value, this.vertexLineColors);
+  this.lineAlpha_ = value;
 });
 
 ALGO.Shape.prototype.__defineGetter__('angle', function() {
@@ -1723,9 +1756,7 @@ ALGO.Path.prototype.moveTo = function( x, y ){
   var vec2 = { x: x, y: y };
   this.geometry.push( vec2 );
 
-  this.setVertexPosition();
-  this.setVertexColor( this.color );
-  this.setVertexAlpha( this.alpha );
+  this.vertexUpdate();
 };
 
 ALGO.Path.prototype.lineTo = function( x, y ){
@@ -1733,11 +1764,17 @@ ALGO.Path.prototype.lineTo = function( x, y ){
   var vec2 = { x: x, y: y };
   this.geometry.push( vec2 );
 
-  this.setVertexPosition();
-  this.setVertexColor( this.color );
-  this.setVertexAlpha( this.alpha );
+  this.vertexUpdate();
   // ALGO.log( 'geometry: ' + this.geometry.length + ', pos: ' + this.vertexPosition.length + ', color: ' + this.vertexColors.length );
 };
+
+ALGO.Path.prototype.vertexUpdate = function(){
+  this.setVertexPosition();
+  this.setVertexColor( this.color, this.vertexColors );
+  this.setVertexAlpha( this.alpha, this.vertexColors );
+  this.setVertexColor( this.lineColor, this.vertexLineColors );
+  this.setVertexAlpha( this.lineAlpha, this.vertexLineColors );
+}
 
 ALGO.Path.prototype.close = function(){
   this.closed = true;
@@ -1881,85 +1918,93 @@ ALGO.WebGLRenderer = (function(ALGO) {
       var needsUpdate = object.needsUpdate;
       var fill_object = object.fill;
       var line_object = object.line;
-
-      // VBOの生成
-      if( !object_vbo[i] || needsUpdate ){
-        // モデル(頂点)データ
-        var vertex_position = object.vertexPosition;
-        // 頂点の色情報を格納する配列
-        var vertex_color = object.vertexColors;
-        // Set Geometry
-        var vbo = [];
-        vbo.position = createVbo(vertex_position);
-        vbo.color = createVbo(vertex_color);
-        object_vbo[i] = vbo;
-
-      }
-
-      setVBOAttribute( object_vbo[i], attr_location, attr_stride);
-
-      if( object.type !== 'path' && object.type !== 'particle' ){
-        if( !object_ibo[i] || needsUpdate ){
-          var index = object.index;
-          // IBOの生成
-          var ibo = createIbo(index);
-
-          object_index[i] = index;
-          object_ibo[i] = ibo;
-        }
-
-        // IBOをバインドして登録する
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, object_ibo[i]);
-      }
-
+      // モデル(頂点)データ
+      var vertex_position = object.vertexPosition;
+      // 頂点の色情報を格納する配列
+      var vertex_color = object.vertexColors;
+      // 頂点の色情報を格納する配列
+      var vertex_line_color = object.vertexLineColors || object.vertexColors;
+      var index = object.index;
       var objectMatrix = object.getMatrix();
       var matrix = pm.multiply(objectMatrix, projectionMatrix, [] );
+      var lineWidth = object.lineWidth;
 
-      // Set the matrix.
-      gl.uniformMatrix3fv(uni_location.matrix, false, matrix);
+      if( fill_object ){
 
-      if( needsUpdate ){
-        object.needsUpdate = false;
-      }
+        // VBOの生成
+        if( !object_vbo[i] || needsUpdate ){
+          var vbo = [];
+          vbo.position = createVbo(vertex_position);
+          vbo.color = createVbo(vertex_color);
+          object_vbo[i] = vbo;
+        }
 
-      // gl.drawArrays(gl.TRIANGLES, 0, 3);
+        setVBOAttribute( object_vbo[i], attr_location, attr_stride);
 
-      if( object.type == 'path' ){
-        gl.lineWidth( object.lineWidth );
-        if( object.closed ){
-          gl.drawArrays(gl.LINE_LOOP, 0, vertex_position.length / 2);
+        if( object.type !== 'path' && object.type !== 'particle' ){
+          // IBOの生成
+          if( !object_ibo[i] || needsUpdate ){
+            var ibo = createIbo(index);
+            object_index[i] = index;
+            object_ibo[i] = ibo;
+          }
+
+          // IBOをバインドして登録する
+          gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, object_ibo[i]);
+        }
+
+        // Set the matrix.
+        gl.uniformMatrix3fv(uni_location.matrix, false, matrix);
+
+        if( object.type == 'path' ){
+          if( object.closed ){
+            gl.drawArrays(gl.TRIANGLES, 0, vertex_position.length / 2);
+          }
+          else{
+            gl.drawArrays(gl.TRIANGLES, 0, vertex_position.length / 2);
+          }
+        }
+        else if( object.type == 'particle' ){
+          gl.drawArrays(gl.POINTS, 0, vertex_position.length / 2);
         }
         else{
-          gl.drawArrays(gl.LINE_STRIP, 0, vertex_position.length / 2);
+          gl.drawElements(gl.TRIANGLES, object_index[i].length, gl.UNSIGNED_SHORT, 0);
         }
       }
-      else if( object.type == 'particle' ){
-        gl.drawArrays(gl.LINES, 0, vertex_position.length / 2);
-      }
-      else{
-        gl.drawElements(gl.TRIANGLES, object_index[i].length, gl.UNSIGNED_SHORT, 0);
 
-        var fillColor = 0x000000;
-        var fillColorRgb = { r: 0, g: 0, b: 0, alpha: 1 };
-        var vertex_fill = [];
+      if( line_object ){
 
-        for( var j = 0; j < vertex_position.length; j++ ){
-          var num = j * 2;
-          vertex_fill[num] = fillColorRgb.r;
-          vertex_fill[num+1] = fillColorRgb.g;
-          vertex_fill[num+2] = fillColorRgb.b;
-          vertex_fill[num+3] = fillColorRgb.alpha;
+        // VBOの生成
+        if( !object_vbo_line[i] || needsUpdate ){
+          var vbo = [];
+          vbo.position = createVbo(vertex_position);
+          vbo.color = createVbo(vertex_line_color);
+          object_vbo_line[i] = vbo;
         }
-
-        var vbo = [];
-        vbo.position = createVbo(vertex_position);
-        vbo.color = createVbo(vertex_fill);
-        object_vbo_line[i] = vbo;
 
         setVBOAttribute( object_vbo_line[i], attr_location, attr_stride);
 
-        gl.lineWidth( 5 );
-        gl.drawArrays(gl.LINE_LOOP, 0, vertex_position.length / 2);
+        // Set the matrix.
+        gl.uniformMatrix3fv(uni_location.matrix, false, matrix);
+
+        // line width
+        gl.lineWidth( lineWidth );
+
+        if( object.type == 'path' ){
+          if( object.closed ){
+            gl.drawArrays(gl.LINE_LOOP, 0, vertex_position.length / 2);
+          }
+          else{
+            gl.drawArrays(gl.LINE_STRIP, 0, vertex_position.length / 2);
+          }
+        }
+        else{
+          gl.drawArrays(gl.LINE_LOOP, 0, vertex_position.length / 2);
+        }
+      }
+
+      if( needsUpdate ){
+        object.needsUpdate = false;
       }
 
 

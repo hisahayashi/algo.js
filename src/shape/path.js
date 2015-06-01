@@ -40,9 +40,7 @@ ALGO.Path.prototype.moveTo = function( x, y ){
   var vec2 = { x: x, y: y };
   this.geometry.push( vec2 );
 
-  this.setVertexPosition();
-  this.setVertexColor( this.color );
-  this.setVertexAlpha( this.alpha );
+  this.vertexUpdate();
 };
 
 ALGO.Path.prototype.lineTo = function( x, y ){
@@ -50,11 +48,17 @@ ALGO.Path.prototype.lineTo = function( x, y ){
   var vec2 = { x: x, y: y };
   this.geometry.push( vec2 );
 
-  this.setVertexPosition();
-  this.setVertexColor( this.color );
-  this.setVertexAlpha( this.alpha );
+  this.vertexUpdate();
   // ALGO.log( 'geometry: ' + this.geometry.length + ', pos: ' + this.vertexPosition.length + ', color: ' + this.vertexColors.length );
 };
+
+ALGO.Path.prototype.vertexUpdate = function(){
+  this.setVertexPosition();
+  this.setVertexColor( this.color, this.vertexColors );
+  this.setVertexAlpha( this.alpha, this.vertexColors );
+  this.setVertexColor( this.lineColor, this.vertexLineColors );
+  this.setVertexAlpha( this.lineAlpha, this.vertexLineColors );
+}
 
 ALGO.Path.prototype.close = function(){
   this.closed = true;
