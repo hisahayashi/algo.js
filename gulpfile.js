@@ -6,6 +6,7 @@ var order = require('gulp-order');
 var watch = require('gulp-watch');
 var clean = require('gulp-clean');
 var apidoc = require('gulp-apidoc');
+var browserSync = require( 'browser-sync' );
 
 var selector = {
   algo_src: [
@@ -16,12 +17,16 @@ var selector = {
     'src/math/matrix3.js',
     'src/math/matrix4.js',
 
+    'src/loader/loader.js',
+
     'src/shape/shapeCtrl.js',
     'src/shape/shape.js',
     'src/shape/polygon.js',
     'src/shape/circle.js',
     'src/shape/rectangle.js',
     'src/shape/path.js',
+
+    'src/svg/svg.js',
 
     'src/renderer/webgl.js',
 
@@ -79,10 +84,25 @@ gulp.task('apidoc', function () {
 });
 
 /**
+ * bs
+ */
+gulp.task( 'bs', function() {
+  return browserSync.init( null, {
+    server: {
+      baseDir: './'
+    },
+    port: 3000,
+    open: false,
+    notify: true,
+    xip: false
+  });
+});
+
+/**
  * run
  */
 gulp.task('default', function (cb) {
-  runSequence('clean-build', 'concat', 'watch', cb);
+  runSequence('clean-build', 'concat', 'watch', 'bs', cb);
 });
 
 gulp.task('doc', function (cb) {

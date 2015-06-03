@@ -39,45 +39,60 @@ algo.height = window.innerHeight;
 algo.background = 0xffffff;
 algo.backgroundAuto = true;
 algo.backgroundAlpha = 0.8;
-algo.framerate = 60;
+algo.framerate = 6;
 algo.circleResolution = 8;
 algo.blendMode = ALGO.BLEND_ALPHA;
 
 ALGO.log(algo);
 
-var path;
+var svg;
+var paths = [];
 var mx;
 var my;
 
+function createShape( vertex, index ){
+  var p = new ALGO.Path();
+  for( var i = 0; i < vertex.length; i++ ){
+    var v = vertex[i];
+    // ALGO.log( 'i: ' + i + ', ' + v.x + ' : ' + v.y );
+    p.lineTo( v.x, v.y );
+  }
+  p.line = true;
+  p.fill = false;
+  p.color = 0x000000;
+  p.close();
+  algo.add( p );
+  paths[index] = p;
+
+  // ALGO.log( p.geometry );
+};
+
 algo.bind('setup', function() {
 
-  var p1 = { x: 0, y: 0 };
-  var p2 = { x: 100, y: 100 };
-  path = new ALGO.Path( p1, p2 );
-  path.color = 0xcccccc;
-  path.lineColor = 0x000000;
-  path.line = true;
+  svg = new ALGO.SVG();
+  svg.load('algo_text.svg');
 
-  // path.fill = false;
-  // path.fillColor = 0x00ffff;
+  svg.bind('complete', function( e ){
+    ALGO.log( e );
+  });
 
-  // path.line = true;
-  // path.lineWidth = 3;
-  // path.lineColor = 0x0000ff;
+  svg.bind('always', function( e ){
+    ALGO.log( e );
+    var verticles = e.verticles;
+    var vlength = verticles.length;
+    var count = 0;
 
-  // var resolution = 120;
-  // var angle = 360 / resolution;
-  // for( var i = 0; i < resolution; i++ ){
-  //   var x = Math.sin( Math.PI / 180 * i * angle ) * 200 + 300;
-  //   var y = Math.cos( Math.PI / 180 * i * angle ) * 200 + 300;
-  //   path.lineTo( x, y );
-  // }
+    for( var i = 0; i < vlength; i++ ){
+      var vertex_list = verticles[i];
+      var list_length = vertex_list.length;
 
-  algo.add(path);
-
-  // ALGO.log( path.geometry.length );
-  // ALGO.log( path.vertexPosition.length );
-  // ALGO.log( path.vertexColors.length );
+      for( var j = 0; j < list_length; j++ ){
+        var vertex = vertex_list[j];
+        createShape( vertex, count );
+        count++;
+      }
+    }
+  });
 
   // stats
   stats.domElement.style.position = 'fixed';
@@ -90,7 +105,20 @@ algo.bind('frame', function() {
   var aw = algo.width;
   var ah = algo.height;
 
-  path.needsUpdate = true;
+  for( var i = 0; i < algo.children.length; i++ ){
+    var p = algo.children[i];
+    if( i == 0 ){
+      // p.lineColor = 0x0000ff;
+      // p.x++;
+    }
+    else if( i == 1 ){
+      // p.lineColor = 0xff00ff;
+      // p.y++;
+    }
+    p.needsUpdate = true;
+  }
+
+  // path.needsUpdate = true;
 
   // stats
   stats.update();
@@ -99,11 +127,11 @@ algo.bind('frame', function() {
 algo.bind('mousemove', function( mousex, mousey ) {
   mx = mousex;
   my = mousey;
-  path.lineTo( mx, my );
+  // path.lineTo( mx, my );
 });
 
 algo.bind('mousedown', function( mousex, mousey ) {
-  path.clear();
+  // path.clear();
 });
 
 algo.bind('resize', function() {

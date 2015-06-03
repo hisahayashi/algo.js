@@ -37,7 +37,7 @@ var ALGO = (function () {
   function init() {
     setupProperties();
     setupRender();
-    addEvents();
+    addReady();
   };
 
   /**
@@ -79,12 +79,16 @@ var ALGO = (function () {
   /**
    * addEvents
    */
-  function addEvents() {
+  function addReady() {
     // ALGO.log('ALGO: Add events.');
     window.onload = function () {
       setupStage();
       if (that.setup) that.setup.call(that);
+      addEvents();
     };
+  };
+
+  function addEvents(){
     window.onmouseover = function () {
       if (that.mouseover) that.mouseover.call(that);
     };
@@ -115,6 +119,7 @@ var ALGO = (function () {
       // renderer
       if( that.renderer ) that.renderer.resize();
     };
+
     that.render.startRender();
   };
 

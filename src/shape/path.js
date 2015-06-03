@@ -1,18 +1,19 @@
 /**
  * ALGO.Path
  */
-ALGO.Path = function( start, end ) {
+ALGO.Path = function( _start, _end ) {
   'use strict';
   // ALGO.log( 'ALGO.Path' );
-  this.moveTo( start.x, start.y );
-  this.lineTo( end.x, end.y );
+  // ALGO.log( this.geometry );
 
-  ALGO.log( this.geometry );
-
+  this.start = _start;
+  this.end = _end;
   this.type = 'path';
 
   this.init();
   this.setup();
+
+  this.initLine();
 };
 
 ALGO.Path.prototype = Object.create( ALGO.Shape.prototype );
@@ -20,8 +21,6 @@ ALGO.Path.prototype.constructor = ALGO.Path;
 ALGO.Path.prototype.closed = false;
 
 ALGO.Path.prototype.setGeometry = function(){
-  /* 頂点の位置を算出 */
-  // var geometry = this.geometry = [];
 };
 
 ALGO.Path.prototype.setScale = function(scale){
@@ -32,6 +31,17 @@ ALGO.Path.prototype.setScale = function(scale){
     this.m.scale( this.matrix, [ scaleX, scaleY, 0.0 ], this.matrixScale );
     // ALGO.log( 'scale: ' + scale );
     // ALGO.log( this.matrixScale );
+  }
+};
+
+ALGO.Path.prototype.initLine = function(){
+  var start = this.start;
+  var end = this.end;
+  if( start ){
+    this.moveTo( start.x, start.y );
+  }
+  if( end ){
+    this.lineTo( end.x, end.y );
   }
 };
 

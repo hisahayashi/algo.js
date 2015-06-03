@@ -28,13 +28,11 @@ ALGO.Shape = (function() {
    */
   function init() {
     // initialize
-    if( this.type !== 'path' ){
-      this.geometry = [];
-      this.vertexPosition = [];
-      this.vertexColors = [];
-      this.vertexLineColors = [];
-      this.index = [];
-    }
+    this.geometry = [];
+    this.vertexPosition = [];
+    this.vertexColors = [];
+    this.vertexLineColors = [];
+    this.index = [];
 
     // set matrix
     this.m = new ALGO.Matrix3();
