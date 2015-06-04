@@ -158,7 +158,7 @@ ALGO.WebGLRenderer = (function(ALGO) {
 
         setVBOAttribute( object_vbo[i], attr_location, attr_stride);
 
-        if( object.type !== 'path' && object.type !== 'particle' ){
+        if( object.type !== 'particle' ){
           // IBOの生成
           if( !object_ibo[i] || needsUpdate ){
             var ibo = createIbo(index);
@@ -175,10 +175,12 @@ ALGO.WebGLRenderer = (function(ALGO) {
 
         if( object.type == 'path' ){
           if( object.closed ){
-            gl.drawArrays(gl.TRIANGLES, 0, vertex_position.length / 2);
+            // gl.drawArrays(gl.TRIANGLES, 0, vertex_position.length / 2);
+            gl.drawElements(gl.TRIANGLES, object_index[i].length, gl.UNSIGNED_SHORT, 0);
           }
           else{
-            gl.drawArrays(gl.TRIANGLES, 0, vertex_position.length / 2);
+            // gl.drawArrays(gl.TRIANGLES, 0, vertex_position.length / 2);
+            gl.drawElements(gl.TRIANGLES, object_index[i].length, gl.UNSIGNED_SHORT, 0);
           }
         }
         else if( object.type == 'particle' ){

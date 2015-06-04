@@ -1837,6 +1837,20 @@ ALGO.Path.prototype.closed = false;
 ALGO.Path.prototype.setGeometry = function(){
 };
 
+/**
+ * [setIndex description]
+ */
+ ALGO.Path.prototype.setIndex = function(){
+  // set index
+  var index = this.index = [];
+  for( i = 1; i < this.geometry.length - 1; i += 1 ){
+    index.push( 0 );
+    index.push( i );
+    index.push( i+1 );
+    // ALGO.log( 0 + ', ' + i + ', ' + ( i + 1 ) );
+  }
+};
+
 ALGO.Path.prototype.setScale = function(scale){
   if( this.m ){
     var scaleX = scale;
@@ -1882,6 +1896,7 @@ ALGO.Path.prototype.vertexUpdate = function(){
   this.setVertexAlpha( this.alpha, this.vertexColors );
   this.setVertexColor( this.lineColor, this.vertexLineColors );
   this.setVertexAlpha( this.lineAlpha, this.vertexLineColors );
+  this.setIndex();
 }
 
 ALGO.Path.prototype.close = function(){
@@ -2462,7 +2477,7 @@ ALGO.WebGLRenderer = (function(ALGO) {
 
         setVBOAttribute( object_vbo[i], attr_location, attr_stride);
 
-        if( object.type !== 'path' && object.type !== 'particle' ){
+        if( object.type !== 'particle' ){
           // IBOの生成
           if( !object_ibo[i] || needsUpdate ){
             var ibo = createIbo(index);
@@ -2479,10 +2494,12 @@ ALGO.WebGLRenderer = (function(ALGO) {
 
         if( object.type == 'path' ){
           if( object.closed ){
-            gl.drawArrays(gl.TRIANGLES, 0, vertex_position.length / 2);
+            // gl.drawArrays(gl.TRIANGLES, 0, vertex_position.length / 2);
+            gl.drawElements(gl.TRIANGLES, object_index[i].length, gl.UNSIGNED_SHORT, 0);
           }
           else{
-            gl.drawArrays(gl.TRIANGLES, 0, vertex_position.length / 2);
+            // gl.drawArrays(gl.TRIANGLES, 0, vertex_position.length / 2);
+            gl.drawElements(gl.TRIANGLES, object_index[i].length, gl.UNSIGNED_SHORT, 0);
           }
         }
         else if( object.type == 'particle' ){

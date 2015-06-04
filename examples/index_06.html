@@ -58,8 +58,8 @@ function createShape( vertex, index ){
     p.lineTo( v.x, v.y );
   }
   p.line = true;
-  p.fill = false;
-  p.color = 0x000000;
+  // p.fill = false;
+  p.color = 0x666666;
   p.close();
   algo.add( p );
   paths[index] = p;
@@ -112,13 +112,11 @@ algo.bind('frame', function() {
       // p.x++;
     }
     else if( i == 1 ){
-      // p.lineColor = 0xff00ff;
-      // p.y++;
+      p.color = 0xff00ff;
+      p.lineColor = 0xff00ff;
     }
-    p.needsUpdate = true;
+    // p.needsUpdate = true;
   }
-
-  // path.needsUpdate = true;
 
   // stats
   stats.update();
