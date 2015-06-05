@@ -52,15 +52,12 @@ var my;
 
 function createShape( vertex, index ){
   var p = new ALGO.Path();
-  for( var i = 0; i < vertex.length; i++ ){
-    var v = vertex[i];
-    // ALGO.log( 'i: ' + i + ', ' + v.x + ' : ' + v.y );
-    p.lineTo( v.x, v.y );
-  }
-  p.line = true;
+  p.geometry = vertex;
+  p.line = false;
   // p.fill = false;
   p.color = 0x666666;
   p.close();
+  p.vertexUpdate();
   algo.add( p );
   paths[index] = p;
 

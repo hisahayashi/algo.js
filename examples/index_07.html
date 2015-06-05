@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<title>algo.js examples: </title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+<style>
+body {
+  margin: 0;
+  padding: 0;
+  font-size: 0;
+  background-color: #000000;
+}
+
+canvas {
+  width: 100%;
+  height: 100%;
+}
+</style>
+</head>
+
+<body>
+<canvas id="canvas"></canvas>
+<script type="text/javascript" src="../build/algo.js"></script>
+<!-- <script type="text/javascript" src="../src/algo.js"></script> -->
+<script type="text/javascript" src="assets/js/libs/dat.gui.min.js"></script>
+<script type="text/javascript" src="assets/js/libs/stats.min.js"></script>
+<script type="text/javascript">
+var stats = new Stats();
+var param = {
+  id: 'canvas',
+  width: window.innerWidth,
+  height: window.innerHeight
+};
+var algo = new ALGO(param);
+algo.width = window.innerWidth;
+algo.height = window.innerHeight;
+algo.background = 0xffffff;
+algo.backgroundAuto = true;
+algo.backgroundAlpha = 0.8;
+algo.framerate = 6;
+algo.circleResolution = 8;
+algo.blendMode = ALGO.BLEND_ALPHA;
+
+ALGO.log(algo);
+
+
+var Point = function(){
+};
+Point.prototype = {
+  x: 0,
+  y: 0,
+  pPrev: null,
+  pNext: null,
+  flag: null
+};
+
+var head = [];
+var curr = [];
+var counter = 0;
+var divided = [];
+
+function add(curr, x, y) {
+  counter++;
+  var p = new Point();
+  p.x = x;
+  p.y = y;
+  p.flag = 0;
+  if (curr == null) {
+    p.pPrev = p;
+    p.pNext = p;
+    head = p;
+  } else {
+    p.pPrev = curr;
+    p.pNext = head;
+    p.pPrev.pNext = p;
+    p.pNext.pPrev = p;
+  }
+  return p;
+
+  console.log(p.x, p.y);
+}
+
+function del(curr) {
+  if (curr == null) {
+    return null;
+  }
+  counter--;
+
+  if (curr.pPrev == curr || curr.pNext == curr) {
+    curr = [];
+    head = null;
+    return null;
+  }
+
+  if (curr == head) {
+    head = curr.pNext;
+  }
+
+  curr.pNext.pPrev = curr.pPrev;
+  curr.pPrev.pNext = curr.pNext;
+  var next = curr.pNext;
+  curr = [];
+
+  return next;
+}
+
+function wayOfNormal(input1, input2, input3) {
+  var temp1 = [];
+  var temp2 = [];
+  //
+  temp1[0] = input1.x - input2.x;
+  temp1[1] = input1.y - input2.y;
+
+  temp2[0] = input1.x - input3.x;
+  temp2[1] = input1.y - input3.y;
+
+  var ret = temp1[0] * temp2[1] - temp1[1] * temp2[0];
+
+  if (ret > 0) {
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
+function CheckPointInTriangle(p1, p2, p3, check) {
+
+  var result1 = wayOfNormal(check, p1, p2);
+  var result2 = wayOfNormal(check, p2, p3);
+  var result3 = wayOfNormal(check, p3, p1);
+
+  if (result1 == result2 && result2 == result3) {
+    return 1;
+  } else {
+    return 0;
+  }
+};
+
+function checkIsOtherPointsInside(point) {
+  var p = point.pNext.pNext;
+  while (1) {
+    if (p == null) {
+      break;
+    }
+    if (CheckPointInTriangle(point, point.pNext, point.pPrev, p)) {
+      return 1;
+    }
+    p = p.pNext;
+    if (p == point.pPrev) {
+      break;
+    }
+  }
+  return 0;
+}
+
+function getMaxDistanceFromOrigin() {
+  var distance = 0;
+  var p = head;
+  var max = head;
+  while (1) {
+    if (p == null) {
+      break;
+    }
+    var abs = Math.sqrt(p.x * p.x + p.y * p.y);
+    if (abs > distance) {
+      distance = abs;
+      max = p;
+    }
+    p = p.pNext;
+    if (p == head) {
+      break;
+    }
+  }
+  return max;
+}
+
+function divide() {
+  while (counter > 2) {
+    var start = getMaxDistanceFromOrigin();
+    ALGO.log( start );
+    var p = head;
+    way = wayOfNormal(start, start.pPrev, start.pNext);
+    p = start;
+    while (1) {
+      if (p == null) {
+        break;
+      }
+      if (way == wayOfNormal(p, p.pPrev, p.pNext)) {
+        if (!checkIsOtherPointsInside(p)) {
+          del(p);
+          var newP = new Point();
+          newP.x = p.x;
+          newP.y = p.y;
+          divided.push(newP);
+          newP = new Point();
+          newP.x = p.pNext.x;
+          newP.y = p.pNext.y;
+          divided.push(newP);
+          newP = new Point();
+          newP.x = p.pPrev.x;
+          newP.y = p.pPrev.y;
+          divided.push(newP);
+          break;
+        }
+      }
+      p = p.pNext;
+      if (p == start) {
+        break;
+      }
+    }
+  }
+}
+
+
+
+var paths = [];
+var mx;
+var my;
+
+algo.bind('setup', function() {
+  var aw = algo.width;
+  var ah = algo.height;
+
+  for( var i = 0; i < 10; i++ ){
+    var x = Math.random() * aw;
+    var y = Math.random() * aw;
+    var p = add( curr, x, y );
+    curr.push( p );
+  }
+
+  divide();
+
+  ALGO.log( curr );
+
+  // stats
+  stats.domElement.style.position = 'fixed';
+  stats.domElement.style.right = '0px';
+  stats.domElement.style.top = '0px';
+  document.body.appendChild(stats.domElement);
+});
+
+algo.bind('frame', function() {
+  var aw = algo.width;
+  var ah = algo.height;
+
+  // stats
+  stats.update();
+});
+
+algo.bind('mousemove', function( mousex, mousey ) {
+  mx = mousex;
+  my = mousey;
+  // path.lineTo( mx, my );
+});
+
+algo.bind('mousedown', function( mousex, mousey ) {
+  // path.clear();
+});
+
+algo.bind('resize', function() {
+  // ALGO.log('resize after');
+  var w = window.innerWidth;
+  var h = window.innerHeight;
+  algo.size(w, h);
+});
+</script>
+</body>
+
+</html>

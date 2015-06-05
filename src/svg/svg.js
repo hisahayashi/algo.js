@@ -143,10 +143,10 @@ ALGO.SVG = (function() {
         }
       }
 
-      if (l == 22 && i > 15) {
-        ALGO.log(i + '/' + l + ', ' + command + '(' + lower + ')' + ', ' + length);
-        ALGO.log(coords);
-      }
+      // if (l == 22 && i > 15) {
+      //   ALGO.log(i + '/' + l + ', ' + command + '(' + lower + ')' + ', ' + length);
+      //   ALGO.log(coords);
+      // }
 
       switch (lower) {
         // moveto
@@ -192,9 +192,9 @@ ALGO.SVG = (function() {
               geometry.push(points[k]);
             }
 
-            ALGO.log('current: ' + prev_point.x + ', ' + prev_point.y + '   control: ' + cp1.x + ', ' + cp1.y);
-            ALGO.log('current: ' + current_point.x + ', ' + current_point.y + '   control: ' + cp2.x + ', ' + cp2.y);
-            ALGO.log(points);
+            // ALGO.log('current: ' + prev_point.x + ', ' + prev_point.y + '   control: ' + cp1.x + ', ' + cp1.y);
+            // ALGO.log('current: ' + current_point.x + ', ' + current_point.y + '   control: ' + cp2.x + ', ' + cp2.y);
+            // ALGO.log(points);
 
             // geometry.push( { x: cp1.x, y: cp1.y } );
             // geometry.push( { x: cp2.x, y: cp2.y } );
@@ -274,19 +274,22 @@ ALGO.SVG = (function() {
 
           // closepath
         case 'z':
-          geometries.push(geometry);
-          geometry = [];
-          break;
+        // geometries.push(geometry);
+        // geometry = [];
+        break;
       }
 
 
       if (l == 22 && i > 15) {
-        ALGO.log(current_point);
+        // ALGO.log(current_point);
       }
 
-      ALGO.log('');
+      // ALGO.log('');
       previous = lower;
     }
+
+    geometries.push(geometry);
+
 
     // ALGO.log('geometry: ');
     // ALGO.log( geometry );

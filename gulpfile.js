@@ -10,6 +10,8 @@ var browserSync = require( 'browser-sync' );
 
 var selector = {
   algo_src: [
+    'src/other/delaunay.js',
+
     'src/algo.js',
     'src/variables.js',
     'src/render.js',
