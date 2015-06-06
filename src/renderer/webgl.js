@@ -13,7 +13,7 @@ ALGO.WebGLRenderer = (function(ALGO) {
   var uniform_vars;
   var attr_location;
   var attr_stride;
-  var point_size = 10;
+  var point_size = 4;
 
   var cw, ch;
   var sw, sh;
@@ -144,7 +144,8 @@ ALGO.WebGLRenderer = (function(ALGO) {
       var index = object.index;
       var objectMatrix = object.getMatrix();
       var matrix = pm.multiply(objectMatrix, projectionMatrix, [] );
-      var lineWidth = object.lineWidth;
+      var line_width = object.lineWidth;
+      var object_point_size = object.pointsize;
 
       if( fill_object ){
 
@@ -184,12 +185,17 @@ ALGO.WebGLRenderer = (function(ALGO) {
           }
         }
         else if( object.type == 'particle' ){
+          // ALGO.log( 'pos: ' + vertex_position.length + ', color: ' + vertex_color.length + ', index: ' + object_index[i].length );
+          gl.uniform1f(uni_location.point_size, object_point_size);
           gl.drawArrays(gl.POINTS, 0, vertex_position.length / 2);
         }
         else{
           gl.drawElements(gl.TRIANGLES, object_index[i].length, gl.UNSIGNED_SHORT, 0);
+          // gl.uniform1f(uni_location.point_size, point_size);
+          // gl.drawArrays(gl.POINTS, 0, vertex_position.length / 2);
         }
       }
+
 
       if( line_object ){
 
@@ -207,7 +213,7 @@ ALGO.WebGLRenderer = (function(ALGO) {
         gl.uniformMatrix3fv(uni_location.matrix, false, matrix);
 
         // line width
-        gl.lineWidth( lineWidth );
+        gl.lineWidth( line_width );
 
         if( object.type == 'path' ){
           if( object.closed ){

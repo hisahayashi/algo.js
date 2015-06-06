@@ -10,6 +10,7 @@ var browserSync = require( 'browser-sync' );
 
 var selector = {
   algo_src: [
+    'src/other/perlin.js',
     'src/other/delaunay.js',
 
     'src/algo.js',
@@ -27,6 +28,7 @@ var selector = {
     'src/shape/circle.js',
     'src/shape/rectangle.js',
     'src/shape/path.js',
+    'src/shape/particle.js',
 
     'src/svg/svg.js',
 

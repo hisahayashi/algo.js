@@ -20,6 +20,9 @@ ALGO.Path.prototype = Object.create(ALGO.Shape.prototype);
 ALGO.Path.prototype.constructor = ALGO.Path;
 ALGO.Path.prototype.closed = false;
 
+/**
+ * [setGeometry description]
+ */
 ALGO.Path.prototype.setGeometry = function() {};
 
 /**
@@ -91,15 +94,6 @@ ALGO.Path.prototype.lineTo = function(x, y) {
   this.vertexUpdate();
   // ALGO.log( 'geometry: ' + this.geometry.length + ', pos: ' + this.vertexPosition.length + ', color: ' + this.vertexColors.length );
 };
-
-ALGO.Path.prototype.vertexUpdate = function() {
-  this.setVertexPosition();
-  this.setVertexColor(this.color, this.vertexColors);
-  this.setVertexAlpha(this.alpha, this.vertexColors);
-  this.setVertexColor(this.lineColor, this.vertexLineColors);
-  this.setVertexAlpha(this.lineAlpha, this.vertexLineColors);
-  this.setIndex();
-}
 
 ALGO.Path.prototype.close = function() {
   this.closed = true;

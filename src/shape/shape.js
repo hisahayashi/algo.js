@@ -188,6 +188,15 @@ ALGO.Shape = (function() {
     this.index = index;
   };
 
+  function vertexUpdate() {
+    this.setVertexPosition();
+    this.setVertexColor(this.color, this.vertexColors);
+    this.setVertexAlpha(this.alpha, this.vertexColors);
+    this.setVertexColor(this.lineColor, this.vertexLineColors);
+    this.setVertexAlpha(this.lineAlpha, this.vertexLineColors);
+    this.setIndex();
+  }
+
   function setScale(scale){
     if( this.m ){
       var scaleX = this.radius * scale;
@@ -315,6 +324,7 @@ ALGO.Shape = (function() {
     setVertexColor: setVertexColor,
     setVertexAlpha: setVertexAlpha,
     setIndex: setIndex,
+    vertexUpdate: vertexUpdate,
     setScale: setScale,
     setRotate: setRotate,
     setTranslate: setTranslate,
