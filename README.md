@@ -24,3 +24,4 @@ algo.jsはメディアアートやモーションの実験を行うシンプル�
 - <a href="https://rawgit.com/hisahayashi/algo.js/master/examples/index_06.html" target="_blank">Example 06</a>
 - <a href="https://rawgit.com/hisahayashi/algo.js/master/examples/index_07.html" target="_blank">Example 07</a>
 
+<img alt="" src="https://raw.githubusercontent.com/hisahayashi/cdn/master/algojs/algojs_document.001.jpg" width="100%" height="auto">
