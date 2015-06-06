@@ -20,34 +20,7 @@ algo.jsはメディアアートやモーションの実験を行うシンプル�
 - <a href="https://rawgit.com/hisahayashi/algo.js/master/examples/index_02.html" target="_blank">Example 02</a>
 - <a href="https://rawgit.com/hisahayashi/algo.js/master/examples/index_03.html" target="_blank">Example 03</a>
 - <a href="https://rawgit.com/hisahayashi/algo.js/master/examples/index_04.html" target="_blank">Example 04</a>
-
-
-# algo.js
-
-algo.js has developed as WebGL framework *** simple *** for 2D drawing to perform the experiment of media art and motion.
-Can easily well as the issuance of execution and events of each frame, various rectangles, lines, particle drawing can also be created in the source of a few lines.
-
-And now it is in development, but it is coming soon.
-
-
-### Main function (planned)
-
-- Of creative coding compatible with good description method
-- High-speed drawing of using WebGL
-- Lightweight structure is simple
-- (Comprehensive playback processing of noise and sound to use in creative coding)
-
-### Examples
-
-- <a href="https://rawgit.com/hisahayashi/algo.js/master/examples/index.html" target="_blank">Example</a>
-- <a href="https://rawgit.com/hisahayashi/algo.js/master/examples/index_01.html" target="_blank">Example 01</a>
-- <a href="https://rawgit.com/hisahayashi/algo.js/master/examples/index_02.html" target="_blank">Example 02</a>
-- <a href="https://rawgit.com/hisahayashi/algo.js/master/examples/index_03.html" target="_blank">Example 03</a>
-- <a href="https://rawgit.com/hisahayashi/algo.js/master/examples/index_04.html" target="_blank">Example 04</a>
-
-
-
-<img alt="" src="https://raw.githubusercontent.com/hisahayashi/cdn/master/algojs/algojs_document.001.jpg" width="100%" height="auto">
-
-
+- <a href="https://rawgit.com/hisahayashi/algo.js/master/examples/index_05.html" target="_blank">Example 05</a>
+- <a href="https://rawgit.com/hisahayashi/algo.js/master/examples/index_06.html" target="_blank">Example 06</a>
+- <a href="https://rawgit.com/hisahayashi/algo.js/master/examples/index_07.html" target="_blank">Example 07</a>
 
