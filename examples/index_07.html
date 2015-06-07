@@ -40,19 +40,22 @@ algo.background = 0x000000;
 algo.backgroundAuto = true;
 algo.backgroundAlpha = 0.8;
 algo.framerate = 60;
-algo.circleResolution = 20;
+algo.circleResolution = 8;
 algo.blendMode = ALGO.BLEND_ALPHA;
 
 ALGO.log(algo);
 
 var geometry_num = 10000;
-var map1, map2, map3;
-var step = 8;
+var map1, map2;
+var step = 4;
 var noise;
 var pattern = [];
 var geometry = [];
 var mx;
 var my;
+
+var gui;
+var gui_val;
 
 function getNoiseMap(){
   var aw = algo.width;
@@ -64,8 +67,10 @@ function getNoiseMap(){
     map[xi] = [];
     for (var yi = 0; yi < ah; yi += step) {
       var value = noise.perlin2(xi / 100, yi / 100);
+      // var value = noise.simplex2(xi / 200, yi / 200);
       // var grayscale = Math.abs(value) * 256 - 128;
-      var grayscale = value *  128;
+      // var grayscale = value *  128;
+      var grayscale = value *  256;
       map[xi][yi] = grayscale;
     }
   }
@@ -77,11 +82,44 @@ algo.bind('setup', function() {
   var aw = algo.width;
   var ah = algo.height;
 
+  // stats
+  stats.domElement.style.position = 'fixed';
+  stats.domElement.style.left = '0px';
+  stats.domElement.style.top = '0px';
+  document.body.appendChild(stats.domElement);
+
+  var FizzyText = function() {
+    this.xspeed = 0.5;
+    this.yspeed = 0.5;
+    this.accelx = 0.96;
+    this.accely = 0.96;
+    this.vectorx = 0.92;
+    this.vectory = 0.92;
+    this.explode = function() {};
+  };
+
+  // gui
+  gui_val = new FizzyText();
+  gui = new dat.GUI();
+  gui.remember( gui_val );
+  var f1 = gui.addFolder('Setting');
+  var f2 = gui.addFolder('Move');
+  f2.add(gui_val, 'xspeed', 0.01, 10.0);
+  f2.add(gui_val, 'yspeed', 0.01, 10.0);
+  f2.add(gui_val, 'accelx', 0.01, 1.0);
+  f2.add(gui_val, 'accely', 0.01, 1.0);
+  f2.add(gui_val, 'vectorx', 0.01, 1.0);
+  f2.add(gui_val, 'vectory', 0.01, 1.0);
+
+  f1.open();
+  f2.open();
+
+  // force map
   map1 = getNoiseMap();
   map2 = getNoiseMap();
-  map3 = getNoiseMap();
 
   particles = new ALGO.Particle( 0, 0 );
+
   for (var xi = 0; xi < aw; xi += step) {
     for (var yi = 0; yi < ah; yi += step) {
       var vec = {
@@ -97,15 +135,9 @@ algo.bind('setup', function() {
   }
   ALGO.log('length: ' + geometry.length);
   particles.setGeometry( geometry );
-  particles.pointsize = 1.2;
+  particles.pointsize = 1.5;
   particles.color = 0xffffff;
   algo.add(particles);
-
-  // stats
-  stats.domElement.style.position = 'fixed';
-  stats.domElement.style.right = '0px';
-  stats.domElement.style.top = '0px';
-  document.body.appendChild(stats.domElement);
 });
 
 algo.bind('frame', function() {
@@ -131,8 +163,8 @@ algo.bind('frame', function() {
     if( map1_value == undefined ) map1_value = 0;
     if( map2_value == undefined ) map2_value = 0;
 
-    g.ax += map1_value * 0.00005;
-    g.ay += map2_value * 0.00005;
+    g.ax += map1_value * gui_val.xspeed * 0.0001;
+    g.ay += map2_value * gui_val.yspeed * 0.0001;
     g.vx += g.ax;
     g.vy += g.ay;
     g.x += g.vx;
@@ -140,10 +172,10 @@ algo.bind('frame', function() {
 
     g.rotation = Math.atan2( g.vy, g.vx ) * 180 / Math.PI;
 
-    g.ax *= .96;
-    g.ay *= .96;
-    g.vx *= .92;
-    g.vy *= .92;
+    g.ax *= gui_val.accelx;
+    g.ay *= gui_val.accely;
+    g.vx *= gui_val.vectorx;
+    g.vy *= gui_val.vectory;
 
     ( g.x > aw ) ? g.x = 0 : ( g.x < 0 ) ? g.x = aw : 0;
     ( g.y > ah ) ? g.y = 0 : ( g.y < 0 ) ? g.y = ah : 0;
