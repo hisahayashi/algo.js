@@ -298,7 +298,7 @@ ALGO.Shape = (function() {
     scale_: 1,
     rotate_: 0,
     radius_: null,
-    color_: 0xffffff,
+    color_: 0x000000,
     alpha_: 1.0,
     angle_: undefined,
     needsUpdate_: false,

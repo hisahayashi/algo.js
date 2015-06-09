@@ -53,14 +53,13 @@ var my;
 function createShape( vertex, index ){
   var p = new ALGO.Path();
   p.geometry = vertex;
-  p.line = false;
+  // p.line = true;
   // p.fill = false;
-  p.color = 0x666666;
+  p.color = 0x333333;
   p.close();
-  p.vertexUpdate();
   algo.add( p );
   paths[index] = p;
-
+  return p;
   // ALGO.log( p.geometry );
 };
 
@@ -82,13 +81,46 @@ algo.bind('setup', function() {
     for( var i = 0; i < vlength; i++ ){
       var vertex_list = verticles[i];
       var list_length = vertex_list.length;
+      ALGO.log('list_length: ' + list_length);
 
+      var p = null;
       for( var j = 0; j < list_length; j++ ){
         var vertex = vertex_list[j];
-        createShape( vertex, count );
-        count++;
+
+        if( j < 1 ){
+          p = createShape( vertex, count );
+          count++;
+        }
+        else{
+          p.holes.push( vertex );
+        }
+        ALGO.log( j + ', ' + vertex.length );
+        ALGO.log( p.holes );
       }
+      p.vertexUpdate();
     }
+
+    // for( i = 0; i < paths.length; i++ ){
+    //   var p = paths[i];
+    //   ALGO.log( p );
+    //   ALGO.log( p.triangles );
+
+    //   for( var j = 0; j < p.triangles.length; j++ ){
+    //     var t = p.triangles[j];
+    //     var p1 = t.getPoint(0);
+    //     var p2 = t.getPoint(1);
+    //     var p3 = t.getPoint(2);
+
+    //     var c1 = new ALGO.Path();
+    //     c1.geometry = [ p1, p2, p3 ];
+    //     c1.line = true;
+    //     c1.lineColor = 0x00ff00;
+    //     c1.color = 0xff0000;
+    //     c1.close();
+    //     c1.vertexUpdate();
+    //     algo.add( c1 );
+    //   }
+    // }
   });
 
   // stats

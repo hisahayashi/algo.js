@@ -198,6 +198,15 @@ var ALGO = (function () {
     shape.remove( that );
   };
 
+  function readPixels(){
+    var w = this.width;
+    var h = this.height;
+    var ctx = this.renderer.getContext();
+    var pixels = new Uint8Array( w * h * 4 );
+    ctx.readPixels(0, 0, w, h, ctx.RGBA, ctx.UNSIGNED_BYTE, pixels);
+    return pixels;
+  };
+
   ALGO.prototype = {
     constructor: ALGO,
 
@@ -224,6 +233,7 @@ var ALGO = (function () {
     size: size,
     add: add,
     remove: remove,
+    readPixels: readPixels,
 
     /**
      * Child Class

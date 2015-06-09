@@ -11,7 +11,8 @@ var browserSync = require( 'browser-sync' );
 var selector = {
   algo_src: [
     'src/other/perlin.js',
-    'src/other/delaunay.js',
+    // 'src/other/delaunay.js',
+    'src/other/poly2tri.js',
 
     'src/algo.js',
     'src/variables.js',

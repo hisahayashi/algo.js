@@ -26,12 +26,13 @@ ALGO.WebGLRenderer = (function(ALGO) {
   var mvp_matrix;
   var uni_location;
 
-  var zoom = 5.0;
-
   var object_vbo = [];
   var object_vbo_line = [];
   var object_ibo = [];
   var object_index = [];
+
+  var is_read_pixels = true;
+  var read_pixels;
 
   /**
    * renderer properties
@@ -40,7 +41,7 @@ ALGO.WebGLRenderer = (function(ALGO) {
   var background;
   var backgroundAlpha;
   var backgroundAuto;
-  var depth;
+  var depth = 0.0;
   var children;
   var displayObjects;
 
@@ -53,8 +54,6 @@ ALGO.WebGLRenderer = (function(ALGO) {
 
     updateParameter(that);
 
-
-
     // webglコンテキストを取得
     gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
 
@@ -65,21 +64,6 @@ ALGO.WebGLRenderer = (function(ALGO) {
     // プログラムオブジェクトの生成とリンク
     program = createProgram(v_shader, f_shader);
 
-
-
-
-    // // Matrix を用いた行列関連処理
-    // m = new ALGO.Matrix4();
-
-    // // 各種行列の生成と初期化
-    // v_matrix = m.identity(m.create());
-    // p_matrix = m.identity(m.create());
-
-    // tmp_matrix = m.identity(m.create());
-
-    // /* モデルビュープロジェクションのマトリックス */
-    // mvp_matrix = m.identity(m.create());
-
     resize();
 
     // uniformLocationの取得
@@ -88,7 +72,6 @@ ALGO.WebGLRenderer = (function(ALGO) {
     uni_location.matrix = gl.getUniformLocation(program, 'matrix2d');
     uni_location.color = gl.getUniformLocation(program, 'color');
     uni_location.point_size = gl.getUniformLocation(program, 'point_size');
-
 
     // attributeLocationの取得
     attr_location = {};
@@ -104,12 +87,7 @@ ALGO.WebGLRenderer = (function(ALGO) {
     attr_stride.color = 4; // index
 
     render();
-
-    // gl.viewport( 0, 0, screen.width, screen.height );
-    // gl.flush();
-    // gl.viewport( 0, 0, canvas.width, canvas.height );
   };
-
 
   function make2DProjection(width, height) {
     // Note: This matrix flips the Y axis so 0 is at the top.
@@ -119,7 +97,6 @@ ALGO.WebGLRenderer = (function(ALGO) {
       -1, 1, 1
     ];
   }
-
 
   /**
    * Init
@@ -231,26 +208,6 @@ ALGO.WebGLRenderer = (function(ALGO) {
       if( needsUpdate ){
         object.needsUpdate = false;
       }
-
-
-      // object.x;
-      // object.y;
-      // object.width;
-      // object.height;
-      // object.rotate;
-      // object.scale;
-      /*
-            // 一つ目のモデルを移動するためのモデル座標変換行列
-            m.identity(m_matrix);
-            // m.translate(m_matrix, [ x, y, 0.0], m_matrix);
-            // m.scale(m_matrix, [3.0, 3.0, 3.0], m_matrix);
-            // m.rotate(m_matrix, rad, [0, 1, 0], m_matrix);
-            m.multiply(tmp_matrix, m_matrix, mvp_matrix);
-            gl.uniformMatrix4fv(uni_location.position, false, mvp_matrix);
-            // gl.drawArrays(gl.TRIANGLES, 0, 3);
-            gl.drawElements(gl.TRIANGLES, index.length, gl.UNSIGNED_SHORT, 0);
-            */
-
     }
 
     // コンテキストの再描画
@@ -266,22 +223,18 @@ ALGO.WebGLRenderer = (function(ALGO) {
     cw = canvas.width;
     ch = canvas.height;
 
-    // m.identity(v_matrix);
-    // m.identity(p_matrix);
-    // m.identity(tmp_matrix);
-    // m.identity(mvp_matrix);
-
-    // // ビュー座標変換行列
-    // m.lookAt([0.0, 0.0, zoom], [0, 0, 0], [0, 1, 0], v_matrix);
-    // // プロジェクション座標変換行列
-    // m.perspective(90, canvas.width / canvas.height, 0.01, 1000, p_matrix);
-    // // 各行列を掛け合わせ座標変換行列を完成させる
-    // m.multiply(p_matrix, v_matrix, tmp_matrix);
-
     var resolution_location = gl.getUniformLocation(program, "u_resolution");
     gl.uniform2f(resolution_location, canvas.width, canvas.height);
 
     gl.viewport(0, 0, cw, ch);
+  };
+
+  /**
+   * [getContext description]
+   * @return {[type]} [description]
+   */
+  function getContext(){
+    return gl;
   };
 
   /**
@@ -313,7 +266,6 @@ ALGO.WebGLRenderer = (function(ALGO) {
     background = that.background;
     backgroundAlpha = that.backgroundAlpha;
     backgroundAuto = that.backgroundAuto;
-    depth = that.depth;
     children = that.children;
     displayObjects = that.displayObjects;
 
@@ -338,6 +290,7 @@ ALGO.WebGLRenderer = (function(ALGO) {
     // canvasを初期化する色を設定する
     var color_n = ALGO.ColorUtil.hexToRgbNormalize(background);
     gl.clearColor(color_n.r, color_n.g, color_n.b, backgroundAlpha);
+    // ALGO.log( color_n.r + ', ' + color_n.g + ', ' + color_n.b + ', ' + backgroundAlpha );
   };
 
   /**
@@ -354,6 +307,28 @@ ALGO.WebGLRenderer = (function(ALGO) {
    * @return {[type]} [description]
    */
   function drawGraphic() {
+    var blend = that.blendMode;
+
+    if( blend > 0 ){
+      gl.enable( gl.BLEND );
+    }
+
+    if( blend == ALGO.BLEND_ADD ){
+      gl.blendFunc( gl.SRC_ALPHA, gl.ONE );
+    }
+    else if( blend == ALGO.BLEND_MULTIPLY ){
+      gl.blendFunc( gl.DST_COLOR, gl.ZERO );
+    }
+    else if( blend == ALGO.BLEND_SCREEN ){
+      gl.blendFunc( gl.ONE_MINUS_DST_COLOR, gl.ONE );
+    }
+    else if( blend == ALGO.BLEND_ALPHA ){
+      gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    }
+    else{
+    }
+    // ALGO.log( blend + ', ' + ALGO.BLEND_ALPHA );
+
     render();
   };
 
@@ -505,6 +480,7 @@ ALGO.WebGLRenderer = (function(ALGO) {
     constructor: ALGO.WebGLRenderer,
     update: update,
     resize: resize,
+    getContext: getContext
   };
 
   return ALGO.WebGLRenderer;

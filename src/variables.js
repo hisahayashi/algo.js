@@ -9,6 +9,7 @@ ALGO.BLEND_NONE = 0;
 ALGO.BLEND_ADD = 1;
 ALGO.BLEND_MULTIPLY = 2;
 ALGO.BLEND_SCREEN = 3;
+ALGO.BLEND_ALPHA = 4;
 
 /**
  * Define Getter / Setter
@@ -47,8 +48,7 @@ ALGO.prototype.__defineSetter__('circleResolution', function(value) {
 // Properties
 ALGO.prototype.width = 0;
 ALGO.prototype.height = 0;
-ALGO.prototype.blendMode = ALGO.BLEND_NONE;
-ALGO.prototype.backgroundAuto = true;
+ALGO.prototype.blendMode = ALGO.BLEND_ALPHA;
 ALGO.prototype.background = 0x666666;
 ALGO.prototype.backgroundAlpha = 0.5;
 ALGO.prototype.framerate = 60;

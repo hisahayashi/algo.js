@@ -9,6 +9,8 @@ ALGO.Path = function(_start, _end) {
   this.start = _start;
   this.end = _end;
   this.type = 'path';
+  this.holes = [];
+  this.triangles = null;
 
   this.init();
   this.setup();
@@ -19,11 +21,33 @@ ALGO.Path = function(_start, _end) {
 ALGO.Path.prototype = Object.create(ALGO.Shape.prototype);
 ALGO.Path.prototype.constructor = ALGO.Path;
 ALGO.Path.prototype.closed = false;
+ALGO.Path.prototype.holes = [];
+ALGO.Path.prototype.triangles = null;
 
 /**
  * [setGeometry description]
  */
 ALGO.Path.prototype.setGeometry = function() {};
+
+ALGO.Path.prototype.geometryToPoly = function( geometry, start_count ){
+  var poly = [];
+  var length = geometry.length;
+  var prevx, prevy;
+  var count = start_count;
+  for (var i = 0; i < length; i++) {
+    var x = geometry[i].x;
+    var y = geometry[i].y;
+    if( prevx !== x || prevy !== y ){
+      var point = { x: x, y: y, id: count };
+      poly.push(point);
+      prevx = x;
+      prevy = y;
+      count++;
+      // ALGO.log( point );
+    }
+  }
+  return poly;
+};
 
 /**
  * [setIndex description]
@@ -32,21 +56,51 @@ ALGO.Path.prototype.setIndex = function() {
   // set index
   var index = this.index = [];
   var length = this.geometry.length;
-  // for (i = 1; i < length - 1; i += 1) {
-  //   index.push(0);
-  //   index.push(i);
-  //   index.push(i + 1);
-  //   // ALGO.log( 0 + ', ' + i + ', ' + ( i + 1 ) );
-  // }
-  var g = [];
-  for (var i = 0; i < length; i++) {
-    g[i] = [];
-    g[i][0] = this.geometry[i].x;
-    g[i][1] = this.geometry[i].y;
-  }
+
   if (length > 2) {
-    var triangles = Delaunay.triangulate(g);
-    this.index = triangles;
+    // create geometry
+    var poly = this.geometryToPoly( this.geometry, 0 );
+
+    // create poly
+    var swctx = new poly2tri.SweepContext(poly, {cloneArrays: true});
+
+    // create holes
+    var hole_length = this.holes.length;
+    var hole_count = poly.length;
+    for( i = 0; i < hole_length; i++ ){
+      var hole_geometry = this.holes[i];
+      var hole_poly = this.geometryToPoly( hole_geometry, hole_count );
+      poly = poly.concat(hole_poly);
+      hole_count += hole_poly.length;
+      swctx.addHole( hole_poly );
+    }
+    this.geometry = poly;
+
+    // create triangles
+    var trianglate = swctx.triangulate();
+    var triangles = trianglate.getTriangles() || [];
+    this.triangles = triangles;
+
+    // set indexes
+    var indexes = [];
+    for( var i = 0; i < triangles.length; i++ ){
+      var t = triangles[i];
+      var p1 = t.getPoint(0);
+      var p2 = t.getPoint(1);
+      var p3 = t.getPoint(2);
+      indexes.push( p1.id );
+      indexes.push( p2.id );
+      indexes.push( p3.id );
+    }
+    this.index = indexes;
+
+    // update
+    this.vertexPosition = [];
+    this.setVertexPosition();
+    this.setVertexColor( this.color, this.vertexColors );
+    this.setVertexAlpha( this.alpha, this.vertexColors );
+    this.setVertexColor( this.lineColor, this.vertexLineColors );
+    this.setVertexAlpha( this.lineAlpha, this.vertexLineColors );
   }
 };
 

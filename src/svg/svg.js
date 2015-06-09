@@ -119,7 +119,6 @@ ALGO.SVG = (function() {
     function getPoint(index) {
       var setx = getCoord(index, 'x');
       var sety = getCoord(index + 1, 'y');
-      // ALGO.log( 'x: ' + x + ', y: ' + y );
       var point = {
         x: setx,
         y: sety
@@ -151,11 +150,11 @@ ALGO.SVG = (function() {
       switch (lower) {
         // moveto
         case 'm':
-
-          // lineto
+        // lineto
         case 'l':
           for (var j = 0; j < length; j += 2) {
             current_point = getPoint(j);
+            ALGO.log( 'setx: ' + current_point.x + ', sety: ' + current_point.y );
             geometry.push({
               x: current_point.x,
               y: current_point.y
@@ -171,6 +170,7 @@ ALGO.SVG = (function() {
           var coord = lower === 'h' ? 'x' : 'y';
           for (var j = 0; j < length; j++) {
             current_point[coord] = getCoord(j, coord);
+            ALGO.log( 'setx: ' + current_point.x + ', sety: ' + current_point.y );
             geometry.push({
               x: current_point.x,
               y: current_point.y
@@ -188,7 +188,8 @@ ALGO.SVG = (function() {
 
             var points = getBezierPoints(prev_point.x, prev_point.y, cp1.x, cp1.y, cp2.x, cp2.y, current_point.x, current_point.y);
 
-            for (var k = 0; k < points.length; k++) {
+            for (var k = 1; k < points.length - 1; k++) {
+              ALGO.log( 'setx: ' + points[k].x + ', sety: ' + points[k].y );
               geometry.push(points[k]);
             }
 
@@ -198,10 +199,11 @@ ALGO.SVG = (function() {
 
             // geometry.push( { x: cp1.x, y: cp1.y } );
             // geometry.push( { x: cp2.x, y: cp2.y } );
-            geometry.push({
-              x: current_point.x,
-              y: current_point.y
-            });
+            // ALGO.log( 'setx: ' + current_point.x + ', sety: ' + current_point.y );
+            // geometry.push({
+            //   x: current_point.x,
+            //   y: current_point.y
+            // });
           }
           break;
 
@@ -224,7 +226,8 @@ ALGO.SVG = (function() {
 
             var points = getBezierPoints(prev_point.x, prev_point.y, cp2.x, cp2.y, cp1.x, cp1.y,  current_point.x, current_point.y );
 
-            for (var k = 0; k < points.length; k++) {
+            for (var k = 1; k < points.length - 1; k++) {
+              ALGO.log( 'setx: ' + points[k].x + ', sety: ' + points[k].y );
               geometry.push(points[k]);
             }
 
@@ -232,10 +235,11 @@ ALGO.SVG = (function() {
 
             // geometry.push( { x: cp1.x, y: cp1.y } );
             // geometry.push( { x: cp2.x, y: cp2.y } );
-            geometry.push({
-              x: current_point.x,
-              y: current_point.y
-            });
+            // ALGO.log( 'setx: ' + current_point.x + ', sety: ' + current_point.y );
+            // geometry.push({
+            //   x: current_point.x,
+            //   y: current_point.y
+            // });
           }
           break;
 
@@ -244,6 +248,7 @@ ALGO.SVG = (function() {
           for (var j = 0; j < length; j += 4) {
             control = getPoint(j);
             current_point = getPoint(j + 2);
+            ALGO.log( 'setx: ' + current_point.x + ', sety: ' + current_point.y );
             geometry.push({
               x: current_point.x,
               y: current_point.y
@@ -264,6 +269,7 @@ ALGO.SVG = (function() {
         case 'a':
           for (var j = 0; j < length; j += 7) {
             current_point = getPoint(j + 5);
+            ALGO.log( 'setx: ' + current_point.x + ', sety: ' + current_point.y );
             geometry.push({
               x: current_point.x,
               y: current_point.y
@@ -274,8 +280,10 @@ ALGO.SVG = (function() {
 
           // closepath
         case 'z':
-        // geometries.push(geometry);
-        // geometry = [];
+        geometry.splice( geometry.length - 1, 1 );
+        geometries.push(geometry);
+        ALGO.log('z end.');
+        geometry = [];
         break;
       }
 
@@ -288,7 +296,7 @@ ALGO.SVG = (function() {
       previous = lower;
     }
 
-    geometries.push(geometry);
+    // geometries.push(geometry);
 
 
     // ALGO.log('geometry: ');
@@ -324,7 +332,7 @@ ALGO.SVG = (function() {
   // ベジェ曲線の中間点を取得
   function getBezierPoints(x1, y1, x2, y2, x3, y3, x4, y4) {
     var points = [];
-    for (var t = 0; t <= 1.01; t += 0.1) {
+    for (var t = 0; t <= 1.01; t += 0.05) {
       // points.push(getBezierPoint(x1, y1, x2, y2, x3, y3, x4, y4, t));
       points.push(cubicBezPoint({ x: x1, y: y1 }, {x: x2, y: y2}, {x: x3, y: y3}, {x: x4, y: y4}, t));
     }

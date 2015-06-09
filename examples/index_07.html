@@ -37,8 +37,7 @@ var algo = new ALGO(param);
 algo.width = window.innerWidth;
 algo.height = window.innerHeight;
 algo.background = 0x000000;
-algo.backgroundAuto = true;
-algo.backgroundAlpha = 0.8;
+algo.backgroundAlpha = 0.0;
 algo.framerate = 60;
 algo.circleResolution = 8;
 algo.blendMode = ALGO.BLEND_ALPHA;
@@ -47,7 +46,7 @@ ALGO.log(algo);
 
 var geometry_num = 10000;
 var map1, map2;
-var step = 4;
+var step = 8;
 var noise;
 var pattern = [];
 var geometry = [];
@@ -88,6 +87,7 @@ algo.bind('setup', function() {
   stats.domElement.style.top = '0px';
   document.body.appendChild(stats.domElement);
 
+  // gui
   var FizzyText = function() {
     this.xspeed = 0.5;
     this.yspeed = 0.5;
@@ -98,7 +98,6 @@ algo.bind('setup', function() {
     this.explode = function() {};
   };
 
-  // gui
   gui_val = new FizzyText();
   gui = new dat.GUI();
   gui.remember( gui_val );
@@ -135,14 +134,36 @@ algo.bind('setup', function() {
   }
   ALGO.log('length: ' + geometry.length);
   particles.setGeometry( geometry );
-  particles.pointsize = 1.5;
+  particles.pointsize = 1.2;
   particles.color = 0xffffff;
+  particles.alpha = 1.0;
   algo.add(particles);
 });
+
+var count = 0;
+var capture = [];
 
 algo.bind('frame', function() {
   var aw = algo.width;
   var ah = algo.height;
+
+  // if( count > 0 && count == 30 ){
+  //   var pixels = algo.readPixels();
+  //   capture.push( pixels );
+  // }
+  // if( count >= 30 ){
+  //   var text = '';
+  //   for( var i = 0; i < capture.length; i++ ){
+  //     var pixels = capture[i];
+  //     var t = '';
+  //     for (var j = 0; j < pixels.byteLength; j++) {
+  //       t += String.fromCharCode(pixels[j])
+  //     }
+  //     text += '<frame>' + t + '</frame>';
+  //   }
+  //   ALGO.log( text );
+  // }
+  count++;
 
   var length = geometry.length;
   for( var i = 0; i < length; i++ ){
@@ -152,12 +173,15 @@ algo.bind('frame', function() {
     var map1_value = map1[ stepx ][ stepy ];
     var map2_value = map2[ stepx ][ stepy ];
 
-    if( i == 0 ){
+    if( i == length - 1 ){
+      // ALGO.log( stepx + ', ' + stepy );
       // ALGO.log( Math.floor(g.x / step) + ', ' + Math.floor(g.y / step) );
       // ALGO.log( stepx + '/' + aw + ', ' + stepy + '/' + ah );
       // ALGO.log(map1_value + ', ' + map2_value );
       // ALGO.log(map1 );
     }
+
+    // ALGO.log( i + ', ' + map1_value + ' : ' + map2_value );
 
     // out of window
     if( map1_value == undefined ) map1_value = 0;
