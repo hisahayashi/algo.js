@@ -46,8 +46,10 @@ ALGO.log(algo);
 
 var geometry_num = 10000;
 var map1, map2;
-var step = 8;
+var step = 6;
 var noise;
+var noise_type = 'perlin';
+var move_type = '0';
 var pattern = [];
 var geometry = [];
 var mx;
@@ -62,14 +64,33 @@ function getNoiseMap(){
   ALGO.log( aw + ', ' + ah );
   var map = [];
   noise.seed(Math.random());
-  for (var xi = 0; xi < aw; xi += step) {
+  for (var xi = 0; xi <= aw; xi += step) {
     map[xi] = [];
-    for (var yi = 0; yi < ah; yi += step) {
-      var value = noise.perlin2(xi / 100, yi / 100);
-      // var value = noise.simplex2(xi / 200, yi / 200);
-      // var grayscale = Math.abs(value) * 256 - 128;
-      // var grayscale = value *  128;
-      var grayscale = value *  256;
+    for (var yi = 0; yi <= ah; yi += step) {
+      var value;
+      var grayscale;
+      if( noise_type == 'simplex' ){
+        value = noise.simplex2(xi / 200, yi / 200);
+      }
+      else if( noise_type == 'perlin' ){
+        value = noise.perlin2(xi / 100, yi / 100);
+      }
+      else{
+        value = Math.random();
+      }
+
+      if( move_type == 0 ){
+        grayscale = Math.abs(value) * 256 - 128;
+      }
+      else if( move_type == 1 ){
+        grayscale = value *  256;
+      }
+      else if( move_type == 2 ){
+        grayscale = value *  128;
+      }
+      else{
+        grayscale = value * Math.random() * 256;
+      }
       map[xi][yi] = grayscale;
     }
   }
@@ -89,19 +110,22 @@ algo.bind('setup', function() {
 
   // gui
   var FizzyText = function() {
+    this.noise_type = 'perlin';
+    this.move_type = '0';
     this.xspeed = 0.5;
     this.yspeed = 0.5;
     this.accelx = 0.96;
     this.accely = 0.96;
     this.vectorx = 0.92;
     this.vectory = 0.92;
-    this.explode = function() {};
   };
 
   gui_val = new FizzyText();
   gui = new dat.GUI();
   gui.remember( gui_val );
   var f1 = gui.addFolder('Setting');
+  var ctrl_noise = f1.add(gui_val, 'noise_type', [ 'perlin', 'simplex', 'random' ] );
+  var ctrl_move = f1.add(gui_val, 'move_type', [ '0', '1', '2', '3' ] );
   var f2 = gui.addFolder('Move');
   f2.add(gui_val, 'xspeed', 0.01, 10.0);
   f2.add(gui_val, 'yspeed', 0.01, 10.0);
@@ -109,6 +133,20 @@ algo.bind('setup', function() {
   f2.add(gui_val, 'accely', 0.01, 1.0);
   f2.add(gui_val, 'vectorx', 0.01, 1.0);
   f2.add(gui_val, 'vectory', 0.01, 1.0);
+
+  ctrl_noise.onFinishChange(function(value) {
+    noise_type = value;
+    // force map
+    map1 = getNoiseMap();
+    map2 = getNoiseMap();
+  });
+
+  ctrl_move.onFinishChange(function(value) {
+    move_type = parseInt( value );
+    // force map
+    map1 = getNoiseMap();
+    map2 = getNoiseMap();
+  });
 
   f1.open();
   f2.open();
@@ -170,6 +208,7 @@ algo.bind('frame', function() {
     var g = geometry[i];
     var stepx = Math.floor(g.x / step) * step;
     var stepy = Math.floor(g.y / step) * step;
+    if( !map1[ stepx ] ) break;
     var map1_value = map1[ stepx ][ stepy ];
     var map2_value = map2[ stepx ][ stepy ];
 
@@ -228,6 +267,9 @@ algo.bind('resize', function() {
   // ALGO.log('resize after');
   var w = window.innerWidth;
   var h = window.innerHeight;
+  // force map
+  map1 = getNoiseMap();
+  map2 = getNoiseMap();
   algo.size(w, h);
 });
 </script>

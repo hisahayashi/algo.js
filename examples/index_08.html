@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<title>algo.js examples: </title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+<style>
+body {
+  margin: 0;
+  padding: 0;
+  font-size: 0;
+  background-color: #000000;
+}
+
+canvas#canvas {
+  width: 100%;
+  height: 100%;
+}
+
+canvas#capture {
+  position: absolute;
+  left: 1000px;
+  top: 600px;
+  zoom: 0.1;
+/*  width: 320px;
+  height: 180px;*/
+}
+
+video#video {
+  position: absolute;
+  left: 200px;
+  top: 600px;
+  zoom: 0.1;
+/*  width: 320px;
+  height: 180px;*/
+}
+</style>
+</head>
+
+<body>
+<video id="video" autoplay="1"></video>
+<canvas id="capture"></canvas>
+<canvas id="canvas"></canvas>
+<script type="text/javascript" src="../build/algo.js"></script>
+<!-- <script type="text/javascript" src="../src/algo.js"></script> -->
+<script type="text/javascript" src="assets/js/libs/dat.gui.min.js"></script>
+<script type="text/javascript" src="assets/js/libs/stats.min.js"></script>
+<script type="text/javascript">
+var stats = new Stats();
+var param = {
+  id: 'canvas',
+  width: window.innerWidth,
+  height: window.innerHeight
+};
+var algo = new ALGO(param);
+algo.width = window.innerWidth;
+algo.height = window.innerHeight;
+algo.background = 0x000000;
+algo.backgroundAlpha = 0.0;
+algo.framerate = 30;
+algo.circleResolution = 8;
+algo.blendMode = ALGO.BLEND_ALPHA;
+
+ALGO.log(algo);
+
+var gui;
+var gui_val;
+
+var is_stream = false;
+var is_drawinit = true;
+
+var capture_element;
+var capture_ctx;
+var video_element;
+var step = 4;
+
+var particles;
+var geometry;
+var pixels;
+
+function startVideo() {
+  navigator.webkitGetUserMedia({
+      video: true,
+      audio: false
+    },
+    function(stream) { // success
+      is_stream = true;
+      document.getElementById('video').src = window.webkitURL.createObjectURL(stream);
+      capture_element = document.getElementById('capture');
+      capture_ctx = capture_element.getContext('2d');
+      video_element = document.getElementById('video');
+    },
+    function(error) { // error
+      console.log(error);
+    });
+}
+
+function getWidthSize(){
+  if( capture_element.width < video_element.videoWidth ){
+    capture_element.width = video_element.videoWidth;
+    capture_element.height = video_element.videoHeight;
+  }
+}
+
+function captureVideo() {
+  getWidthSize();
+  capture_ctx.drawImage(video_element, 0, 0);
+  var image_data = capture_ctx.getImageData(0, 0, capture_element.width, capture_element.height);
+  return image_data;
+}
+
+function bytesToPixels( bytes, width, height ){
+
+  // width = 1080;
+  // height = 720;
+
+  var pixels = [];
+  var xcount = 0;
+  var ycount = 0;
+  var length_count = 0;
+  // ALGO.log( 'bytes length: ' + bytes.length + ', width: ' + width + ', height: ' + height );
+  while( ycount * step < height ){
+    if( !pixels[ycount] ) pixels[ycount] = [];
+    var num = (( xcount * step ) + ( ycount * step ) * width) * 4;
+    var cl = {
+      r: bytes[num],
+      g: bytes[num+1],
+      b: bytes[num+2],
+      a: bytes[num+3]
+    };
+
+    // ALGO.log( num + ' / ' + bytes.length + ', y: ' + (ycount * step) + ', x: ' + (xcount * step) );
+
+    if( xcount * step >= width ){
+      ycount++;
+      xcount = 0;
+    }
+    else{
+      pixels[ycount][xcount] = cl;
+      xcount++;
+      length_count++;
+    }
+  }
+  return { pixels: pixels, length_count: length_count };
+}
+
+function updateGeometry( pixels ){
+  var aw = algo.width;
+  var ah = algo.height;
+  ALGO.log( aw + ', ' + ah );
+
+  // create geometry
+  geometry = [];
+  var xstep = 0;
+  var ystep = ah / pixels.length;
+  var gap = gui_val.gap;
+  var half_gap = gap * 0.5;
+
+  for( var yi = 0; yi < pixels.length; yi++ ){
+    xstep = aw / pixels[yi].length;
+    for( var xi = 0; xi < pixels[yi].length; xi++ ){
+      var x = xi * xstep + Math.random()*gap-half_gap;
+      var y = yi * ystep + Math.random()*gap-half_gap;
+      geometry.push({ x: x, y: y });
+    }
+  }
+  return geometry;
+}
+
+function createParticles(){
+  // ALGO.log( geometry );
+  particles = new ALGO.Particle( 0, 0 );
+  particles.color = 0xffffff;
+  particles.pointsize = gui_val.size;
+  algo.add( particles );
+}
+
+
+algo.bind('setup', function() {
+  var aw = algo.width;
+  var ah = algo.height;
+
+  // stats
+  stats.domElement.style.position = 'fixed';
+  stats.domElement.style.left = '0px';
+  stats.domElement.style.top = '0px';
+  document.body.appendChild(stats.domElement);
+
+  // gui
+  var FizzyText = function() {
+    this.gap = 10;
+    this.size = 5;
+    this.explode = function() {};
+  };
+
+  gui_val = new FizzyText();
+  gui = new dat.GUI();
+  var ctrl_gap = gui.add(gui_val, 'gap', 0.01, 100.0);
+  var ctrl_size = gui.add(gui_val, 'size', 0.01, 100.0);
+
+  ctrl_gap.onFinishChange(function(value) {
+    if( particles ){
+      var geometry = updateGeometry( pixels );
+      particles.setGeometry( geometry );
+    }
+  });
+
+  ctrl_size.onFinishChange(function(value) {
+    if( particles ){
+      particles.pointsize = value;
+    }
+  });
+
+  // get camera
+  startVideo();
+});
+
+var frame_count = 0;
+
+algo.bind('frame', function() {
+  var aw = algo.width;
+  var ah = algo.height;
+
+  if (is_stream) {
+    if( frame_count > algo.framerate * 2 ){
+    var image = captureVideo();
+    var bytes = image.data;
+    var image_width = image.width;
+    var image_height = image.height;
+    var obj = bytesToPixels( bytes, image_width, image_height );
+
+    var length_count = obj.length_count;
+    pixels = obj.pixels;
+
+    if( is_drawinit ){
+      is_drawinit = false;
+      createParticles( pixels );
+      var geometry = updateGeometry( pixels );
+      particles.setGeometry( geometry );
+    }
+
+    var vc = particles.vertexColors;
+    var vp = particles.vertexPosition;
+
+    var count = 0;
+    var vc = [];
+    particles.vertexColors = [];
+    for( var yi = 0; yi < pixels.length; yi++ ){
+      for( var xi = 0; xi < pixels[yi].length; xi++ ){
+        // vc[ count ] = pixels[ yi ][ xi ].r / 255;
+        // vc[ count + 1 ] = pixels[ yi ][ xi ].g / 255;
+        // vc[ count + 2 ] = pixels[ yi ][ xi ].b / 255;
+        // vc[ count + 3 ] = pixels[ yi ][ xi ].a / 255;
+        vc.push( pixels[ yi ][ xi ].r / 255 );
+        vc.push( pixels[ yi ][ xi ].g / 255 );
+        vc.push( pixels[ yi ][ xi ].b / 255 );
+        vc.push( 1 );
+        count++;
+      }
+    }
+    particles.vertexColors = vc;
+    particles.needsUpdate = true;
+    // ALGO.log( pixels );
+    // ALGO.log( vc );
+
+    // if( frame_count > 3 ){
+    //   algo.framerate = 0;
+    // }
+    }
+    frame_count++;
+  }
+  // stats
+  stats.update();
+});
+
+algo.bind('mousemove', function(mousex, mousey) {
+  mx = mousex;
+  my = mousey;
+  // path.lineTo( mx, my );
+});
+
+algo.bind('mousedown', function(mousex, mousey) {
+  // path.clear();
+});
+
+algo.bind('resize', function() {
+  // ALGO.log('resize after');
+  var w = window.innerWidth;
+  var h = window.innerHeight;
+  if( particles ){
+    var geometry = updateGeometry( pixels );
+    particles.setGeometry( geometry );
+  }
+  algo.size(w, h);
+});
+</script>
+</body>
+
+</html>
