@@ -50,12 +50,28 @@ ALGO.WebGLRenderer = (function(ALGO) {
    */
   ALGO.WebGLRenderer = function(_that) {
     // ALGO.log('ALGO.WebGLRenderer');
+    init( _that );
+  };
+
+  function init( _that ){
+
+    var is_preserve = false;
     that = _that;
 
     updateParameter(that);
 
+    // auto clear
+    if( !that.backgroundAuto ){
+      is_preserve = true;
+    }
+
+    ALGO.log('that.backgroundAuto: ' + that.backgroundAuto);
+
     // webglコンテキストを取得
-    gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+    var param = {
+      preserveDrawingBuffer: is_preserve
+    };
+    gl = canvas.getContext('webgl', param) || canvas.getContext('experimental-webgl', param);
 
     // 頂点シェーダとフラグメントシェーダの生成
     var v_shader = createShader('vertex');
@@ -87,7 +103,7 @@ ALGO.WebGLRenderer = (function(ALGO) {
     attr_stride.color = 4; // index
 
     render();
-  };
+  }
 
   function make2DProjection(width, height) {
     // Note: This matrix flips the Y axis so 0 is at the top.
@@ -244,16 +260,11 @@ ALGO.WebGLRenderer = (function(ALGO) {
   function update() {
     // gl.drawingBufferWidth = that.width;
     // gl.drawingBufferHeight = that.height;
-
     updateParameter(that);
     updateDepth();
-
-    if (backgroundAuto) {
-      updateBackground();
-      updateCanvas();
-    }
-
-    drawGraphic();
+    updateBackground();
+    updateBlend();
+    render();
   };
 
   /**
@@ -287,26 +298,25 @@ ALGO.WebGLRenderer = (function(ALGO) {
    * @return {[type]} [description]
    */
   function updateBackground() {
-    // canvasを初期化する色を設定する
-    var color_n = ALGO.ColorUtil.hexToRgbNormalize(background);
-    gl.clearColor(color_n.r, color_n.g, color_n.b, backgroundAlpha);
-    // ALGO.log( color_n.r + ', ' + color_n.g + ', ' + color_n.b + ', ' + backgroundAlpha );
+
+    if (backgroundAuto) {
+      // canvasを初期化する色を設定する
+      var color_n = ALGO.ColorUtil.hexToRgbNormalize(background);
+      // ALGO.log( color_n.r + ', ' + color_n.g + ', ' + color_n.b + ', ' + backgroundAlpha );
+
+      // canvasを初期化
+      gl.clearColor(color_n.r, color_n.g, color_n.b, backgroundAlpha);
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    }
+    else{
+    }
   };
 
   /**
-   * [updateCanvas description]
+   * [updateBlend description]
    * @return {[type]} [description]
    */
-  function updateCanvas() {
-    // canvasを初期化
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-  };
-
-  /**
-   * [drawGraphic description]
-   * @return {[type]} [description]
-   */
-  function drawGraphic() {
+  function updateBlend() {
     var blend = that.blendMode;
 
     if( blend > 0 ){
@@ -328,8 +338,6 @@ ALGO.WebGLRenderer = (function(ALGO) {
     else{
     }
     // ALGO.log( blend + ', ' + ALGO.BLEND_ALPHA );
-
-    render();
   };
 
   // シェーダを生成する関数
@@ -478,6 +486,7 @@ ALGO.WebGLRenderer = (function(ALGO) {
 
   ALGO.WebGLRenderer.prototype = {
     constructor: ALGO.WebGLRenderer,
+    init: init,
     update: update,
     resize: resize,
     getContext: getContext

@@ -3164,6 +3164,7 @@ var ALGO = (function () {
     id: '',
     width: window.innerWidth,
     height: window.innerHeight,
+    backgroundAuto: true
   };
   var canvas;
 
@@ -3193,9 +3194,12 @@ var ALGO = (function () {
     /**
      * setter variables
      */
-    that.width = param.width;
-    that.height = param.height;
+    that.width = params.width;
+    that.height = params.height;
+    that.backgroundAuto = param.backgroundAuto;
     // that.framerate = ALGO.prototype.framerate;
+
+    ALGO.log( that );
   };
 
   /**
@@ -3353,6 +3357,11 @@ var ALGO = (function () {
     return pixels;
   };
 
+  function setBackgroundAuto( bool ){
+    this.backgroundAuto = bool;
+    if( this.renderer ) this.renderer.init( this );
+  };
+
   ALGO.prototype = {
     constructor: ALGO,
 
@@ -3380,6 +3389,7 @@ var ALGO = (function () {
     add: add,
     remove: remove,
     readPixels: readPixels,
+    setBackgroundAuto: setBackgroundAuto,
 
     /**
      * Child Class
@@ -3444,6 +3454,7 @@ ALGO.prototype.height = 0;
 ALGO.prototype.blendMode = ALGO.BLEND_ALPHA;
 ALGO.prototype.background = 0x666666;
 ALGO.prototype.backgroundAlpha = 0.5;
+ALGO.prototype.backgroundAuto = true;
 ALGO.prototype.framerate = 60;
 ALGO.prototype.circleResolution = 32;
 ALGO.prototype.canvas = null;
@@ -4433,7 +4444,7 @@ ALGO.Shape = (function() {
    * @return {[type]}      [description]
    */
   function remove(root) {
-    var object_index = root.displayObjects.indexOf(id);
+    var object_index = root.displayObjects.indexOf(this.id);
     if (object_index > -1) {
       root.displayObjects.splice(object_index, 1);
       root.children.splice(object_index, 1);
@@ -5673,12 +5684,28 @@ ALGO.WebGLRenderer = (function(ALGO) {
    */
   ALGO.WebGLRenderer = function(_that) {
     // ALGO.log('ALGO.WebGLRenderer');
+    init( _that );
+  };
+
+  function init( _that ){
+
+    var is_preserve = false;
     that = _that;
 
     updateParameter(that);
 
+    // auto clear
+    if( !that.backgroundAuto ){
+      is_preserve = true;
+    }
+
+    ALGO.log('that.backgroundAuto: ' + that.backgroundAuto);
+
     // webglコンテキストを取得
-    gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+    var param = {
+      preserveDrawingBuffer: is_preserve
+    };
+    gl = canvas.getContext('webgl', param) || canvas.getContext('experimental-webgl', param);
 
     // 頂点シェーダとフラグメントシェーダの生成
     var v_shader = createShader('vertex');
@@ -5710,7 +5737,7 @@ ALGO.WebGLRenderer = (function(ALGO) {
     attr_stride.color = 4; // index
 
     render();
-  };
+  }
 
   function make2DProjection(width, height) {
     // Note: This matrix flips the Y axis so 0 is at the top.
@@ -5867,16 +5894,11 @@ ALGO.WebGLRenderer = (function(ALGO) {
   function update() {
     // gl.drawingBufferWidth = that.width;
     // gl.drawingBufferHeight = that.height;
-
     updateParameter(that);
     updateDepth();
-
-    if (backgroundAuto) {
-      updateBackground();
-      updateCanvas();
-    }
-
-    drawGraphic();
+    updateBackground();
+    updateBlend();
+    render();
   };
 
   /**
@@ -5910,26 +5932,25 @@ ALGO.WebGLRenderer = (function(ALGO) {
    * @return {[type]} [description]
    */
   function updateBackground() {
-    // canvasを初期化する色を設定する
-    var color_n = ALGO.ColorUtil.hexToRgbNormalize(background);
-    gl.clearColor(color_n.r, color_n.g, color_n.b, backgroundAlpha);
-    // ALGO.log( color_n.r + ', ' + color_n.g + ', ' + color_n.b + ', ' + backgroundAlpha );
+
+    if (backgroundAuto) {
+      // canvasを初期化する色を設定する
+      var color_n = ALGO.ColorUtil.hexToRgbNormalize(background);
+      // ALGO.log( color_n.r + ', ' + color_n.g + ', ' + color_n.b + ', ' + backgroundAlpha );
+
+      // canvasを初期化
+      gl.clearColor(color_n.r, color_n.g, color_n.b, backgroundAlpha);
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    }
+    else{
+    }
   };
 
   /**
-   * [updateCanvas description]
+   * [updateBlend description]
    * @return {[type]} [description]
    */
-  function updateCanvas() {
-    // canvasを初期化
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-  };
-
-  /**
-   * [drawGraphic description]
-   * @return {[type]} [description]
-   */
-  function drawGraphic() {
+  function updateBlend() {
     var blend = that.blendMode;
 
     if( blend > 0 ){
@@ -5951,8 +5972,6 @@ ALGO.WebGLRenderer = (function(ALGO) {
     else{
     }
     // ALGO.log( blend + ', ' + ALGO.BLEND_ALPHA );
-
-    render();
   };
 
   // シェーダを生成する関数
@@ -6101,6 +6120,7 @@ ALGO.WebGLRenderer = (function(ALGO) {
 
   ALGO.WebGLRenderer.prototype = {
     constructor: ALGO.WebGLRenderer,
+    init: init,
     update: update,
     resize: resize,
     getContext: getContext

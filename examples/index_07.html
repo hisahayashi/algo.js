@@ -39,6 +39,7 @@ algo.height = window.innerHeight;
 algo.background = 0x000000;
 algo.backgroundAlpha = 0.0;
 algo.framerate = 60;
+algo.backgroundAuto = true;
 algo.circleResolution = 8;
 algo.blendMode = ALGO.BLEND_ALPHA;
 
@@ -46,7 +47,7 @@ ALGO.log(algo);
 
 var geometry_num = 10000;
 var map1, map2;
-var step = 6;
+var step = 8;
 var noise;
 var noise_type = 'perlin';
 var move_type = '0';
@@ -57,11 +58,12 @@ var my;
 
 var gui;
 var gui_val;
+var bg;
 
 function getNoiseMap(){
   var aw = algo.width;
   var ah = algo.height;
-  ALGO.log( aw + ', ' + ah );
+  // ALGO.log( aw + ', ' + ah );
   var map = [];
   noise.seed(Math.random());
   for (var xi = 0; xi <= aw; xi += step) {
@@ -172,7 +174,7 @@ algo.bind('setup', function() {
   }
   ALGO.log('length: ' + geometry.length);
   particles.setGeometry( geometry );
-  particles.pointsize = 1.2;
+  particles.pointsize = 1.5;
   particles.color = 0xffffff;
   particles.alpha = 1.0;
   algo.add(particles);
@@ -271,6 +273,11 @@ algo.bind('resize', function() {
   map1 = getNoiseMap();
   map2 = getNoiseMap();
   algo.size(w, h);
+
+  bg.x = w * 0.5;
+  bg.y = h * 0.5;
+  bg.width = w;
+  bg.height = h;
 });
 </script>
 </body>

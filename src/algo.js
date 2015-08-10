@@ -18,6 +18,7 @@ var ALGO = (function () {
     id: '',
     width: window.innerWidth,
     height: window.innerHeight,
+    backgroundAuto: true
   };
   var canvas;
 
@@ -47,9 +48,12 @@ var ALGO = (function () {
     /**
      * setter variables
      */
-    that.width = param.width;
-    that.height = param.height;
+    that.width = params.width;
+    that.height = params.height;
+    that.backgroundAuto = param.backgroundAuto;
     // that.framerate = ALGO.prototype.framerate;
+
+    ALGO.log( that );
   };
 
   /**
@@ -207,6 +211,11 @@ var ALGO = (function () {
     return pixels;
   };
 
+  function setBackgroundAuto( bool ){
+    this.backgroundAuto = bool;
+    if( this.renderer ) this.renderer.init( this );
+  };
+
   ALGO.prototype = {
     constructor: ALGO,
 
@@ -234,6 +243,7 @@ var ALGO = (function () {
     add: add,
     remove: remove,
     readPixels: readPixels,
+    setBackgroundAuto: setBackgroundAuto,
 
     /**
      * Child Class

@@ -80,7 +80,7 @@ ALGO.Shape = (function() {
    * @return {[type]}      [description]
    */
   function remove(root) {
-    var object_index = root.displayObjects.indexOf(id);
+    var object_index = root.displayObjects.indexOf(this.id);
     if (object_index > -1) {
       root.displayObjects.splice(object_index, 1);
       root.children.splice(object_index, 1);

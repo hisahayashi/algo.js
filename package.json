@@ -20,9 +20,9 @@
   },
   "homepage": "https://github.com/hisahayashi/algo.js",
   "devDependencies": {
-    "browser-sync": "^2.7.6",
-    "gulp": "^3.8.11",
-    "gulp-apidoc": "^0.1.3",
+    "browser-sync": "^2.7.12",
+    "gulp": "^3.9.0",
+    "gulp-apidoc": "^0.1.4",
     "gulp-clean": "^0.3.1",
     "gulp-concat": "^2.5.2",
     "gulp-order": "^1.1.1",
