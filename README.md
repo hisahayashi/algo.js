@@ -13,6 +13,10 @@ algo.jsはメディアアートやモーションの実験を行うシンプル�
 - 構造がシンプルで軽量
 - （クリエイティブコーディングで使うノイズやサウンドの再生処理を包括）
 
+### basic usage
+
+- <a href="https://rawgit.com/hisahayashi/algo.js/master/examples/usage.html" target="_blank">demo</a>
+
 ### デモ
 
 - <a href="https://rawgit.com/hisahayashi/algo.js/master/examples/index.html" target="_blank">Example</a>
@@ -23,5 +27,6 @@ algo.jsはメディアアートやモーションの実験を行うシンプル�
 - <a href="https://rawgit.com/hisahayashi/algo.js/master/examples/index_05.html" target="_blank">Example 05</a>
 - <a href="https://rawgit.com/hisahayashi/algo.js/master/examples/index_06.html" target="_blank">Example 06</a>
 - <a href="https://rawgit.com/hisahayashi/algo.js/master/examples/index_07.html" target="_blank">Example 07</a>
+- <a href="https://rawgit.com/hisahayashi/algo.js/master/examples/index_08.html" target="_blank">Example 08</a>
 
 <img alt="" src="https://raw.githubusercontent.com/hisahayashi/cdn/master/algojs/algojs_document.001.jpg" width="100%" height="auto">
