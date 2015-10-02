@@ -13,6 +13,30 @@ algo.jsはメディアアートやモーションの実験を行うシンプル�
 - 構造がシンプルで軽量
 - （クリエイティブコーディングで使うノイズやサウンドの再生処理を包括）
 
+
+### 実装状況
+
+#### 実装中
+
+- Stage操作
+- Shape（Graphic関連）
+- Importer（SVG）
+- WebGL Renderer
+- Triangulation
+- Utils（Point, Vec, Math）
+
+
+#### 未着手
+
+- Texture
+- Shader
+- Importer（OBJ etc..）
+- ピクセル操作系
+- カメラ、マイク操作系
+- Web Audio API
+- 各種アルゴリズムの包括（Noise, Delauny, Boronoi etc..）
+
+
 ### basic usage
 
 - <a href="https://rawgit.com/hisahayashi/algo.js/master/examples/usage.html" target="_blank">demo</a>
