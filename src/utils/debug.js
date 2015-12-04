@@ -1,26 +1,32 @@
 /**
  * ALGO.log
  */
-ALGO.log = function(obj) {
-  if (window.console && window.console.log) {
-    if (ALGO.debug) window.console.log(obj);
+ALGO.log = function() {
+  if( window.console && window.console.log ) {
+    if( ALGO.debug ){
+      window.console.log.apply(console, arguments);
+    }
   }
 };
 
 /**
  * ALGO.warn
  */
-ALGO.warn = function(obj) {
-  if (window.console && window.console.warn) {
-    if (ALGO.debug) window.console.warn(obj);
+ALGO.warn = function() {
+  if( window.console && window.console.log ) {
+    if( ALGO.debug ){
+      window.console.warn.apply(console, arguments);
+    }
   }
 };
 
 /**
  * ALGO.error
  */
-ALGO.error = function(obj) {
-  if (window.console && window.console.error) {
-    if (ALGO.debug) window.console.error(obj);
+ALGO.error = function() {
+  if( window.console && window.console.log ) {
+    if( ALGO.debug ){
+      window.console.error.apply(console, arguments);
+    }
   }
 };

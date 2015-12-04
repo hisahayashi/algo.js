@@ -10,19 +10,25 @@ var browserSync = require( 'browser-sync' );
 
 var selector = {
   algo_src: [
+    /* third party */
     'src/other/perlin.js',
     // 'src/other/delaunay.js',
     'src/other/poly2tri.js',
+    'src/other/bufferLoader.js',
 
+    /* core */
     'src/algo.js',
     'src/variables.js',
     'src/render.js',
 
+    /* math */
     'src/math/matrix3.js',
     'src/math/matrix4.js',
 
+    /* loader */
     'src/loader/loader.js',
 
+    /* shape */
     'src/shape/shapeCtrl.js',
     'src/shape/shape.js',
     'src/shape/polygon.js',
@@ -31,10 +37,16 @@ var selector = {
     'src/shape/path.js',
     'src/shape/particle.js',
 
+    /* svg */
     'src/svg/svg.js',
 
+    /* renderer */
     'src/renderer/webgl.js',
 
+    /* sound */
+    'src/sound/sound.js',
+
+    /* utils */
     'src/utils/debug.js',
     'src/utils/pointUtil.js',
     'src/utils/stringUtil.js',

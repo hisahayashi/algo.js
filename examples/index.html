@@ -36,16 +36,21 @@ var param = {
 var algo = new ALGO(param);
 algo.background = 0xffffff;
 algo.circleResolution = 128;
-algo.framerate = 12;
+algo.framerate = 60;
+algo.backgroundAuto = true;
 
 ALGO.log(algo);
 
 var circle;
+var sound;
 
 algo.bind('setup', function() {
-  circle = new ALGO.Circle(0, 0, 200);
+  circle = new ALGO.Circle(0, 0, 100);
   circle.color = 0x003399;
   algo.add(circle);
+
+  // sound
+  sound = new ALGO.Sound('loop.mp3', 'loop.ogg', 95);
 
   // stats
   stats.domElement.style.position = 'fixed';
@@ -55,8 +60,16 @@ algo.bind('setup', function() {
 });
 
 algo.bind('frame', function() {
+  // sound
+  sound.update();
+  var timedomain = sound.getTimeDomainTotal();
+
+  // shape
   circle.x = algo.width * 0.5;
   circle.y = algo.height * 0.5;
+  circle.scale = timedomain * 5;
+  circle.needsUpdate = true;
+
   // stats
   stats.update();
 });
@@ -67,6 +80,7 @@ algo.bind('resize', function() {
   var h = window.innerHeight;
   algo.size(w, h);
 });
+
 </script>
 </body>
 

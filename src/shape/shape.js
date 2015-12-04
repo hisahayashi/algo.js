@@ -195,7 +195,7 @@ ALGO.Shape = (function() {
     this.setVertexColor(this.lineColor, this.vertexLineColors);
     this.setVertexAlpha(this.lineAlpha, this.vertexLineColors);
     this.setIndex();
-  }
+  };
 
   function setScale(scale){
     if( this.m ){
