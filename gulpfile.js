@@ -46,6 +46,9 @@ var selector = {
     /* sound */
     'src/sound/sound.js',
 
+    /* rtc */
+    'src/rtc/rtc.js',
+
     /* utils */
     'src/utils/debug.js',
     'src/utils/pointUtil.js',

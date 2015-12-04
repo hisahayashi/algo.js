@@ -47,4 +47,19 @@ ALGO.ColorUtil = {
     return obj;
   },
 
+  getRandomColorHex: function(){
+    var r = ALGO.ColorUtil.getRandomColor(0, 256);
+    var g = ALGO.ColorUtil.getRandomColor(0, 256);
+    var b = ALGO.ColorUtil.getRandomColor(0, 256);
+    return ALGO.ColorUtil.rgbToHex(r, g, b);
+  },
+
+  getRandomColor: function(min, max){
+    if(min < 0) min = 0;
+    if(max > 256) max = 256;
+    if(min > max) min = max;
+    if(max < min) max = min;
+    return Math.floor(Math.random() * max) + min;
+  },
+
 };

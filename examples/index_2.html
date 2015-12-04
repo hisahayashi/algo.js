@@ -41,40 +41,25 @@ algo.backgroundAuto = true;
 
 ALGO.log(algo);
 
-var sound;
-var step = 100;
+var rtc;
+var step = 3;
 
 algo.bind('setup', function() {
   var hstep = step * 0.5;
-  for( var yi = 0; yi < algo.height - hstep; yi += step){
-    for( var xi = 0; xi < algo.width - hstep; xi += step){
-      var circle = new ALGO.Circle(xi + hstep, yi + hstep, 5);
-      circle.color = 0x003399;
-      circle.dx = circle.x;
-      circle.dy = circle.y;
-      algo.add(circle);
-    }
+  for( var xi = 0; xi < algo.width - hstep; xi += step){
+    var circle = new ALGO.Circle(xi + hstep, algo.height * 0.5, 2);
+    circle.color = 0x003399;
+    circle.dx = circle.x;
+    circle.dy = circle.y;
+    algo.add(circle);
   }
 
   ALGO.log(algo.children.length);
 
-  // sound
-  sound = new ALGO.Sound('sample.mp3', 'sample.ogg', 95);
+  // rtc
+  rtc = new ALGO.RTC(true, true);
 
-  sound.noteEvent = function(){
-  };
-
-  sound.halfNoteEvent = function(){
-    // var length = algo.children.length;
-    // var color = ALGO.ColorUtil.getRandomColorHex();
-    // for(var i = 0; i < length; i++){
-    //   var circle = algo.children[i];
-    //   circle.color = color;
-    //   circle.needsUpdate = true;
-    // }
-  };
-
-  ALGO.log(sound);
+  ALGO.log(rtc);
 
   // stats
   stats.domElement.style.position = 'fixed';
@@ -84,15 +69,19 @@ algo.bind('setup', function() {
 });
 
 algo.bind('frame', function() {
-  // sound
-  sound.update();
-  var timedomain = sound.getFrequencyTotal();
+  // rtc
+  rtc.update();
+  var frequency = rtc.getFrequencyValues();
+  var timedomain = rtc.getTimeDomainValues();
+
+  var audioStep = Math.floor(timedomain.length / algo.children.length);
+  // ALGO.log('frequency.length', frequency.length, 'children.length', algo.children.length, 'audioStep', audioStep);
 
   // shape
   var length = algo.children.length;
   for(var i = 0; i < length; i++){
     var circle = algo.children[i];
-    circle.scale = timedomain * 10;
+    circle.y = timedomain[i*audioStep] * 200 + algo.height * 0.5;
   }
 
   // stats

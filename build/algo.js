@@ -6235,6 +6235,11 @@ ALGO.Sound = (function(ALGO) {
     var analyser = context.createAnalyser();
     analyser.connect( context.destination );
 
+    var filter = context.createBiquadFilter();
+    filter.connect(context.destination);
+    filter.type = 'allpass';
+    filter.frequency.value = 220;
+
     context.createGain = context.createGain || context.createGainNode;
     var gainNode = context.createGain();
     gainNode.connect( analyser );
@@ -6253,9 +6258,13 @@ ALGO.Sound = (function(ALGO) {
     this.context = context;
     this.analyser = analyser;
     this.gainNode = gainNode;
+    this.filter = filter;
     this.timeDomainData = timeDomainData;
     this.frequencyData = frequencyData;
     this.bufferLoader = bufferLoader;
+  };
+
+  function startNotAvarableMode(){
   };
 
   function finishedLoading(bufferList) {
@@ -6274,42 +6283,44 @@ ALGO.Sound = (function(ALGO) {
   };
 
   function updateFFT(){
-    this.analyser.getByteTimeDomainData( this.timeDomainData ); // 時間
+    // this.analyser.getByteTimeDomainData( this.timeDomainData ); // 時間
     this.analyser.getByteFrequencyData( this.frequencyData ); // 周波数
 
-    this.tdTotal = 0;
-    this.fTotal = 0;
-    this.tdValues = [];
-    this.fValues = [];
+    this.timeDomainTotal = 0;
+    this.timeDomainValues = [];
 
-    for( i = 0; i < this.timeDomainData.length; i++ ){
+    this.frequencyTotal = 0;
+    this.frequencyValues = [];
+
+    var length = this.timeDomainData.length;
+    for( i = 0; i < length; i++ ){
       // 正規化
-      this.tdValues[i] = parseInt( this.frequencyData[i] ) / 255;
-      this.fValues[i] = parseInt( this.timeDomainData[i] ) / 255;
-      this.tdTotal += this.tdValues[i];
-      this.fTotal += this.fValues[i];
+      // this.timeDomainValues[i] = parseInt( this.timeDomainData[i] ) / 255;
+      // this.timeDomainTotal += this.timeDomainValues[i];
+      this.frequencyValues[i] = parseInt( this.frequencyData[i] ) / 255;
+      this.frequencyTotal += this.frequencyValues[i];
     }
 
-    this.fTotal = this.fTotal / this.frequencyData.length; // 正規化
-    this.tdTotal = this.tdTotal / this.timeDomainData.length; // 正規化
+    // this.timeDomainTotal = this.timeDomainTotal / length; // 正規化
+    this.frequencyTotal = this.frequencyTotal / length; // 正規化
   };
 
   function updateNotes(){
     // bpm
     var diffTime = ( this.context.currentTime - this.currentTimeBefore ) *  1000;
-    this.noteCount += this.diffTime;
-    this.noteHalfCount += this.diffTime;
+    this.noteCount += diffTime;
+    this.noteHalfCount += diffTime;
 
     // 1 / 1
     if( this.noteCount >= this.noteTime ){
       this.noteCount = 0;
-      // root.emit(root.NoteEvent, context.currentTime);
+      this.noteEvent(this.context.currentTime);
     }
 
     // 1 / 2
     if( this.noteHalfCount >= this.noteHalfTime ){
       this.noteHalfCount = 0;
-      // root.emit(root.NoteHalfEvent, context.currentTime);
+      this.halfNoteEvent(this.context.currentTime);
     }
 
     this.currentTimeBefore = this.context.currentTime;
@@ -6321,6 +6332,7 @@ ALGO.Sound = (function(ALGO) {
     this.source = this.context.createBufferSource();
     this.source.buffer = this.buffers[0];
     this.source.loop = true;
+    this.source.connect(this.filter);
     this.source.connect( this.gainNode );
 
     ALGO.log( this.source );
@@ -6347,16 +6359,6 @@ ALGO.Sound = (function(ALGO) {
     catch(e){}
   };
 
-  function startNotAvarableMode(){
-    var celar = setInterval(function(){
-      // root.emit(root.NoteHalfEvent, 0);
-    }, 1000);
-
-    var celar = setInterval(function(){
-      // root.emit(root.NoteEvent, 0);
-    }, 4000);
-  };
-
   function getCurrentTime(){
     var time = this.context.currentTime - this.startTime;
     if( this.startTime == null ){
@@ -6374,19 +6376,19 @@ ALGO.Sound = (function(ALGO) {
   };
 
   function getTimeDomainValues(){
-    return this.tdValues;
+    return this.timeDomainValues;
   };
 
   function getTimeDomainTotal(){
-    return this.tdTotal;
+    return this.timeDomainTotal;
   };
 
   function getFrequencyValues(){
-    return this.fValues;
+    return this.frequencyValues;
   };
 
   function getFrequencyTotal(){
-    return this.fTotal;
+    return this.frequencyTotal;
   };
 
   function getSplitValues( values, splitSize ){
@@ -6423,6 +6425,7 @@ ALGO.Sound = (function(ALGO) {
       context: null,
       analyser: null,
       gainNode: null,
+      filter: null,
       bufferLoader: null,
       source: null,
       buffers: null,
@@ -6436,11 +6439,15 @@ ALGO.Sound = (function(ALGO) {
 
       // fft
       timeDomainData: null,
-      tdTotal: 0,
-      tdValues: [],
+      timeDomainTotal: 0,
+      timeDomainValues: [],
       frequencyData: null,
-      fTotal: 0,
-      fValues: [],
+      frequencyTotal: 0,
+      frequencyValues: [],
+
+      // note
+      noteEvent: function(){},
+      halfNoteEvent: function(){},
 
     /**
      * define getter/setter
@@ -6451,6 +6458,7 @@ ALGO.Sound = (function(ALGO) {
      */
     play: play,
     stop: stop,
+    update: update,
     getCurrentTime: getCurrentTime,
     getNoteTime: getNoteTime,
     getPlay: getPlay,
@@ -6466,12 +6474,183 @@ ALGO.Sound = (function(ALGO) {
     startLoading: startLoading,
     startNotAvarableMode: startNotAvarableMode,
     finishedLoading: finishedLoading,
-    update: update,
     updateFFT: updateFFT,
     updateNotes: updateNotes,
   };
 
   return ALGO.Sound;
+}(ALGO));
+
+/**
+ * ALGO.RTC
+ */
+ALGO.RTC = (function(ALGO) {
+  'use strict';
+
+  /**
+   * Constructor
+   */
+  ALGO.RTC = function( _useAudio, _useVideo) {
+    // ALGO.log('ALGO.RTC');
+
+    var that = this;
+    this.useAudio = _useAudio;
+    this.useVideo = _useVideo;
+
+    // 使用クラスの汎用化
+    navigator.getMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
+    window.AudioContext = window.AudioContext || window.webkitAudioContext || window.mozAudioContext || window.msAudioContext;
+    window.Recorder = window.StereoRecorder || window.MediaStreamRecorder;
+
+    //端末のビデオ、音声ストリームを取得
+    try {
+      navigator.getMedia({
+          video: this.useVideo,
+          audio: this.useAudio
+        },
+        // success
+        function(stream) {
+          that.success(stream);
+        },
+        // error
+        function(e) {
+          that.error(e);
+        });
+    } catch (e) {
+      ALGO.log('This browser is not support getUserMedia API. ' + e);
+    }
+  };
+
+  function success(stream) {
+    // stream setup
+    this.mediaStream = stream;
+    this.audioContext = new AudioContext();
+    this.audioSource = this.audioContext.createMediaStreamSource(this.mediaStream);
+
+    // setups
+    this.setupAudioAnalazer();
+    this.setupVideoRecorder();
+  };
+
+  function error(e) {
+    alert(e);
+  };
+
+  function setupAudioAnalazer() {
+    //フィルター
+    this.audioFilter = this.audioContext.createBiquadFilter();
+    this.audioFilter.type = 'allpass';
+    this.audioFilter.frequency.value = 220;
+
+    //analyserオブジェクトの生成
+    this.audioAnalyser = this.audioContext.createAnalyser();
+    this.audioSource.connect(this.audioFilter);
+    this.audioFilter.connect(this.audioAnalyser);
+
+    //符号なし8bitArrayを生成
+    this.timeDomainData = new Uint8Array(this.audioAnalyser.frequencyBinCount);
+    this.frequencyData = new Uint8Array(this.audioAnalyser.frequencyBinCount);
+  };
+
+  function setupVideoRecorder() {
+    // video capture
+    // srcにBlob URLを指定するとカメラの画像がストリームで流れる
+    var windowURL = window.URL || window.webkitURL;
+    var videoSource = windowURL.createObjectURL(this.mediaStream);
+
+  };
+
+  function update() {
+    if(this.audioAnalyser) this.updateAnalyzer();
+  };
+
+  function updateAnalyzer() {
+    //周波数データ
+    this.audioAnalyser.getByteTimeDomainData(this.timeDomainData);
+    this.audioAnalyser.getByteFrequencyData(this.frequencyData);
+
+    this.timeDomainTotal = 0;
+    this.timeDomainValues = [];
+
+    this.frequencyTotal = 0;
+    this.frequencyValues = [];
+
+    var length = this.frequencyData.length;
+
+    for (var i = 0; i < length; i++) {
+      this.timeDomainValues[i] = parseInt( this.timeDomainData[i] ) / 255;
+      this.timeDomainTotal += this.timeDomainValues[i];
+      this.frequencyValues[i] = parseInt( this.frequencyData[i] ) / 255;
+      this.frequencyTotal += this.frequencyValues[i];
+    }
+    // 正規化
+    this.timeDomainTotal = this.timeDomainTotal / length;
+    this.frequencyTotal = this.frequencyTotal / length;
+  };
+
+  function getTimeDomainValues(){
+    return this.timeDomainValues;
+  };
+
+  function getTimeDomainTotal(){
+    return this.timeDomainTotal;
+  };
+
+  function getFrequencyValues(){
+    return this.frequencyValues;
+  };
+
+  function getFrequencyTotal(){
+    return this.frequencyTotal;
+  };
+
+
+  ALGO.RTC.prototype = {
+    constructor: ALGO.RTC,
+
+    /**
+     * Property
+     */
+    useAudio: false,
+    useVideo: false,
+
+    frequencyValues: [],
+    frequencyTotal: 0,
+    timeDomainValues: [],
+    timeDomainTotal: 0,
+
+    mediaStream: null,
+    audioContext: null,
+    audioSource: null,
+    audioFilter: null,
+    audioAnalyser: null,
+    timeDomainData: null,
+    frequencyData: null,
+
+    /**
+     * define getter/setter
+     */
+
+    /**
+     * Method
+     */
+    update: update,
+    getTimeDomainValues: getTimeDomainValues,
+    getTimeDomainTotal: getTimeDomainTotal,
+    getFrequencyValues: getFrequencyValues,
+    getFrequencyTotal: getFrequencyTotal,
+
+    /**
+     * Private Method
+     */
+    success: success,
+    setupAudioAnalazer: setupAudioAnalazer,
+    setupVideoRecorder: setupVideoRecorder,
+    updateAnalyzer: updateAnalyzer,
+
+  };;
+
+  return ALGO.RTC;
 }(ALGO));
 
 /**
@@ -6824,6 +7003,21 @@ ALGO.ColorUtil = {
     obj.g = obj.g / 256;
     obj.b = obj.b / 256;
     return obj;
+  },
+
+  getRandomColorHex: function(){
+    var r = ALGO.ColorUtil.getRandomColor(0, 256);
+    var g = ALGO.ColorUtil.getRandomColor(0, 256);
+    var b = ALGO.ColorUtil.getRandomColor(0, 256);
+    return ALGO.ColorUtil.rgbToHex(r, g, b);
+  },
+
+  getRandomColor: function(min, max){
+    if(min < 0) min = 0;
+    if(max > 256) max = 256;
+    if(min > max) min = max;
+    if(max < min) max = min;
+    return Math.floor(Math.random() * max) + min;
   },
 
 };

@@ -57,6 +57,11 @@ ALGO.Sound = (function(ALGO) {
     var analyser = context.createAnalyser();
     analyser.connect( context.destination );
 
+    var filter = context.createBiquadFilter();
+    filter.connect(context.destination);
+    filter.type = 'allpass';
+    filter.frequency.value = 220;
+
     context.createGain = context.createGain || context.createGainNode;
     var gainNode = context.createGain();
     gainNode.connect( analyser );
@@ -75,9 +80,13 @@ ALGO.Sound = (function(ALGO) {
     this.context = context;
     this.analyser = analyser;
     this.gainNode = gainNode;
+    this.filter = filter;
     this.timeDomainData = timeDomainData;
     this.frequencyData = frequencyData;
     this.bufferLoader = bufferLoader;
+  };
+
+  function startNotAvarableMode(){
   };
 
   function finishedLoading(bufferList) {
@@ -96,42 +105,44 @@ ALGO.Sound = (function(ALGO) {
   };
 
   function updateFFT(){
-    this.analyser.getByteTimeDomainData( this.timeDomainData ); // 時間
+    // this.analyser.getByteTimeDomainData( this.timeDomainData ); // 時間
     this.analyser.getByteFrequencyData( this.frequencyData ); // 周波数
 
-    this.tdTotal = 0;
-    this.fTotal = 0;
-    this.tdValues = [];
-    this.fValues = [];
+    this.timeDomainTotal = 0;
+    this.timeDomainValues = [];
 
-    for( i = 0; i < this.timeDomainData.length; i++ ){
+    this.frequencyTotal = 0;
+    this.frequencyValues = [];
+
+    var length = this.timeDomainData.length;
+    for( i = 0; i < length; i++ ){
       // 正規化
-      this.tdValues[i] = parseInt( this.frequencyData[i] ) / 255;
-      this.fValues[i] = parseInt( this.timeDomainData[i] ) / 255;
-      this.tdTotal += this.tdValues[i];
-      this.fTotal += this.fValues[i];
+      // this.timeDomainValues[i] = parseInt( this.timeDomainData[i] ) / 255;
+      // this.timeDomainTotal += this.timeDomainValues[i];
+      this.frequencyValues[i] = parseInt( this.frequencyData[i] ) / 255;
+      this.frequencyTotal += this.frequencyValues[i];
     }
 
-    this.fTotal = this.fTotal / this.frequencyData.length; // 正規化
-    this.tdTotal = this.tdTotal / this.timeDomainData.length; // 正規化
+    // this.timeDomainTotal = this.timeDomainTotal / length; // 正規化
+    this.frequencyTotal = this.frequencyTotal / length; // 正規化
   };
 
   function updateNotes(){
     // bpm
     var diffTime = ( this.context.currentTime - this.currentTimeBefore ) *  1000;
-    this.noteCount += this.diffTime;
-    this.noteHalfCount += this.diffTime;
+    this.noteCount += diffTime;
+    this.noteHalfCount += diffTime;
 
     // 1 / 1
     if( this.noteCount >= this.noteTime ){
       this.noteCount = 0;
-      // root.emit(root.NoteEvent, context.currentTime);
+      this.noteEvent(this.context.currentTime);
     }
 
     // 1 / 2
     if( this.noteHalfCount >= this.noteHalfTime ){
       this.noteHalfCount = 0;
-      // root.emit(root.NoteHalfEvent, context.currentTime);
+      this.halfNoteEvent(this.context.currentTime);
     }
 
     this.currentTimeBefore = this.context.currentTime;
@@ -143,6 +154,7 @@ ALGO.Sound = (function(ALGO) {
     this.source = this.context.createBufferSource();
     this.source.buffer = this.buffers[0];
     this.source.loop = true;
+    this.source.connect(this.filter);
     this.source.connect( this.gainNode );
 
     ALGO.log( this.source );
@@ -169,16 +181,6 @@ ALGO.Sound = (function(ALGO) {
     catch(e){}
   };
 
-  function startNotAvarableMode(){
-    var celar = setInterval(function(){
-      // root.emit(root.NoteHalfEvent, 0);
-    }, 1000);
-
-    var celar = setInterval(function(){
-      // root.emit(root.NoteEvent, 0);
-    }, 4000);
-  };
-
   function getCurrentTime(){
     var time = this.context.currentTime - this.startTime;
     if( this.startTime == null ){
@@ -196,19 +198,19 @@ ALGO.Sound = (function(ALGO) {
   };
 
   function getTimeDomainValues(){
-    return this.tdValues;
+    return this.timeDomainValues;
   };
 
   function getTimeDomainTotal(){
-    return this.tdTotal;
+    return this.timeDomainTotal;
   };
 
   function getFrequencyValues(){
-    return this.fValues;
+    return this.frequencyValues;
   };
 
   function getFrequencyTotal(){
-    return this.fTotal;
+    return this.frequencyTotal;
   };
 
   function getSplitValues( values, splitSize ){
@@ -245,6 +247,7 @@ ALGO.Sound = (function(ALGO) {
       context: null,
       analyser: null,
       gainNode: null,
+      filter: null,
       bufferLoader: null,
       source: null,
       buffers: null,
@@ -258,11 +261,15 @@ ALGO.Sound = (function(ALGO) {
 
       // fft
       timeDomainData: null,
-      tdTotal: 0,
-      tdValues: [],
+      timeDomainTotal: 0,
+      timeDomainValues: [],
       frequencyData: null,
-      fTotal: 0,
-      fValues: [],
+      frequencyTotal: 0,
+      frequencyValues: [],
+
+      // note
+      noteEvent: function(){},
+      halfNoteEvent: function(){},
 
     /**
      * define getter/setter
@@ -273,6 +280,7 @@ ALGO.Sound = (function(ALGO) {
      */
     play: play,
     stop: stop,
+    update: update,
     getCurrentTime: getCurrentTime,
     getNoteTime: getNoteTime,
     getPlay: getPlay,
@@ -288,7 +296,6 @@ ALGO.Sound = (function(ALGO) {
     startLoading: startLoading,
     startNotAvarableMode: startNotAvarableMode,
     finishedLoading: finishedLoading,
-    update: update,
     updateFFT: updateFFT,
     updateNotes: updateNotes,
   };
