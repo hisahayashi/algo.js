@@ -37,6 +37,9 @@ var selector = {
     'src/shape/path.js',
     'src/shape/particle.js',
 
+    /* image */
+    'src/shape/image.js',
+
     /* svg */
     'src/svg/svg.js',
 

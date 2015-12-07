@@ -3395,12 +3395,21 @@ var ALGO = (function () {
     shape.remove( that );
   };
 
-  function readPixels(){
-    var w = this.width;
-    var h = this.height;
+  function readPixels( _x, _y, _width, _height){
+    if(_x == undefined) _x = 0;
+    if(_y == undefined) _y = 0;
+    if(_width == undefined) _width = this.width;
+    if(_height == undefined) _height = this.height;
     var ctx = this.renderer.getContext();
-    var pixels = new Uint8Array( w * h * 4 );
-    ctx.readPixels(0, 0, w, h, ctx.RGBA, ctx.UNSIGNED_BYTE, pixels);
+    var buffer = new Uint8Array(_width * _height * 4);
+    ctx.readPixels(_x, _y, _width, _height, ctx.RGBA, ctx.UNSIGNED_BYTE, buffer);
+    var pixels = new Uint8Array(_width * _height * 4);
+    for( var i = 0; i < _height; i++){
+      var head = (_height - i) * _width * 4;
+      var nhead = i * _width * 4;
+      var tmp = buffer.slice(head, head + (_width * 4));
+      pixels.set(new Uint8Array(tmp), nhead);
+    }
     return pixels;
   };
 
@@ -4298,80 +4307,118 @@ ALGO.Matrix4 = (function(ALGO) {
 ALGO.Loader = (function() {
   'use strict';
 
-  var that;
-  var loader_url = '';
-  var xhr;
-  var responseText = '';
-
+  /**
+   * [Loader description]
+   * @param {[type]} _url [description]
+   */
   ALGO.Loader = function(_url) {
-    loader_url = _url;
+    var that = this;
+    this.loaderURL = _url;
 
-    xhr = new XMLHttpRequest();
-    xhr.onreadystatechange = function(e) {
-      readyStateChange(e);
+    this.xhr = new XMLHttpRequest();
+    this.xhr.onreadystatechange = function(e) {
+      that.readyStateChange(e);
     };
-
-    that = this;
   };
 
+  /**
+   * [get description]
+   * @return {[type]} [description]
+   */
   function get() {
-    xhr.open('get', loader_url, true);
-    xhr.send(null);
+    this.xhr.open('get', this.loaderURL, true);
+    this.xhr.send(null);
   };
 
+  /**
+   * [post description]
+   * @param  {[type]} params [description]
+   * @return {[type]}        [description]
+   */
   function post(params) {
-    xhr.open('post', loader_url, true);
-    xhr.send(params);
+    this.xhr.open('post', this.loaderURL, true);
+    this.xhr.send(params);
   };
 
+  /**
+   * [readyStateChange description]
+   * @param  {[type]} e [description]
+   * @return {[type]}   [description]
+   */
   function readyStateChange(e) {
 
-    if (xhr.status !== 0) {
+    if (this.xhr.status !== 0) {
 
-      var state_str = getReadyStateString(xhr.readyState);
+      var state_str = this.getReadyStateString(this.xhr.readyState);
 
       // ALGO.log( e.target );
-      // ALGO.log( 'status: ' + xhr.status );
-      // ALGO.log( 'response: ' + xhr.response );
-      // ALGO.log( 'responseText: ' + xhr.responseText );
+      // ALGO.log( 'status: ' + this.xhr.status );
+      // ALGO.log( 'response: ' + this.xhr.response );
+      // ALGO.log( 'responseText: ' + this.xhr.responseText );
       // ALGO.log( 'readyState: ' + state_str );
       // ALGO.log( '' );
 
-      if (xhr.readyState == xhr.UNSENT) {
+      if (this.xhr.readyState == this.xhr.UNSENT) {
 
-      } else if (xhr.readyState == xhr.OPENED) {
+      } else if (this.xhr.readyState == this.xhr.OPENED) {
 
-      } else if (xhr.readyState == xhr.HEADERS_RECEIVED) {
+      } else if (this.xhr.readyState == this.xhr.HEADERS_RECEIVED) {
 
-      } else if (xhr.readyState == xhr.LOADING) {
+      } else if (this.xhr.readyState == this.xhr.LOADING) {
 
-      } else if (xhr.readyState == xhr.DONE) {
+      } else if (this.xhr.readyState == this.xhr.DONE) {
         var params = {};
-        params.status = xhr.status;
-        params.responseText = xhr.responseText;
-        completeRequest(params);
+        params.status = this.xhr.status;
+        params.responseText = this.xhr.responseText;
+        this.completeRequest(params);
       }
     }
 
   };
 
+  /**
+   * [completeRequest description]
+   * @param  {[type]} params [description]
+   * @return {[type]}        [description]
+   */
   function completeRequest(params) {
-    that.complete(params);
+    this.complete(params);
+    this.remove();
   };
 
-  function complete(params) {}
+  /**
+   * [complete description]
+   * @param  {[type]} params [description]
+   * @return {[type]}        [description]
+   */
+  function complete(params) {
+  };
 
+  /**
+   * [remove description]
+   * @return {[type]} [description]
+   */
+  function remove(){
+    this.loaderURL = '';
+    this.xhr = null;
+  };
+
+  /**
+   * [getReadyStateString description]
+   * @param  {[type]} ready_state [description]
+   * @return {[type]}             [description]
+   */
   function getReadyStateString(ready_state) {
     var str;
-    if (ready_state == xhr.UNSENT) {
+    if (ready_state == this.xhr.UNSENT) {
       str = 'UNSENT';
-    } else if (ready_state == xhr.OPENED) {
+    } else if (ready_state == this.xhr.OPENED) {
       str = 'OPENED';
-    } else if (ready_state == xhr.HEADERS_RECEIVED) {
+    } else if (ready_state == this.xhr.HEADERS_RECEIVED) {
       str = 'HEADERS_RECEIVED';
-    } else if (ready_state == xhr.LOADING) {
+    } else if (ready_state == this.xhr.LOADING) {
       str = 'LOADING';
-    } else if (ready_state == xhr.DONE) {
+    } else if (ready_state == this.xhr.DONE) {
       str = 'DONE';
     }
     return str;
@@ -4379,9 +4426,27 @@ ALGO.Loader = (function() {
 
   ALGO.Loader.prototype = {
     constructor: ALGO.Loader,
+
+    /**
+     * Property
+     */
+    loaderURL: '',
+    xhr: null,
+
+    /**
+     * Method
+     */
     get: get,
     post: post,
-    complete: complete
+    complete: complete,
+    remove: remove,
+
+    /**
+     * Private Method
+     */
+    readyStateChange: readyStateChange,
+    getReadyStateString: getReadyStateString,
+    completeRequest: completeRequest
   };
 
   return ALGO.Loader;
@@ -4466,6 +4531,7 @@ ALGO.Shape = (function() {
     this.setVertexColor( this.lineColor, this.vertexLineColors );
     this.setVertexAlpha( this.lineAlpha, this.vertexLineColors );
     this.setIndex();
+    this.setTextureCoord();
 
     // setup matrix
     this.setScale( this.scale );
@@ -4599,6 +4665,19 @@ ALGO.Shape = (function() {
     this.index = index;
   };
 
+  /**
+   * [setTextureCoord description]
+   */
+  function setTextureCoord(){
+    var textureCoord = [
+      0.0, 0.0,
+      1.0, 0.0,
+      0.0, 1.0,
+      1.0, 1.0
+    ];
+    this.textureCoord = textureCoord;
+  };
+
   function vertexUpdate() {
     this.setVertexPosition();
     this.setVertexColor(this.color, this.vertexColors);
@@ -4606,6 +4685,7 @@ ALGO.Shape = (function() {
     this.setVertexColor(this.lineColor, this.vertexLineColors);
     this.setVertexAlpha(this.lineAlpha, this.vertexLineColors);
     this.setIndex();
+    this.setTextureCoord();
   };
 
   function setScale(scale){
@@ -4700,6 +4780,7 @@ ALGO.Shape = (function() {
     needsUpdate: false,
     geometry: [],
     index: [],
+    textureCoord: [],
 
     /**
      * define getter/setter
@@ -4735,6 +4816,7 @@ ALGO.Shape = (function() {
     setVertexColor: setVertexColor,
     setVertexAlpha: setVertexAlpha,
     setIndex: setIndex,
+    setTextureCoord: setTextureCoord,
     vertexUpdate: vertexUpdate,
     setScale: setScale,
     setRotate: setRotate,
@@ -4897,11 +4979,10 @@ ALGO.Polygon.prototype.constructor = ALGO.Polygon;
  */
  ALGO.Polygon.prototype.setGeometry = function(){
   /* 頂点の位置を算出 */
-  var geometry = this.geometry = [];
   for (var i = 0; i < this.angles; i++) {
-    geometry[i] = {};
-    geometry[i].x = Math.cos(2 * i * Math.PI / this.angles - Math.PI / 2);
-    geometry[i].y = Math.sin(2 * i * Math.PI / this.angles - Math.PI / 2);
+    this.geometry[i] = {};
+    this.geometry[i].x = Math.cos(2 * i * Math.PI / this.angles - Math.PI / 2);
+    this.geometry[i].y = Math.sin(2 * i * Math.PI / this.angles - Math.PI / 2);
   }
 };
 
@@ -4910,11 +4991,41 @@ ALGO.Polygon.prototype.constructor = ALGO.Polygon;
  */
  ALGO.Polygon.prototype.setIndex = function(){
   // set index
-  var index = this.index = [];
   for( i = 1; i < this.angles - 1; i++ ){
-    index.push( 0 );
-    index.push( i );
-    index.push( i+1 );
+    this.index.push( 0 );
+    this.index.push( i );
+    this.index.push( i+1 );
+  }
+};
+
+/**
+ * [textureCoord description]
+ */
+ ALGO.Polygon.prototype.setTextureCoord = function(){
+  // set textureCoord
+  this.textureCoord = [
+    0.0, 0.0
+  ];
+  var count = 0;
+  for( var i = 0; i < this.angles; i++ ){
+    switch(count){
+      case 0:
+      this.textureCoord.push(1.0);
+      this.textureCoord.push(0.0);
+      break;
+      case 1:
+      this.textureCoord.push(0.0);
+      this.textureCoord.push(1.0);
+      break;
+      case 2:
+      this.textureCoord.push(1.0);
+      this.textureCoord.push(1.0);
+      break;
+      default:
+      break;
+    }
+    count++;
+    if(count>2) count = 0;
   }
 };
 
@@ -4971,31 +5082,10 @@ ALGO.Rectangle.prototype.height = 0;
 ALGO.Rectangle.prototype.width_ = 0;
 ALGO.Rectangle.prototype.height_ = 0;
 
-ALGO.Rectangle.prototype.setGeometry = function(){
-  /* 頂点の位置を算出 */
-  var geometry = this.geometry = [];
-
-  geometry[0] = [];
-  geometry[0].x = -0.5;
-  geometry[0].y = -0.5;
-
-  geometry[1] = [];
-  geometry[1].x = 0.5;
-  geometry[1].y = -0.5;
-
-  geometry[2] = [];
-  geometry[2].x = 0.5;
-  geometry[2].y = 0.5;
-
-  geometry[3] = [];
-  geometry[3].x = -0.5;
-  geometry[3].y = 0.5;
-};
-
 ALGO.Rectangle.prototype.setScale = function(scale){
   if( this.m ){
-    var scaleX = this.width * scale;
-    var scaleY = this.height * scale;
+    var scaleX = this.width * 0.5 * scale;
+    var scaleY = this.height * 0.5 * scale;
 
     this.m.scale( this.matrix, [ scaleX, scaleY, 0.0 ], this.matrixScale );
     // ALGO.log( 'scale: ' + scale );
@@ -5003,10 +5093,31 @@ ALGO.Rectangle.prototype.setScale = function(scale){
   }
 };
 
+ALGO.Rectangle.prototype.setGeometry = function(){
+  /* 頂点の位置を算出 */
+  var geometry = this.geometry = [];
+
+  geometry[0] = [];
+  geometry[0].x = -1.0;
+  geometry[0].y = 1.0;
+
+  geometry[1] = [];
+  geometry[1].x = 1.0;
+  geometry[1].y = 1.0;
+
+  geometry[2] = [];
+  geometry[2].x = -1.0;
+  geometry[2].y = -1.0;
+
+  geometry[3] = [];
+  geometry[3].x = 1.0;
+  geometry[3].y = -1.0;
+};
+
 ALGO.Rectangle.prototype.setIndex = function(){
   var index = [
-    0, 1, 2,
-    0, 2, 3
+        0, 1, 2,
+        3, 2, 1
   ];
   this.index = index;
 };
@@ -5067,6 +5178,12 @@ ALGO.Path.prototype.triangles = null;
  */
 ALGO.Path.prototype.setGeometry = function() {};
 
+/**
+ * [geometryToPoly description]
+ * @param  {[type]} geometry    [description]
+ * @param  {[type]} start_count [description]
+ * @return {[type]}             [description]
+ */
 ALGO.Path.prototype.geometryToPoly = function( geometry, start_count ){
   var poly = [];
   var length = geometry.length;
@@ -5139,9 +5256,45 @@ ALGO.Path.prototype.setIndex = function() {
     this.setVertexAlpha( this.alpha, this.vertexColors );
     this.setVertexColor( this.lineColor, this.vertexLineColors );
     this.setVertexAlpha( this.lineAlpha, this.vertexLineColors );
+    this.setTextureCoord();
   }
 };
 
+/**
+ * [setTextureCoord description]
+ */
+ALGO.Path.prototype.setTextureCoord = function() {
+  var length = this.geometry.length;
+  this.textureCoord = [
+    0.0, 0.0
+  ];
+  var count = 0;
+  for( var i = 0; i < length; i++ ){
+    switch(count){
+      case 0:
+      this.textureCoord.push(1.0);
+      this.textureCoord.push(0.0);
+      break;
+      case 1:
+      this.textureCoord.push(0.0);
+      this.textureCoord.push(1.0);
+      break;
+      case 2:
+      this.textureCoord.push(1.0);
+      this.textureCoord.push(1.0);
+      break;
+      default:
+      break;
+    }
+    count++;
+    if(count>2) count = 0;
+  }
+}
+
+/**
+ * [setScale description]
+ * @param {[type]} scale [description]
+ */
 ALGO.Path.prototype.setScale = function(scale) {
   if (this.m) {
     var scaleX = scale;
@@ -5153,6 +5306,10 @@ ALGO.Path.prototype.setScale = function(scale) {
   }
 };
 
+/**
+ * [initLine description]
+ * @return {[type]} [description]
+ */
 ALGO.Path.prototype.initLine = function() {
   var start = this.start;
   var end = this.end;
@@ -5164,6 +5321,12 @@ ALGO.Path.prototype.initLine = function() {
   }
 };
 
+/**
+ * [moveTo description]
+ * @param  {[type]} x [description]
+ * @param  {[type]} y [description]
+ * @return {[type]}   [description]
+ */
 ALGO.Path.prototype.moveTo = function(x, y) {
   // ALGO.log('moveTo: ' + x + ', ' + y );
   var vec2 = {
@@ -5175,6 +5338,12 @@ ALGO.Path.prototype.moveTo = function(x, y) {
   this.vertexUpdate();
 };
 
+/**
+ * [lineTo description]
+ * @param  {[type]} x [description]
+ * @param  {[type]} y [description]
+ * @return {[type]}   [description]
+ */
 ALGO.Path.prototype.lineTo = function(x, y) {
   // ALGO.log('lineTo: ' + x + ', ' + y );
   var vec2 = {
@@ -5187,6 +5356,10 @@ ALGO.Path.prototype.lineTo = function(x, y) {
   // ALGO.log( 'geometry: ' + this.geometry.length + ', pos: ' + this.vertexPosition.length + ', color: ' + this.vertexColors.length );
 };
 
+/**
+ * [close description]
+ * @return {[type]} [description]
+ */
 ALGO.Path.prototype.close = function() {
   this.closed = true;
 };
@@ -5222,26 +5395,49 @@ ALGO.Particle.prototype.constructor = ALGO.Particle;
  */
  ALGO.Particle.prototype.setGeometry = function( _geometry ){
   /* 頂点の位置を算出 */
-  var geometry = this.geometry = [];
-
-  // for (var i = 0; i < this.angles; i++) {
-  //   geometry[i] = {};
-  //   geometry[i].x = Math.cos(2 * i * Math.PI / this.angles - Math.PI / 2);
-  //   geometry[i].y = Math.sin(2 * i * Math.PI / this.angles - Math.PI / 2);
-  // }
-  // this.geometry = geometry;
-
   if( _geometry ){
     this.geometry = _geometry;
     this.vertexUpdate();
   }
-
+  // ALGO.log('geometry', this.geometry);
 };
 
 /**
  * [setIndex description]
  */
- ALGO.Particle.prototype.setIndex = function(){
+ALGO.Particle.prototype.setIndex = function(){
+};
+
+/**
+ * [textureCoord description]
+ */
+ ALGO.Particle.prototype.setTextureCoord = function(){
+  var length = this.geometry.length;
+  this.textureCoord = [
+    0.0, 0.0
+  ];
+  var count = 0;
+  for( var i = 0; i < length; i++ ){
+    switch(count){
+      case 0:
+      this.textureCoord.push(1.0);
+      this.textureCoord.push(0.0);
+      break;
+      case 1:
+      this.textureCoord.push(0.0);
+      this.textureCoord.push(1.0);
+      break;
+      case 2:
+      this.textureCoord.push(1.0);
+      this.textureCoord.push(1.0);
+      break;
+      default:
+      break;
+    }
+    count++;
+    if(count>2) count = 0;
+  }
+  // ALGO.log('textureCoord', this.textureCoord);
 };
 
 ALGO.Particle.prototype.setScale = function(scale) {
@@ -5254,6 +5450,104 @@ ALGO.Particle.prototype.setScale = function(scale) {
     // ALGO.log( this.matrixScale );
   }
 };
+
+/**
+ * ALGO.Image
+ */
+ALGO.Image = function(_x, _y, _width, _height, _path) {
+  'use strict';
+  // ALGO.log( 'ALGO.Image' );
+  this.path = _path;
+  this.x = _x;
+  this.y = _y;
+  this.width = _width;
+  this.height = _height;
+  this.mipmap = 0;
+
+  var that = this;
+
+  // define
+  this.width_ = _width;
+  this.height_ = _height;
+  this.mipmap_ = this.mipmap;
+  this.color = 0xffffff;
+
+  this.type = 'image';
+
+  this.isLoaded = false;
+  this.isAttached = false;
+  this.texture = null;
+
+  if(this.path){
+    // load
+    this.image = new Image();
+    this.image.src = this.path;
+
+    this.loader = new ALGO.Loader(this.path);
+    this.loader.complete = function(e){
+      that.complete(e);
+    };
+    this.loader.get();
+  }
+
+  this.init();
+  this.setup();
+};
+
+ALGO.Image.prototype = Object.create( ALGO.Rectangle.prototype );
+ALGO.Image.prototype.constructor = ALGO.Image;
+
+ALGO.Image.prototype.isLoaded = false;
+// ALGO.Image.prototype.isAttached = false;
+ALGO.Image.prototype.texture = null;
+
+ALGO.Image.prototype.mipmap = 0;
+ALGO.Image.prototype.mipmap_ = 0;
+
+ALGO.Image.prototype.complete = function(){
+  this.isLoaded = true;
+  delete this.loader;
+};
+
+ALGO.Image.prototype.getTexture = function(){
+  return this.texture;
+};
+
+ALGO.Image.prototype.setTexture = function(_texture){
+  this.texture = _texture;
+};
+
+ALGO.Image.prototype.setLoaded = function(_bool){
+  this.isLoaded = _bool;
+};
+
+// ALGO.Image.prototype.setAttached = function(_bool){
+//   this.isAttached = _bool;
+// };
+
+ALGO.Image.prototype.setScale = function(scale){
+  if( this.m ){
+    var scaleX = this.width * 0.5 * scale;
+    var scaleY = this.height * 0.5 * -scale; // reverse
+
+    this.m.scale( this.matrix, [ scaleX, scaleY, 0.0 ], this.matrixScale );
+    // ALGO.log( 'scale: ' + scale );
+    // ALGO.log( this.matrixScale );
+  }
+};
+
+/**
+ * Define Getter / Setter
+ */
+ALGO.Image.prototype.__defineGetter__('mipmap', function() {
+  // ALGO.log('define getter: mipmap');
+  return this.mipmap_;
+});
+
+ALGO.Image.prototype.__defineSetter__('mipmap', function(value) {
+  // ALGO.log('define setter: mipmap');
+  this.mipmap_ = value;
+});
 
 /**
  * ALGO.SVG
@@ -5761,6 +6055,12 @@ ALGO.WebGLRenderer = (function(ALGO) {
     // プログラムオブジェクトの生成とリンク
     program = createProgram(v_shader, f_shader);
 
+    // テクスチャを有効化
+    // gl.activeTexture(gl.TEXTURE0);
+    // gl.enable(gl.DEPTH_TEST);
+    // gl.depthFunc(gl.LEQUAL);
+    // gl.enable(gl.CULL_FACE);
+
     resize();
 
     // uniformLocationの取得
@@ -5768,12 +6068,15 @@ ALGO.WebGLRenderer = (function(ALGO) {
     uni_location.position = gl.getUniformLocation(program, 'position2d');
     uni_location.matrix = gl.getUniformLocation(program, 'matrix2d');
     uni_location.color = gl.getUniformLocation(program, 'color');
+    uni_location.texture = gl.getUniformLocation(program, 'texture');
     uni_location.point_size = gl.getUniformLocation(program, 'point_size');
+    uni_location.isTexture = gl.getUniformLocation(program, 'isTexture');
 
     // attributeLocationの取得
     attr_location = {};
     attr_location.position = gl.getAttribLocation(program, 'position2d');
     attr_location.color = gl.getAttribLocation(program, 'color');
+    attr_location.texture_coord = gl.getAttribLocation(program, 'texture_coord');
 
     /*
     attr_location はpositionがattributeの何番目なのかを持っている
@@ -5782,6 +6085,7 @@ ALGO.WebGLRenderer = (function(ALGO) {
     attr_stride = {};
     attr_stride.position = 2; // vertex
     attr_stride.color = 4; // index
+    attr_stride.texture_coord = 2; // texture
 
     render();
   }
@@ -5809,10 +6113,18 @@ ALGO.WebGLRenderer = (function(ALGO) {
       var needsUpdate = object.needsUpdate;
       var fill_object = object.fill;
       var line_object = object.line;
+
       // モデル(頂点)データ
       var vertex_position = object.vertexPosition;
+
       // 頂点の色情報を格納する配列
       var vertex_color = object.vertexColors;
+
+      // テクスチャの情報を格納する配列
+      var vertex_texture_coord = object.textureCoord;
+      var object_texture = null;
+      gl.uniform1f(uni_location.isTexture, 0);
+
       // 頂点の色情報を格納する配列
       var vertex_line_color = object.vertexLineColors || object.vertexColors;
       var index = object.index;
@@ -5823,11 +6135,59 @@ ALGO.WebGLRenderer = (function(ALGO) {
 
       if( fill_object ){
 
+        if( object.type == 'image' ){
+
+          if( object.isLoaded ){
+            object_texture = object.getTexture();
+            gl.uniform1f(uni_location.isTexture, 1);
+
+            if(!object_texture){
+              // // テクスチャオブジェクトの生成
+              // object_texture = gl.createTexture();
+              // // テクスチャをバインドする
+              // gl.bindTexture(gl.TEXTURE_2D, object_texture);
+              // // テクスチャへイメージを適用
+              // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, object.image);
+              // // ミップマップを生成
+              // gl.generateMipmap(gl.TEXTURE_2D);
+              // // テクスチャのバインドを無効化
+              // gl.bindTexture(gl.TEXTURE_2D, null);
+
+              // object.setTexture(object_texture);
+
+              // // テクスチャ関連
+              object_texture = gl.createTexture(gl.TEXTURE_2D);
+              gl.activeTexture(gl.TEXTURE0);
+              gl.bindTexture(gl.TEXTURE_2D, object_texture);
+              gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA,gl.UNSIGNED_BYTE, object.image);
+              gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+              gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+              gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+              gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+              object.setTexture(object_texture);
+            }
+            else{
+              gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA,gl.UNSIGNED_BYTE, object.image);
+            }
+
+          }
+          else{
+          }
+        }
+
         // VBOの生成
         if( !object_vbo[i] || needsUpdate ){
           var vbo = [];
           vbo.position = createVbo(vertex_position);
           vbo.color = createVbo(vertex_color);
+          vbo.texture_coord = createVbo(vertex_texture_coord);
+
+          if(object.type == 'image'){
+          }
+          else{
+          }
+
           object_vbo[i] = vbo;
         }
 
@@ -5848,6 +6208,12 @@ ALGO.WebGLRenderer = (function(ALGO) {
         // Set the matrix.
         gl.uniformMatrix3fv(uni_location.matrix, false, matrix);
 
+        // テクスチャをバインドする
+        gl.bindTexture(gl.TEXTURE_2D, object_texture);
+
+        // uniform変数にテクスチャを登録
+        gl.uniform1i(uni_location.texture, 0);
+
         if( object.type == 'path' ){
           if( object.closed ){
             // gl.drawArrays(gl.TRIANGLES, 0, vertex_position.length / 2);
@@ -5859,7 +6225,7 @@ ALGO.WebGLRenderer = (function(ALGO) {
           }
         }
         else if( object.type == 'particle' ){
-          // ALGO.log( 'pos: ' + vertex_position.length + ', color: ' + vertex_color.length + ', index: ' + object_index[i].length );
+          // ALGO.log( 'pos: ' + vertex_position.length + ', color: ' + vertex_color.length);
           gl.uniform1f(uni_location.point_size, object_point_size);
           gl.drawArrays(gl.POINTS, 0, vertex_position.length / 2);
         }
@@ -6037,10 +6403,18 @@ ALGO.WebGLRenderer = (function(ALGO) {
       uniform mat3 matrix2d;\
       uniform vec2 u_resolution;\
       attribute vec4 color;\
-      varying   vec4 v_color; \
+      varying vec4 v_color; \
+      attribute vec2 texture_coord;\
+      varying vec2 v_texture_coord;\
       uniform float point_size;\
+      varying float vIsTexture;\
+      uniform float isTexture;\
       \
       void main(void){\
+        if(isTexture>0.5){\
+          v_texture_coord = texture_coord;\
+          vIsTexture = isTexture;\
+        }\
         v_color = color;\
         gl_PointSize = point_size;\
         \
@@ -6051,9 +6425,18 @@ ALGO.WebGLRenderer = (function(ALGO) {
       shader_script = '\
       precision mediump float;\
       varying vec4 v_color;\
+      uniform sampler2D texture;\
+      varying vec2 v_texture_coord;\
+      varying float vIsTexture;\
       \
       void main(void){\
-        gl_FragColor = v_color;\
+        if(vIsTexture > 0.5){\
+          vec4 smp_color = texture2D(texture, v_texture_coord);\
+          gl_FragColor  = v_color * smp_color;\
+        }\
+        else{\
+          gl_FragColor  = v_color;\
+        }\
       }';
       shader = gl.createShader(gl.FRAGMENT_SHADER);
     }
@@ -6123,6 +6506,11 @@ ALGO.WebGLRenderer = (function(ALGO) {
 
     // 生成した VBO を返して終了
     return vbo;
+  };
+
+  // VBOを削除する関数
+  function deleteVbo(buffer) {
+    gl.deleteBuffer(buffer);
   };
 
   // IBOを生成する関数
@@ -6490,12 +6878,14 @@ ALGO.RTC = (function(ALGO) {
   /**
    * Constructor
    */
-  ALGO.RTC = function( _useAudio, _useVideo) {
+  ALGO.RTC = function( _enableAudio, _enableVideo) {
     // ALGO.log('ALGO.RTC');
 
     var that = this;
-    this.useAudio = _useAudio;
-    this.useVideo = _useVideo;
+    this.enableAudio = _enableAudio;
+    this.enableVideo = _enableVideo;
+
+    this.isPlaying = false;
 
     // 使用クラスの汎用化
     navigator.getMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
@@ -6505,8 +6895,8 @@ ALGO.RTC = (function(ALGO) {
     //端末のビデオ、音声ストリームを取得
     try {
       navigator.getMedia({
-          video: this.useVideo,
-          audio: this.useAudio
+          video: true,
+          audio: true
         },
         // success
         function(stream) {
@@ -6556,15 +6946,47 @@ ALGO.RTC = (function(ALGO) {
     // video capture
     // srcにBlob URLを指定するとカメラの画像がストリームで流れる
     var windowURL = window.URL || window.webkitURL;
-    var videoSource = windowURL.createObjectURL(this.mediaStream);
+    this.videoSource = windowURL.createObjectURL(this.mediaStream);
 
+    ALGO.log(this.mediaStream);
+    ALGO.log(this.videoSource);
+
+    // video preview
+    this.videoElement = document.createElement('video');
+    // document.body.appendChild(this.videoElement);
+    this.videoElement.src = this.videoSource;
+    this.videoElement.id = 'video';
+    // this.videoElement.autoplay = true;
+    this.videoElement.muted = true;
+    this.videoElement.volume = 0;
+    // this.videoElement.style.visibility = 'hidden';
+
+    var that = this;
+    this.videoElement.addEventListener('canplay', function(e){
+      that.videoCanPlay(e);
+    }, true);
+  };
+
+  function videoCanPlay(e) {
+    this.videoElement.removeEventListener('canplay', null, true);
+    this.videoElement.play();
+    this.isPlaying = true;
   };
 
   function update() {
-    if(this.audioAnalyser) this.updateAnalyzer();
+    if(this.enableAudio){
+      this.updateAudio();
+    }
+    if(this.enableVideo){
+      this.updateVideo();
+    }
   };
 
-  function updateAnalyzer() {
+  function updateAudio() {
+    if(this.audioAnalyser) this.updateAudioAnalazer();
+  };
+
+  function updateAudioAnalazer(){
     //周波数データ
     this.audioAnalyser.getByteTimeDomainData(this.timeDomainData);
     this.audioAnalyser.getByteFrequencyData(this.frequencyData);
@@ -6588,6 +7010,9 @@ ALGO.RTC = (function(ALGO) {
     this.frequencyTotal = this.frequencyTotal / length;
   };
 
+  function updateVideo(){
+  };
+
   function getTimeDomainValues(){
     return this.timeDomainValues;
   };
@@ -6604,6 +7029,13 @@ ALGO.RTC = (function(ALGO) {
     return this.frequencyTotal;
   };
 
+  function setEnableAudio(_bool){
+    this.enableAudio = _bool;
+  };
+
+  function setEnableVideo(_bool){
+    this.enableVideo = _bool;
+  };
 
   ALGO.RTC.prototype = {
     constructor: ALGO.RTC,
@@ -6611,8 +7043,9 @@ ALGO.RTC = (function(ALGO) {
     /**
      * Property
      */
-    useAudio: false,
-    useVideo: false,
+    enableAudio: false,
+    enableVideo: false,
+    videoElement: null,
 
     frequencyValues: [],
     frequencyTotal: 0,
@@ -6626,6 +7059,9 @@ ALGO.RTC = (function(ALGO) {
     audioAnalyser: null,
     timeDomainData: null,
     frequencyData: null,
+    videoSource: null,
+
+    isPlaying: false,
 
     /**
      * define getter/setter
@@ -6639,6 +7075,8 @@ ALGO.RTC = (function(ALGO) {
     getTimeDomainTotal: getTimeDomainTotal,
     getFrequencyValues: getFrequencyValues,
     getFrequencyTotal: getFrequencyTotal,
+    setEnableAudio: setEnableAudio,
+    setEnableVideo: setEnableVideo,
 
     /**
      * Private Method
@@ -6646,9 +7084,12 @@ ALGO.RTC = (function(ALGO) {
     success: success,
     setupAudioAnalazer: setupAudioAnalazer,
     setupVideoRecorder: setupVideoRecorder,
-    updateAnalyzer: updateAnalyzer,
+    videoCanPlay: videoCanPlay,
+    updateAudio: updateAudio,
+    updateVideo: updateVideo,
+    updateAudioAnalazer: updateAudioAnalazer,
 
-  };;
+  };
 
   return ALGO.RTC;
 }(ALGO));
@@ -7005,11 +7446,25 @@ ALGO.ColorUtil = {
     return obj;
   },
 
+  rgbNormalize: function(obj){
+    obj.r = obj.r / 256;
+    obj.g = obj.g / 256;
+    obj.b = obj.b / 256;
+    return obj;
+  },
+
   getRandomColorHex: function(){
     var r = ALGO.ColorUtil.getRandomColor(0, 256);
     var g = ALGO.ColorUtil.getRandomColor(0, 256);
     var b = ALGO.ColorUtil.getRandomColor(0, 256);
     return ALGO.ColorUtil.rgbToHex(r, g, b);
+  },
+
+  getRandomColorRGB: function(){
+    var r = ALGO.ColorUtil.getRandomColor(0, 256);
+    var g = ALGO.ColorUtil.getRandomColor(0, 256);
+    var b = ALGO.ColorUtil.getRandomColor(0, 256);
+    return {r: r, g: g, b: b};
   },
 
   getRandomColor: function(min, max){
@@ -7026,11 +7481,22 @@ ALGO.ColorUtil = {
  * ALGO.Util
  */
 ALGO.Util = {
+
+  /**
+   * [getPixelsIndex description]
+   * @param  {[type]} pixels [description]
+   * @param  {[type]} x      [description]
+   * @param  {[type]} y      [description]
+   * @return {[type]}        [description]
+   */
+  getPixelsIndex: function(pixels, x, y) {
+  },
+
   /**
    * [browserLanguage description]
    * @return {[type]} [description]
    */
-  getBrowserLang: function () {
+  getBrowserLang: function() {
     var ua = window.navigator.userAgent.toLowerCase();
     try {
       // chrome
@@ -7050,7 +7516,7 @@ ALGO.Util = {
    * [isSmartDevice description]
    * @return {Boolean} [description]
    */
-  isSmartDevice: function () {
+  isSmartDevice: function() {
     var ua = navigator.userAgent;
     var flag = false;
 
@@ -7066,7 +7532,7 @@ ALGO.Util = {
    * [getOS description]
    * @return {[type]} [description]
    */
-  getOS: function () {
+  getOS: function() {
     var os;
     var ua = window.navigator.userAgent.toLowerCase();
     if (ua.match(/win/)) {
@@ -7085,7 +7551,7 @@ ALGO.Util = {
    * [getBrowser description]
    * @return (ie6、ie7、ie8、ie9、ie10、ie11、chrome、safari、opera、firefox、unknown)
    */
-  getBrowser: function () {
+  getBrowser: function() {
     var ua = window.navigator.userAgent.toLowerCase();
     var ver = window.navigator.appVersion.toLowerCase();
     var name = 'unknown';
@@ -7123,7 +7589,7 @@ ALGO.Util = {
    * @param  {[type]}  browsers [description]
    * @return {Boolean}          [description]
    */
-  isSupported: function (browsers) {
+  isSupported: function(browsers) {
     var thusBrowser = getBrowser();
     for (var i = 0; i < browsers.length; i++) {
       if (browsers[i] == thusBrowser) {
@@ -7138,7 +7604,7 @@ ALGO.Util = {
    * [getQuery description]
    * @return {[type]} [description]
    */
-  getQuery: function () {
+  getQuery: function() {
     var query = window.location.search.substring(1);
     var parms = query.split('&');
     var p = {};

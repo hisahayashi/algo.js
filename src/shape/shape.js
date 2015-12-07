@@ -55,6 +55,7 @@ ALGO.Shape = (function() {
     this.setVertexColor( this.lineColor, this.vertexLineColors );
     this.setVertexAlpha( this.lineAlpha, this.vertexLineColors );
     this.setIndex();
+    this.setTextureCoord();
 
     // setup matrix
     this.setScale( this.scale );
@@ -188,6 +189,19 @@ ALGO.Shape = (function() {
     this.index = index;
   };
 
+  /**
+   * [setTextureCoord description]
+   */
+  function setTextureCoord(){
+    var textureCoord = [
+      0.0, 0.0,
+      1.0, 0.0,
+      0.0, 1.0,
+      1.0, 1.0
+    ];
+    this.textureCoord = textureCoord;
+  };
+
   function vertexUpdate() {
     this.setVertexPosition();
     this.setVertexColor(this.color, this.vertexColors);
@@ -195,6 +209,7 @@ ALGO.Shape = (function() {
     this.setVertexColor(this.lineColor, this.vertexLineColors);
     this.setVertexAlpha(this.lineAlpha, this.vertexLineColors);
     this.setIndex();
+    this.setTextureCoord();
   };
 
   function setScale(scale){
@@ -289,6 +304,7 @@ ALGO.Shape = (function() {
     needsUpdate: false,
     geometry: [],
     index: [],
+    textureCoord: [],
 
     /**
      * define getter/setter
@@ -324,6 +340,7 @@ ALGO.Shape = (function() {
     setVertexColor: setVertexColor,
     setVertexAlpha: setVertexAlpha,
     setIndex: setIndex,
+    setTextureCoord: setTextureCoord,
     vertexUpdate: vertexUpdate,
     setScale: setScale,
     setRotate: setRotate,

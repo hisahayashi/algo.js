@@ -29,6 +29,12 @@ ALGO.Path.prototype.triangles = null;
  */
 ALGO.Path.prototype.setGeometry = function() {};
 
+/**
+ * [geometryToPoly description]
+ * @param  {[type]} geometry    [description]
+ * @param  {[type]} start_count [description]
+ * @return {[type]}             [description]
+ */
 ALGO.Path.prototype.geometryToPoly = function( geometry, start_count ){
   var poly = [];
   var length = geometry.length;
@@ -101,9 +107,45 @@ ALGO.Path.prototype.setIndex = function() {
     this.setVertexAlpha( this.alpha, this.vertexColors );
     this.setVertexColor( this.lineColor, this.vertexLineColors );
     this.setVertexAlpha( this.lineAlpha, this.vertexLineColors );
+    this.setTextureCoord();
   }
 };
 
+/**
+ * [setTextureCoord description]
+ */
+ALGO.Path.prototype.setTextureCoord = function() {
+  var length = this.geometry.length;
+  this.textureCoord = [
+    0.0, 0.0
+  ];
+  var count = 0;
+  for( var i = 0; i < length; i++ ){
+    switch(count){
+      case 0:
+      this.textureCoord.push(1.0);
+      this.textureCoord.push(0.0);
+      break;
+      case 1:
+      this.textureCoord.push(0.0);
+      this.textureCoord.push(1.0);
+      break;
+      case 2:
+      this.textureCoord.push(1.0);
+      this.textureCoord.push(1.0);
+      break;
+      default:
+      break;
+    }
+    count++;
+    if(count>2) count = 0;
+  }
+}
+
+/**
+ * [setScale description]
+ * @param {[type]} scale [description]
+ */
 ALGO.Path.prototype.setScale = function(scale) {
   if (this.m) {
     var scaleX = scale;
@@ -115,6 +157,10 @@ ALGO.Path.prototype.setScale = function(scale) {
   }
 };
 
+/**
+ * [initLine description]
+ * @return {[type]} [description]
+ */
 ALGO.Path.prototype.initLine = function() {
   var start = this.start;
   var end = this.end;
@@ -126,6 +172,12 @@ ALGO.Path.prototype.initLine = function() {
   }
 };
 
+/**
+ * [moveTo description]
+ * @param  {[type]} x [description]
+ * @param  {[type]} y [description]
+ * @return {[type]}   [description]
+ */
 ALGO.Path.prototype.moveTo = function(x, y) {
   // ALGO.log('moveTo: ' + x + ', ' + y );
   var vec2 = {
@@ -137,6 +189,12 @@ ALGO.Path.prototype.moveTo = function(x, y) {
   this.vertexUpdate();
 };
 
+/**
+ * [lineTo description]
+ * @param  {[type]} x [description]
+ * @param  {[type]} y [description]
+ * @return {[type]}   [description]
+ */
 ALGO.Path.prototype.lineTo = function(x, y) {
   // ALGO.log('lineTo: ' + x + ', ' + y );
   var vec2 = {
@@ -149,6 +207,10 @@ ALGO.Path.prototype.lineTo = function(x, y) {
   // ALGO.log( 'geometry: ' + this.geometry.length + ', pos: ' + this.vertexPosition.length + ', color: ' + this.vertexColors.length );
 };
 
+/**
+ * [close description]
+ * @return {[type]} [description]
+ */
 ALGO.Path.prototype.close = function() {
   this.closed = true;
 };

@@ -80,6 +80,12 @@ ALGO.WebGLRenderer = (function(ALGO) {
     // プログラムオブジェクトの生成とリンク
     program = createProgram(v_shader, f_shader);
 
+    // テクスチャを有効化
+    // gl.activeTexture(gl.TEXTURE0);
+    // gl.enable(gl.DEPTH_TEST);
+    // gl.depthFunc(gl.LEQUAL);
+    // gl.enable(gl.CULL_FACE);
+
     resize();
 
     // uniformLocationの取得
@@ -87,12 +93,15 @@ ALGO.WebGLRenderer = (function(ALGO) {
     uni_location.position = gl.getUniformLocation(program, 'position2d');
     uni_location.matrix = gl.getUniformLocation(program, 'matrix2d');
     uni_location.color = gl.getUniformLocation(program, 'color');
+    uni_location.texture = gl.getUniformLocation(program, 'texture');
     uni_location.point_size = gl.getUniformLocation(program, 'point_size');
+    uni_location.isTexture = gl.getUniformLocation(program, 'isTexture');
 
     // attributeLocationの取得
     attr_location = {};
     attr_location.position = gl.getAttribLocation(program, 'position2d');
     attr_location.color = gl.getAttribLocation(program, 'color');
+    attr_location.texture_coord = gl.getAttribLocation(program, 'texture_coord');
 
     /*
     attr_location はpositionがattributeの何番目なのかを持っている
@@ -101,6 +110,7 @@ ALGO.WebGLRenderer = (function(ALGO) {
     attr_stride = {};
     attr_stride.position = 2; // vertex
     attr_stride.color = 4; // index
+    attr_stride.texture_coord = 2; // texture
 
     render();
   }
@@ -128,10 +138,18 @@ ALGO.WebGLRenderer = (function(ALGO) {
       var needsUpdate = object.needsUpdate;
       var fill_object = object.fill;
       var line_object = object.line;
+
       // モデル(頂点)データ
       var vertex_position = object.vertexPosition;
+
       // 頂点の色情報を格納する配列
       var vertex_color = object.vertexColors;
+
+      // テクスチャの情報を格納する配列
+      var vertex_texture_coord = object.textureCoord;
+      var object_texture = null;
+      gl.uniform1f(uni_location.isTexture, 0);
+
       // 頂点の色情報を格納する配列
       var vertex_line_color = object.vertexLineColors || object.vertexColors;
       var index = object.index;
@@ -142,11 +160,59 @@ ALGO.WebGLRenderer = (function(ALGO) {
 
       if( fill_object ){
 
+        if( object.type == 'image' ){
+
+          if( object.isLoaded ){
+            object_texture = object.getTexture();
+            gl.uniform1f(uni_location.isTexture, 1);
+
+            if(!object_texture){
+              // // テクスチャオブジェクトの生成
+              // object_texture = gl.createTexture();
+              // // テクスチャをバインドする
+              // gl.bindTexture(gl.TEXTURE_2D, object_texture);
+              // // テクスチャへイメージを適用
+              // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, object.image);
+              // // ミップマップを生成
+              // gl.generateMipmap(gl.TEXTURE_2D);
+              // // テクスチャのバインドを無効化
+              // gl.bindTexture(gl.TEXTURE_2D, null);
+
+              // object.setTexture(object_texture);
+
+              // // テクスチャ関連
+              object_texture = gl.createTexture(gl.TEXTURE_2D);
+              gl.activeTexture(gl.TEXTURE0);
+              gl.bindTexture(gl.TEXTURE_2D, object_texture);
+              gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA,gl.UNSIGNED_BYTE, object.image);
+              gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+              gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+              gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+              gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+              object.setTexture(object_texture);
+            }
+            else{
+              gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA,gl.UNSIGNED_BYTE, object.image);
+            }
+
+          }
+          else{
+          }
+        }
+
         // VBOの生成
         if( !object_vbo[i] || needsUpdate ){
           var vbo = [];
           vbo.position = createVbo(vertex_position);
           vbo.color = createVbo(vertex_color);
+          vbo.texture_coord = createVbo(vertex_texture_coord);
+
+          if(object.type == 'image'){
+          }
+          else{
+          }
+
           object_vbo[i] = vbo;
         }
 
@@ -167,6 +233,12 @@ ALGO.WebGLRenderer = (function(ALGO) {
         // Set the matrix.
         gl.uniformMatrix3fv(uni_location.matrix, false, matrix);
 
+        // テクスチャをバインドする
+        gl.bindTexture(gl.TEXTURE_2D, object_texture);
+
+        // uniform変数にテクスチャを登録
+        gl.uniform1i(uni_location.texture, 0);
+
         if( object.type == 'path' ){
           if( object.closed ){
             // gl.drawArrays(gl.TRIANGLES, 0, vertex_position.length / 2);
@@ -178,7 +250,7 @@ ALGO.WebGLRenderer = (function(ALGO) {
           }
         }
         else if( object.type == 'particle' ){
-          // ALGO.log( 'pos: ' + vertex_position.length + ', color: ' + vertex_color.length + ', index: ' + object_index[i].length );
+          // ALGO.log( 'pos: ' + vertex_position.length + ', color: ' + vertex_color.length);
           gl.uniform1f(uni_location.point_size, object_point_size);
           gl.drawArrays(gl.POINTS, 0, vertex_position.length / 2);
         }
@@ -356,10 +428,18 @@ ALGO.WebGLRenderer = (function(ALGO) {
       uniform mat3 matrix2d;\
       uniform vec2 u_resolution;\
       attribute vec4 color;\
-      varying   vec4 v_color; \
+      varying vec4 v_color; \
+      attribute vec2 texture_coord;\
+      varying vec2 v_texture_coord;\
       uniform float point_size;\
+      varying float vIsTexture;\
+      uniform float isTexture;\
       \
       void main(void){\
+        if(isTexture>0.5){\
+          v_texture_coord = texture_coord;\
+          vIsTexture = isTexture;\
+        }\
         v_color = color;\
         gl_PointSize = point_size;\
         \
@@ -370,9 +450,18 @@ ALGO.WebGLRenderer = (function(ALGO) {
       shader_script = '\
       precision mediump float;\
       varying vec4 v_color;\
+      uniform sampler2D texture;\
+      varying vec2 v_texture_coord;\
+      varying float vIsTexture;\
       \
       void main(void){\
-        gl_FragColor = v_color;\
+        if(vIsTexture > 0.5){\
+          vec4 smp_color = texture2D(texture, v_texture_coord);\
+          gl_FragColor  = v_color * smp_color;\
+        }\
+        else{\
+          gl_FragColor  = v_color;\
+        }\
       }';
       shader = gl.createShader(gl.FRAGMENT_SHADER);
     }
@@ -442,6 +531,11 @@ ALGO.WebGLRenderer = (function(ALGO) {
 
     // 生成した VBO を返して終了
     return vbo;
+  };
+
+  // VBOを削除する関数
+  function deleteVbo(buffer) {
+    gl.deleteBuffer(buffer);
   };
 
   // IBOを生成する関数

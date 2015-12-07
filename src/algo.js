@@ -202,12 +202,21 @@ var ALGO = (function () {
     shape.remove( that );
   };
 
-  function readPixels(){
-    var w = this.width;
-    var h = this.height;
+  function readPixels( _x, _y, _width, _height){
+    if(_x == undefined) _x = 0;
+    if(_y == undefined) _y = 0;
+    if(_width == undefined) _width = this.width;
+    if(_height == undefined) _height = this.height;
     var ctx = this.renderer.getContext();
-    var pixels = new Uint8Array( w * h * 4 );
-    ctx.readPixels(0, 0, w, h, ctx.RGBA, ctx.UNSIGNED_BYTE, pixels);
+    var buffer = new Uint8Array(_width * _height * 4);
+    ctx.readPixels(_x, _y, _width, _height, ctx.RGBA, ctx.UNSIGNED_BYTE, buffer);
+    var pixels = new Uint8Array(_width * _height * 4);
+    for( var i = 0; i < _height; i++){
+      var head = (_height - i) * _width * 4;
+      var nhead = i * _width * 4;
+      var tmp = buffer.slice(head, head + (_width * 4));
+      pixels.set(new Uint8Array(tmp), nhead);
+    }
     return pixels;
   };
 

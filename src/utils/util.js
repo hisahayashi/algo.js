@@ -2,11 +2,22 @@
  * ALGO.Util
  */
 ALGO.Util = {
+
+  /**
+   * [getPixelsIndex description]
+   * @param  {[type]} pixels [description]
+   * @param  {[type]} x      [description]
+   * @param  {[type]} y      [description]
+   * @return {[type]}        [description]
+   */
+  getPixelsIndex: function(pixels, x, y) {
+  },
+
   /**
    * [browserLanguage description]
    * @return {[type]} [description]
    */
-  getBrowserLang: function () {
+  getBrowserLang: function() {
     var ua = window.navigator.userAgent.toLowerCase();
     try {
       // chrome
@@ -26,7 +37,7 @@ ALGO.Util = {
    * [isSmartDevice description]
    * @return {Boolean} [description]
    */
-  isSmartDevice: function () {
+  isSmartDevice: function() {
     var ua = navigator.userAgent;
     var flag = false;
 
@@ -42,7 +53,7 @@ ALGO.Util = {
    * [getOS description]
    * @return {[type]} [description]
    */
-  getOS: function () {
+  getOS: function() {
     var os;
     var ua = window.navigator.userAgent.toLowerCase();
     if (ua.match(/win/)) {
@@ -61,7 +72,7 @@ ALGO.Util = {
    * [getBrowser description]
    * @return (ie6、ie7、ie8、ie9、ie10、ie11、chrome、safari、opera、firefox、unknown)
    */
-  getBrowser: function () {
+  getBrowser: function() {
     var ua = window.navigator.userAgent.toLowerCase();
     var ver = window.navigator.appVersion.toLowerCase();
     var name = 'unknown';
@@ -99,7 +110,7 @@ ALGO.Util = {
    * @param  {[type]}  browsers [description]
    * @return {Boolean}          [description]
    */
-  isSupported: function (browsers) {
+  isSupported: function(browsers) {
     var thusBrowser = getBrowser();
     for (var i = 0; i < browsers.length; i++) {
       if (browsers[i] == thusBrowser) {
@@ -114,7 +125,7 @@ ALGO.Util = {
    * [getQuery description]
    * @return {[type]} [description]
    */
-  getQuery: function () {
+  getQuery: function() {
     var query = window.location.search.substring(1);
     var parms = query.split('&');
     var p = {};

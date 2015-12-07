@@ -7,12 +7,14 @@ ALGO.RTC = (function(ALGO) {
   /**
    * Constructor
    */
-  ALGO.RTC = function( _useAudio, _useVideo) {
+  ALGO.RTC = function( _enableAudio, _enableVideo) {
     // ALGO.log('ALGO.RTC');
 
     var that = this;
-    this.useAudio = _useAudio;
-    this.useVideo = _useVideo;
+    this.enableAudio = _enableAudio;
+    this.enableVideo = _enableVideo;
+
+    this.isPlaying = false;
 
     // 使用クラスの汎用化
     navigator.getMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
@@ -22,8 +24,8 @@ ALGO.RTC = (function(ALGO) {
     //端末のビデオ、音声ストリームを取得
     try {
       navigator.getMedia({
-          video: this.useVideo,
-          audio: this.useAudio
+          video: true,
+          audio: true
         },
         // success
         function(stream) {
@@ -73,15 +75,47 @@ ALGO.RTC = (function(ALGO) {
     // video capture
     // srcにBlob URLを指定するとカメラの画像がストリームで流れる
     var windowURL = window.URL || window.webkitURL;
-    var videoSource = windowURL.createObjectURL(this.mediaStream);
+    this.videoSource = windowURL.createObjectURL(this.mediaStream);
 
+    ALGO.log(this.mediaStream);
+    ALGO.log(this.videoSource);
+
+    // video preview
+    this.videoElement = document.createElement('video');
+    // document.body.appendChild(this.videoElement);
+    this.videoElement.src = this.videoSource;
+    this.videoElement.id = 'video';
+    // this.videoElement.autoplay = true;
+    this.videoElement.muted = true;
+    this.videoElement.volume = 0;
+    // this.videoElement.style.visibility = 'hidden';
+
+    var that = this;
+    this.videoElement.addEventListener('canplay', function(e){
+      that.videoCanPlay(e);
+    }, true);
+  };
+
+  function videoCanPlay(e) {
+    this.videoElement.removeEventListener('canplay', null, true);
+    this.videoElement.play();
+    this.isPlaying = true;
   };
 
   function update() {
-    if(this.audioAnalyser) this.updateAnalyzer();
+    if(this.enableAudio){
+      this.updateAudio();
+    }
+    if(this.enableVideo){
+      this.updateVideo();
+    }
   };
 
-  function updateAnalyzer() {
+  function updateAudio() {
+    if(this.audioAnalyser) this.updateAudioAnalazer();
+  };
+
+  function updateAudioAnalazer(){
     //周波数データ
     this.audioAnalyser.getByteTimeDomainData(this.timeDomainData);
     this.audioAnalyser.getByteFrequencyData(this.frequencyData);
@@ -105,6 +139,9 @@ ALGO.RTC = (function(ALGO) {
     this.frequencyTotal = this.frequencyTotal / length;
   };
 
+  function updateVideo(){
+  };
+
   function getTimeDomainValues(){
     return this.timeDomainValues;
   };
@@ -121,6 +158,13 @@ ALGO.RTC = (function(ALGO) {
     return this.frequencyTotal;
   };
 
+  function setEnableAudio(_bool){
+    this.enableAudio = _bool;
+  };
+
+  function setEnableVideo(_bool){
+    this.enableVideo = _bool;
+  };
 
   ALGO.RTC.prototype = {
     constructor: ALGO.RTC,
@@ -128,8 +172,9 @@ ALGO.RTC = (function(ALGO) {
     /**
      * Property
      */
-    useAudio: false,
-    useVideo: false,
+    enableAudio: false,
+    enableVideo: false,
+    videoElement: null,
 
     frequencyValues: [],
     frequencyTotal: 0,
@@ -143,6 +188,9 @@ ALGO.RTC = (function(ALGO) {
     audioAnalyser: null,
     timeDomainData: null,
     frequencyData: null,
+    videoSource: null,
+
+    isPlaying: false,
 
     /**
      * define getter/setter
@@ -156,6 +204,8 @@ ALGO.RTC = (function(ALGO) {
     getTimeDomainTotal: getTimeDomainTotal,
     getFrequencyValues: getFrequencyValues,
     getFrequencyTotal: getFrequencyTotal,
+    setEnableAudio: setEnableAudio,
+    setEnableVideo: setEnableVideo,
 
     /**
      * Private Method
@@ -163,9 +213,12 @@ ALGO.RTC = (function(ALGO) {
     success: success,
     setupAudioAnalazer: setupAudioAnalazer,
     setupVideoRecorder: setupVideoRecorder,
-    updateAnalyzer: updateAnalyzer,
+    videoCanPlay: videoCanPlay,
+    updateAudio: updateAudio,
+    updateVideo: updateVideo,
+    updateAudioAnalazer: updateAudioAnalazer,
 
-  };;
+  };
 
   return ALGO.RTC;
 }(ALGO));

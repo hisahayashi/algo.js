@@ -27,31 +27,10 @@ ALGO.Rectangle.prototype.height = 0;
 ALGO.Rectangle.prototype.width_ = 0;
 ALGO.Rectangle.prototype.height_ = 0;
 
-ALGO.Rectangle.prototype.setGeometry = function(){
-  /* 頂点の位置を算出 */
-  var geometry = this.geometry = [];
-
-  geometry[0] = [];
-  geometry[0].x = -0.5;
-  geometry[0].y = -0.5;
-
-  geometry[1] = [];
-  geometry[1].x = 0.5;
-  geometry[1].y = -0.5;
-
-  geometry[2] = [];
-  geometry[2].x = 0.5;
-  geometry[2].y = 0.5;
-
-  geometry[3] = [];
-  geometry[3].x = -0.5;
-  geometry[3].y = 0.5;
-};
-
 ALGO.Rectangle.prototype.setScale = function(scale){
   if( this.m ){
-    var scaleX = this.width * scale;
-    var scaleY = this.height * scale;
+    var scaleX = this.width * 0.5 * scale;
+    var scaleY = this.height * 0.5 * scale;
 
     this.m.scale( this.matrix, [ scaleX, scaleY, 0.0 ], this.matrixScale );
     // ALGO.log( 'scale: ' + scale );
@@ -59,10 +38,31 @@ ALGO.Rectangle.prototype.setScale = function(scale){
   }
 };
 
+ALGO.Rectangle.prototype.setGeometry = function(){
+  /* 頂点の位置を算出 */
+  var geometry = this.geometry = [];
+
+  geometry[0] = [];
+  geometry[0].x = -1.0;
+  geometry[0].y = 1.0;
+
+  geometry[1] = [];
+  geometry[1].x = 1.0;
+  geometry[1].y = 1.0;
+
+  geometry[2] = [];
+  geometry[2].x = -1.0;
+  geometry[2].y = -1.0;
+
+  geometry[3] = [];
+  geometry[3].x = 1.0;
+  geometry[3].y = -1.0;
+};
+
 ALGO.Rectangle.prototype.setIndex = function(){
   var index = [
-    0, 1, 2,
-    0, 2, 3
+        0, 1, 2,
+        3, 2, 1
   ];
   this.index = index;
 };

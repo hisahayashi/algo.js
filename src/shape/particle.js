@@ -29,26 +29,49 @@ ALGO.Particle.prototype.constructor = ALGO.Particle;
  */
  ALGO.Particle.prototype.setGeometry = function( _geometry ){
   /* 頂点の位置を算出 */
-  var geometry = this.geometry = [];
-
-  // for (var i = 0; i < this.angles; i++) {
-  //   geometry[i] = {};
-  //   geometry[i].x = Math.cos(2 * i * Math.PI / this.angles - Math.PI / 2);
-  //   geometry[i].y = Math.sin(2 * i * Math.PI / this.angles - Math.PI / 2);
-  // }
-  // this.geometry = geometry;
-
   if( _geometry ){
     this.geometry = _geometry;
     this.vertexUpdate();
   }
-
+  // ALGO.log('geometry', this.geometry);
 };
 
 /**
  * [setIndex description]
  */
- ALGO.Particle.prototype.setIndex = function(){
+ALGO.Particle.prototype.setIndex = function(){
+};
+
+/**
+ * [textureCoord description]
+ */
+ ALGO.Particle.prototype.setTextureCoord = function(){
+  var length = this.geometry.length;
+  this.textureCoord = [
+    0.0, 0.0
+  ];
+  var count = 0;
+  for( var i = 0; i < length; i++ ){
+    switch(count){
+      case 0:
+      this.textureCoord.push(1.0);
+      this.textureCoord.push(0.0);
+      break;
+      case 1:
+      this.textureCoord.push(0.0);
+      this.textureCoord.push(1.0);
+      break;
+      case 2:
+      this.textureCoord.push(1.0);
+      this.textureCoord.push(1.0);
+      break;
+      default:
+      break;
+    }
+    count++;
+    if(count>2) count = 0;
+  }
+  // ALGO.log('textureCoord', this.textureCoord);
 };
 
 ALGO.Particle.prototype.setScale = function(scale) {

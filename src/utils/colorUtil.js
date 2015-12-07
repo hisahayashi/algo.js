@@ -47,11 +47,25 @@ ALGO.ColorUtil = {
     return obj;
   },
 
+  rgbNormalize: function(obj){
+    obj.r = obj.r / 256;
+    obj.g = obj.g / 256;
+    obj.b = obj.b / 256;
+    return obj;
+  },
+
   getRandomColorHex: function(){
     var r = ALGO.ColorUtil.getRandomColor(0, 256);
     var g = ALGO.ColorUtil.getRandomColor(0, 256);
     var b = ALGO.ColorUtil.getRandomColor(0, 256);
     return ALGO.ColorUtil.rgbToHex(r, g, b);
+  },
+
+  getRandomColorRGB: function(){
+    var r = ALGO.ColorUtil.getRandomColor(0, 256);
+    var g = ALGO.ColorUtil.getRandomColor(0, 256);
+    var b = ALGO.ColorUtil.getRandomColor(0, 256);
+    return {r: r, g: g, b: b};
   },
 
   getRandomColor: function(min, max){

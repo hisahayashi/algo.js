@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<title>algo.js examples: </title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+<style>
+body {
+  margin: 0;
+  padding: 0;
+  font-size: 0;
+  background-color: #000000;
+}
+canvas {
+  width: 100%;
+  height: 100%;
+}
+video{
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  width: 120px;
+  height: auto;
+}
+</style>
+</head>
+
+<body>
+<canvas id="canvas"></canvas>
+<script type="text/javascript" src="../build/algo.js"></script>
+<!-- <script type="text/javascript" src="../src/algo.js"></script> -->
+<script type="text/javascript" src="assets/js/libs/dat.gui.min.js"></script>
+<script type="text/javascript" src="assets/js/libs/stats.min.js"></script>
+<script type="text/javascript">
+var stats = new Stats();
+var param = {
+  id: 'canvas',
+  width: window.innerWidth,
+  height: window.innerHeight
+};
+var algo = new ALGO(param);
+algo.background = 0xffffff;
+algo.circleResolution = 32;
+algo.framerate = 30;
+algo.backgroundAuto = true;
+
+ALGO.log(algo);
+
+var image;
+var pixels = new Uint8Array();
+var step = 30;
+var isUpdatePixels = true;
+var particles = null;
+var firstWidth = 0;
+
+var rect;
+
+algo.bind('setup', function() {
+
+  // ALGO.log('width', image.width, 'height', image.height);
+
+  // tiles
+  particles = new ALGO.Particle(0, 0);
+  particles.pointsize = step;
+  particles.color = ALGO.ColorUtil.getRandomColorHex();
+  // p.color = 0xffffff;
+  algo.add(particles);
+  var geometry = [];
+  for( var yi = 0; yi < algo.height; yi += step){
+    for( var xi = 0; xi < algo.width; xi += step){
+      var vec = {
+        x: xi, y: yi
+      }
+      geometry.push(vec);
+    }
+  }
+  particles.setGeometry( geometry );
+  particles.vertexUpdate();
+  particles.needsUpdate = true;
+  firstWidth = algo.width;
+
+  var vc = particles.vertexColors;
+  for(var i = 0; i < particles.vertexColors.length; i += 4){
+    var color = ALGO.ColorUtil.getRandomColorRGB();
+    color = ALGO.ColorUtil.rgbNormalize(color);
+    var r = color.r;
+    var g = color.g;
+    var b = color.b;
+    var a = 255;
+    var num = i;
+    vc[num] = r;
+    vc[num + 1] = g;
+    vc[num + 2] = b;
+    vc[num + 3] = a;
+    particles.needsUpdate = true;
+  }
+
+  // image
+  image = new ALGO.Image(550, 260, 1024, 512, 'sample_two.jpg');
+  algo.add(image);
+
+  // tiles
+  // rect = new ALGO.Circle(700, 200, 200);
+  // rect.color = ALGO.ColorUtil.getRandomColorHex();
+  // algo.add(rect);
+
+  // rect = new ALGO.Rectangle(200, 200, 300, 300);
+  // rect.color = ALGO.ColorUtil.getRandomColorHex();
+  // algo.add(rect);
+
+  // stats
+  stats.domElement.style.position = 'fixed';
+  stats.domElement.style.right = '0px';
+  stats.domElement.style.top = '0px';
+  document.body.appendChild(stats.domElement);
+});
+
+algo.bind('frame', function() {
+  // image
+  if(image.isLoaded){
+    if(isUpdatePixels){
+      pixels = algo.readPixels();
+      image.alpha = 0;
+      image.needsUpdate = true;
+
+      isUpdatePixels = false;
+
+      // ALGO.log(pixels);
+      var vc = particles.vertexColors;
+      for(var i = 0; i < particles.geometry.length; i++){
+        var g = particles.geometry[i];
+        var x = g.x;
+        var y = g.y;
+        var index = (y * firstWidth + x) * 4;
+        var r = pixels[index+0] / 255;
+        var g = pixels[index+1] / 255;
+        var b = pixels[index+2] / 255;
+        var a = pixels[index+3] / 255;
+        if(a<=0){
+          r = 255;
+          g = 255;
+          b = 255;
+        }
+
+        var num = i * 4;
+        vc[num] = r;
+        vc[num + 1] = g;
+        vc[num + 2] = b;
+
+        particles.needsUpdate = true;
+        // ALGO.log(index, 'x', x, 'y', y, 'r', r, 'g', g, 'b', b, 'a', a);
+      }
+    }
+  }
+
+  // stats
+  stats.update();
+});
+
+algo.bind('resize', function() {
+  // ALGO.log('resize after');
+  var w = window.innerWidth;
+  var h = window.innerHeight;
+  algo.size(w, h);
+});
+
+</script>
+</body>
+
+</html>
