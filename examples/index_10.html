@@ -12,16 +12,9 @@ body {
   font-size: 0;
   background-color: #000000;
 }
-canvas {
+canvas#canvas {
   width: 100%;
   height: 100%;
-}
-video{
-  position: absolute;
-  left: 10px;
-  top: 10px;
-  width: 120px;
-  height: auto;
 }
 </style>
 </head>
@@ -37,54 +30,85 @@ var stats = new Stats();
 var param = {
   id: 'canvas',
   width: window.innerWidth,
-  height: window.innerHeight
+  height: window.innerHeight,
+  backgroundAuto: true
 };
 var algo = new ALGO(param);
+algo.width = window.innerWidth;
+algo.height = window.innerHeight;
 algo.background = 0xffffff;
-algo.circleResolution = 32;
+algo.backgroundAlpha = 0.0;
 algo.framerate = 60;
-algo.backgroundAuto = true;
+algo.circleResolution = 64;
+algo.blendMode = ALGO.BLEND_ALPHA;
 
 ALGO.log(algo);
 
-var rtc;
-var image;
-var particles;
-var step = 20;
-var isSet = false;
+var gui;
+var gval;
+var mx;
+var my;
+var line;
 
 algo.bind('setup', function() {
-  // rtc
-  rtc = new ALGO.RTC(false, true);
-  rtc.setupOpticalFlow(step);
-  ALGO.log(rtc);
-
-  // image
-  image = new ALGO.Image(algo.width*0.5, algo.height*0.5, algo.width, algo.height, null);
-  image.needsUpdate = true;
-  algo.add(image);
+  var aw = algo.width;
+  var ah = algo.height;
 
   // stats
   stats.domElement.style.position = 'fixed';
-  stats.domElement.style.right = '0px';
+  stats.domElement.style.left = '0px';
   stats.domElement.style.top = '0px';
   document.body.appendChild(stats.domElement);
+
+  // gui
+  var FizzyText = function() {
+    this.value = 0.5;
+    this.x_count = 8;
+    this.y_count = 4;
+  };
+
+  gval = new FizzyText();
+  gui = new dat.GUI();
+  gui.remember( gval );
+  gui.x_count = gui.add(gval, 'x_count', 4, 50);
+  gui.y_count = gui.add(gval, 'y_count', 2, 50);
+
+  gui.x_count.onFinishChange(function(value) {
+  });
+
+  gui.y_count.onFinishChange(function(value) {
+  });
+
+  line = new ALGO.Path(0, 0);
+  for(var i = 0; i < 100; i++){
+    line.lineTo(aw, ah);
+  }
+  line.color = 0x000000;
+  line.fill = false;
+  line.line = true;
+  line.lineColor = 0x000000;
+  algo.add(line);
 });
 
 algo.bind('frame', function() {
-  // rtc
-  rtc.update();
-
-  if(rtc.isPlaying && !isSet){
-    image.setLoaded(true);
-    image.image = rtc.videoElement;
-    image.needsUpdate = true;
-    isSet = true;
-    ALGO.log(image);
-  }
+  var aw = algo.width;
+  var ah = algo.height;
 
   // stats
   stats.update();
+});
+
+algo.bind('mousemove', function(mousex, mousey) {
+  mx = mousex;
+  my = mousey;
+  // path.lineTo( mx, my );
+});
+
+algo.bind('mousedown', function(mousex, mousey) {
+  // path.clear();
+});
+
+algo.bind('mouseover', function(mousex, mousey) {
 });
 
 algo.bind('resize', function() {
@@ -93,7 +117,6 @@ algo.bind('resize', function() {
   var h = window.innerHeight;
   algo.size(w, h);
 });
-
 </script>
 </body>
 

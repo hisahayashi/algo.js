@@ -15,6 +15,8 @@ var selector = {
     // 'src/other/delaunay.js',
     'src/other/poly2tri.js',
     'src/other/bufferLoader.js',
+    'src/other/oflow.js',
+    'src/other/earcut.js',
 
     /* core */
     'src/algo.js',

@@ -142,6 +142,20 @@ ALGO.RTC = (function(ALGO) {
   function updateVideo(){
   };
 
+  function setupOpticalFlow(_step){
+    this.opticalFlow = new FlowCalculator(_step);
+  };
+
+  function updateOpticalFlow(_buffer, _width, _height){
+    var zones;
+    this.newImage = _buffer;
+    if (this.oldImage && this.newImage) {
+        zones = this.opticalFlow.calculate(this.oldImage, this.newImage, _width, _height);
+    }
+    this.oldImage = this.newImage;
+    return zones;
+  };
+
   function getTimeDomainValues(){
     return this.timeDomainValues;
   };
@@ -206,6 +220,9 @@ ALGO.RTC = (function(ALGO) {
     getFrequencyTotal: getFrequencyTotal,
     setEnableAudio: setEnableAudio,
     setEnableVideo: setEnableVideo,
+
+    setupOpticalFlow: setupOpticalFlow,
+    updateOpticalFlow: updateOpticalFlow,
 
     /**
      * Private Method
