@@ -60,6 +60,16 @@ ALGO.Path.prototype.geometryToPoly = function( geometry, start_count ){
  */
 ALGO.Path.prototype.setIndex = function() {
   // set index
+  this.index = [];
+  this.index = earcut([this.geometry, this.hole, 3]);
+
+};
+
+/**
+ * [setIndex description]
+ */
+ALGO.Path.prototype.setIndex_poly2tri = function() {
+  // set index
   var index = this.index = [];
   var length = this.geometry.length;
 

@@ -57,6 +57,7 @@ function createShape( vertex, index ){
   // p.fill = false;
   p.color = 0x333333;
   p.close();
+  p.line = true;
   algo.add( p );
   paths[index] = p;
   return p;
@@ -94,8 +95,8 @@ algo.bind('setup', function() {
         else{
           p.holes.push( vertex );
         }
-        ALGO.log( j + ', ' + vertex.length );
-        ALGO.log( p.holes );
+        ALGO.log( 'vertex.length', j + ', ' + vertex.length );
+        ALGO.log( 'p.holes', p.holes );
 
       }
 
