@@ -99,13 +99,17 @@ var ALGO = (function () {
     window.onmouseout = function () {
       if (that.mouseout) that.mouseout.call(that);
     };
-    window.onmousedown = function () {
-      if (that.mousedown) that.mousedown.call(that);
+    window.onmousedown = function (e) {
+      if (that.mousedown){
+        var mousex = e.clientX;
+        var mousey = e.clientY;
+        that.mousedown.call(that, mousex, mousey);
+      }
     };
     window.onmouseup = function () {
       if (that.mouseup) that.mouseup.call(that);
     };
-    window.onmousemove = function ( e ) {
+    window.onmousemove = function (e) {
       if (that.mousemove){
         var mousex = e.clientX;
         var mousey = e.clientY;

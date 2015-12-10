@@ -3962,13 +3962,17 @@ var ALGO = (function () {
     window.onmouseout = function () {
       if (that.mouseout) that.mouseout.call(that);
     };
-    window.onmousedown = function () {
-      if (that.mousedown) that.mousedown.call(that);
+    window.onmousedown = function (e) {
+      if (that.mousedown){
+        var mousex = e.clientX;
+        var mousey = e.clientY;
+        that.mousedown.call(that, mousex, mousey);
+      }
     };
     window.onmouseup = function () {
       if (that.mouseup) that.mouseup.call(that);
     };
-    window.onmousemove = function ( e ) {
+    window.onmousemove = function (e) {
       if (that.mousemove){
         var mousex = e.clientX;
         var mousey = e.clientY;
@@ -4178,8 +4182,8 @@ ALGO.prototype.__defineSetter__('circleResolution', function(value) {
 ALGO.prototype.width = 0;
 ALGO.prototype.height = 0;
 ALGO.prototype.blendMode = ALGO.BLEND_ALPHA;
-ALGO.prototype.background = 0x666666;
-ALGO.prototype.backgroundAlpha = 0.5;
+ALGO.prototype.background = 0xcccccc;
+ALGO.prototype.backgroundAlpha = 1.0;
 ALGO.prototype.backgroundAuto = true;
 ALGO.prototype.framerate = 60;
 ALGO.prototype.circleResolution = 32;
@@ -5250,6 +5254,13 @@ ALGO.Shape = (function() {
     this.setVertexAlpha( this.alpha, this.vertexColors );
     this.setVertexColor( this.lineColor, this.vertexLineColors );
     this.setVertexAlpha( this.lineAlpha, this.vertexLineColors );
+    this.setIndex();
+    this.setTextureCoord();
+
+    // setup matrix
+    this.setScale( this.scale );
+    this.setRotate( this.rotate );
+    this.setTranslate( this.x, this.y );
   };
 
   /**
@@ -5880,8 +5891,7 @@ ALGO.Path.prototype.geometryToPoly = function( geometry, start_count ){
 ALGO.Path.prototype.setIndex = function() {
   // set index
   this.index = [];
-  this.index = earcut([this.geometry, this.hole, 3]);
-
+  this.index = earcut(this.geometry, this.hole, 1);
 };
 
 /**
@@ -6042,6 +6052,32 @@ ALGO.Path.prototype.lineTo = function(x, y) {
  */
 ALGO.Path.prototype.close = function() {
   this.closed = true;
+};
+
+/**
+ * [clear description]
+ * @return {[type]} [description]
+ */
+ALGO.Path.prototype.clear = function(){
+  this.geometry = [];
+  this.vertexPosition = [];
+  this.vertexColors = [];
+  this.vertexLineColors = [];
+
+  this.setVertexPosition();
+  this.setVertexColor( this.color, this.vertexColors );
+  this.setVertexAlpha( this.alpha, this.vertexColors );
+  this.setVertexColor( this.lineColor, this.vertexLineColors );
+  this.setVertexAlpha( this.lineAlpha, this.vertexLineColors );
+  this.setIndex();
+  this.setTextureCoord();
+
+  // setup matrix
+  this.setScale( this.scale );
+  this.setRotate( this.rotate );
+  this.setTranslate( this.x, this.y );
+
+  this.closed = false;
 };
 
 /**
@@ -7693,6 +7729,19 @@ ALGO.RTC = (function(ALGO) {
   function updateVideo(){
   };
 
+  function readVideoPixels(_w, _h){
+    if(!this.videoElement) return false;
+    var canvas = document.createElement('canvas');
+    var ctx = canvas.getContext('2d');
+    var videoWidth = _w;
+    var videoHeight = _h;
+    canvas.width = videoWidth;
+    canvas.height = videoHeight;
+    ctx.drawImage(this.videoElement, 0, 0, videoWidth, videoHeight);
+    var data = ctx.getImageData(0, 0, videoWidth, videoHeight);
+    return data;
+  };
+
   function setupOpticalFlow(_step){
     this.opticalFlow = new FlowCalculator(_step);
   };
@@ -7772,6 +7821,7 @@ ALGO.RTC = (function(ALGO) {
     setEnableAudio: setEnableAudio,
     setEnableVideo: setEnableVideo,
 
+    readVideoPixels: readVideoPixels,
     setupOpticalFlow: setupOpticalFlow,
     updateOpticalFlow: updateOpticalFlow,
 
@@ -8143,6 +8193,11 @@ ALGO.ColorUtil = {
     return obj;
   },
 
+  /**
+   * [rgbNormalize description]
+   * @param  {[type]} obj [description]
+   * @return {[type]}     [description]
+   */
   rgbNormalize: function(obj){
     obj.r = obj.r / 256;
     obj.g = obj.g / 256;
@@ -8150,6 +8205,132 @@ ALGO.ColorUtil = {
     return obj;
   },
 
+  /**
+  * RGB配列 を HSV配列 へ変換します
+  *
+  * @param   {Number}  r         red値   ※ 0～255 の数値
+  * @param   {Number}  g         green値 ※ 0～255 の数値
+  * @param   {Number}  b         blue値  ※ 0～255 の数値
+  * @param   {Boolean} coneModel 円錐モデルにするか
+  * @return  {Object}  {h, s, v} ※ h は 0～360の数値、s/v は 0～255 の数値
+  */
+  rgbToHsv: function(r, g, b, coneModel) {
+    var h, // 0..360
+        s, v, // 0..255
+        max = Math.max(Math.max(r, g), b),
+        min = Math.min(Math.min(r, g), b);
+
+    // hue の計算
+    if (max == min) {
+      h = 0; // 本来は定義されないが、仮に0を代入
+    } else if (max == r) {
+      h = 60 * (g - b) / (max - min) + 0;
+    } else if (max == g) {
+      h = (60 * (b - r) / (max - min)) + 120;
+    } else {
+      h = (60 * (r - g) / (max - min)) + 240;
+    }
+
+    while (h < 0) {
+      h += 360;
+    }
+
+    // saturation の計算
+    if (coneModel) {
+      // 円錐モデルの場合
+      s = max - min;
+    } else {
+      s = (max == 0)
+        ? 0 // 本来は定義されないが、仮に0を代入
+        : (max - min) / max * 255;
+    }
+
+    // value の計算
+    v = max;
+
+    return {'h': h, 's': s, 'v': v};
+  },
+
+  /**
+   * HSV配列 を RGB配列 へ変換します
+   *
+   * @param   {Number}  h         hue値        ※ 0～360の数値
+   * @param   {Number}  s         saturation値 ※ 0～255 の数値
+   * @param   {Number}  v         value値      ※ 0～255 の数値
+   * @return  {Object}  {r, g, b} ※ r/g/b は 0～255 の数値
+   */
+  hsvToRgb: function(h, s, v) {
+    var r, g, b; // 0..255
+
+    while (h < 0) {
+      h += 360;
+    }
+
+    h = h % 360;
+
+    // 特別な場合 saturation = 0
+    if (s == 0) {
+      // → RGB は V に等しい
+      v = Math.round(v);
+      return {
+        'r': v,
+        'g': v,
+        'b': v
+      };
+    }
+
+    s = s / 255;
+
+    var i = Math.floor(h / 60) % 6,
+      f = (h / 60) - i,
+      p = v * (1 - s),
+      q = v * (1 - f * s),
+      t = v * (1 - (1 - f) * s)
+
+    switch (i) {
+      case 0:
+        r = v;
+        g = t;
+        b = p;
+        break;
+      case 1:
+        r = q;
+        g = v;
+        b = p;
+        break;
+      case 2:
+        r = p;
+        g = v;
+        b = t;
+        break;
+      case 3:
+        r = p;
+        g = q;
+        b = v;
+        break;
+      case 4:
+        r = t;
+        g = p;
+        b = v;
+        break;
+      case 5:
+        r = v;
+        g = p;
+        b = q;
+        break;
+    }
+
+    return {
+      'r': Math.round(r),
+      'g': Math.round(g),
+      'b': Math.round(b)
+    };
+  },
+
+  /**
+   * [getRandomColorHex description]
+   * @return {[type]} [description]
+   */
   getRandomColorHex: function(){
     var r = ALGO.ColorUtil.getRandomColor(0, 256);
     var g = ALGO.ColorUtil.getRandomColor(0, 256);
@@ -8157,6 +8338,10 @@ ALGO.ColorUtil = {
     return ALGO.ColorUtil.rgbToHex(r, g, b);
   },
 
+  /**
+   * [getRandomColorRGB description]
+   * @return {[type]} [description]
+   */
   getRandomColorRGB: function(){
     var r = ALGO.ColorUtil.getRandomColor(0, 256);
     var g = ALGO.ColorUtil.getRandomColor(0, 256);
@@ -8164,12 +8349,19 @@ ALGO.ColorUtil = {
     return {r: r, g: g, b: b};
   },
 
+  /**
+   * [getRandomColor description]
+   * @param  {[type]} min [description]
+   * @param  {[type]} max [description]
+   * @return {[type]}     [description]
+   */
   getRandomColor: function(min, max){
     if(min < 0) min = 0;
     if(max > 256) max = 256;
     if(min > max) min = max;
     if(max < min) max = min;
-    return Math.floor(Math.random() * max) + min;
+    max++;
+    return Math.floor(Math.random() * (max - min)) + min;
   },
 
 };

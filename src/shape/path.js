@@ -61,8 +61,7 @@ ALGO.Path.prototype.geometryToPoly = function( geometry, start_count ){
 ALGO.Path.prototype.setIndex = function() {
   // set index
   this.index = [];
-  this.index = earcut([this.geometry, this.hole, 3]);
-
+  this.index = earcut(this.geometry, this.hole, 1);
 };
 
 /**
@@ -223,4 +222,30 @@ ALGO.Path.prototype.lineTo = function(x, y) {
  */
 ALGO.Path.prototype.close = function() {
   this.closed = true;
+};
+
+/**
+ * [clear description]
+ * @return {[type]} [description]
+ */
+ALGO.Path.prototype.clear = function(){
+  this.geometry = [];
+  this.vertexPosition = [];
+  this.vertexColors = [];
+  this.vertexLineColors = [];
+
+  this.setVertexPosition();
+  this.setVertexColor( this.color, this.vertexColors );
+  this.setVertexAlpha( this.alpha, this.vertexColors );
+  this.setVertexColor( this.lineColor, this.vertexLineColors );
+  this.setVertexAlpha( this.lineAlpha, this.vertexLineColors );
+  this.setIndex();
+  this.setTextureCoord();
+
+  // setup matrix
+  this.setScale( this.scale );
+  this.setRotate( this.rotate );
+  this.setTranslate( this.x, this.y );
+
+  this.closed = false;
 };

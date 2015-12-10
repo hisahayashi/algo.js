@@ -104,6 +104,13 @@ ALGO.Shape = (function() {
     this.setVertexAlpha( this.alpha, this.vertexColors );
     this.setVertexColor( this.lineColor, this.vertexLineColors );
     this.setVertexAlpha( this.lineAlpha, this.vertexLineColors );
+    this.setIndex();
+    this.setTextureCoord();
+
+    // setup matrix
+    this.setScale( this.scale );
+    this.setRotate( this.rotate );
+    this.setTranslate( this.x, this.y );
   };
 
   /**

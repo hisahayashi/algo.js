@@ -26,7 +26,6 @@ canvas {
 <!-- <script type="text/javascript" src="../src/algo.js"></script> -->
 <script type="text/javascript" src="assets/js/libs/dat.gui.min.js"></script>
 <script type="text/javascript">
-var num = 1000;
 var param = {
   id: 'canvas',
   width: window.innerWidth,
@@ -44,54 +43,52 @@ algo.blendMode = ALGO.BLEND_ALPHA;
 
 ALGO.log(algo);
 
-var triangles = [];
+var path;
 
 algo.bind('setup', function() {
-  var aw = algo.width;
-  var ah = algo.height;
 
-  for (var i = 0; i < num; i++) {
-    var x = Math.random() * aw;
-    var y = Math.random() * ah;
+  var cx = algo.width*0.5;
+  var cy = algo.height*0.5;
 
-    var r = Math.floor( Math.random() * 255 * 0.2 );
-    var g = Math.floor( Math.random() * 255 * 0.2 );
-    var b = Math.floor( Math.random() * 255 );
-    var hex = ALGO.ColorUtil.rgbToHex( r, g, b );
+  // var p1 = {x: cx, y: cy};
+  // var p2 = {x: cx, y: cy};
+  // path = new ALGO.Path(p1, p2);
+  path = new ALGO.Path();
+  path.color = ALGO.ColorUtil.getRandomColorHex();
+  path.lineColor = ALGO.ColorUtil.getRandomColorHex();
+  path.line = true;
+  path.lineWidth = 2;
 
-    var t = new ALGO.Polygon( x, y, 6, 4 );
-    t.dx = Math.random() * 4 - 2;
-    t.dy = Math.random() * 4 - 2;
-    t.color = hex;
-    algo.add(t);
-    triangles.push(t);
+  var resolution = 32;
+  var angle = 360 / resolution;
+  for( var i = 0; i < resolution; i++ ){
+    var x = Math.sin( Math.PI / 180 * i * angle ) * 200 + cx;
+    var y = Math.cos( Math.PI / 180 * i * angle ) * 200 + cy;
+    path.lineTo( x, y );
   }
+
+  algo.add(path);
 });
 
 algo.bind('frame', function() {
   var aw = algo.width;
   var ah = algo.height;
 
-  for (var i = 0; i < num; i++) {
-    var t = triangles[i];
-    t.x += t.dx;
-    t.y += t.dy;
+  path.needsUpdate = true;
+});
 
-    if( t.x > aw ){
-      t.x = 0;
-    } else if( t.x < 0 ){
-      t.x = aw;
-    }
+algo.bind('mousemove', function( mousex, mousey ) {
+  var mx = mousex + Math.random() * 20;
+  var my = mousey + Math.random() * 20;
+  path.lineTo( mx, my );
+});
 
-    if( t.y > ah ){
-      t.y = 0;
-    } else if( t.y < 0 ){
-      t.y = ah;
-    }
-  }
+algo.bind('mousedown', function( mousex, mousey ) {
+  path.close();
+});
 
-  // stats
-  stats.update();
+algo.bind('mouseup', function() {
+  path.clear();
 });
 
 algo.bind('resize', function() {

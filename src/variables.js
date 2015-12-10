@@ -49,8 +49,8 @@ ALGO.prototype.__defineSetter__('circleResolution', function(value) {
 ALGO.prototype.width = 0;
 ALGO.prototype.height = 0;
 ALGO.prototype.blendMode = ALGO.BLEND_ALPHA;
-ALGO.prototype.background = 0x666666;
-ALGO.prototype.backgroundAlpha = 0.5;
+ALGO.prototype.background = 0xcccccc;
+ALGO.prototype.backgroundAlpha = 1.0;
 ALGO.prototype.backgroundAuto = true;
 ALGO.prototype.framerate = 60;
 ALGO.prototype.circleResolution = 32;

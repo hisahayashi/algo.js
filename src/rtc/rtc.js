@@ -142,6 +142,19 @@ ALGO.RTC = (function(ALGO) {
   function updateVideo(){
   };
 
+  function readVideoPixels(_w, _h){
+    if(!this.videoElement) return false;
+    var canvas = document.createElement('canvas');
+    var ctx = canvas.getContext('2d');
+    var videoWidth = _w;
+    var videoHeight = _h;
+    canvas.width = videoWidth;
+    canvas.height = videoHeight;
+    ctx.drawImage(this.videoElement, 0, 0, videoWidth, videoHeight);
+    var data = ctx.getImageData(0, 0, videoWidth, videoHeight);
+    return data;
+  };
+
   function setupOpticalFlow(_step){
     this.opticalFlow = new FlowCalculator(_step);
   };
@@ -221,6 +234,7 @@ ALGO.RTC = (function(ALGO) {
     setEnableAudio: setEnableAudio,
     setEnableVideo: setEnableVideo,
 
+    readVideoPixels: readVideoPixels,
     setupOpticalFlow: setupOpticalFlow,
     updateOpticalFlow: updateOpticalFlow,
 

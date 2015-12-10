@@ -12,7 +12,6 @@ body {
   font-size: 0;
   background-color: #000000;
 }
-
 canvas {
   width: 100%;
   height: 100%;
@@ -26,6 +25,7 @@ canvas {
 <!-- <script type="text/javascript" src="../src/algo.js"></script> -->
 <script type="text/javascript" src="assets/js/libs/dat.gui.min.js"></script>
 <script type="text/javascript">
+var num = 1000;
 var param = {
   id: 'canvas',
   width: window.innerWidth,
@@ -38,42 +38,56 @@ algo.background = 0xffffff;
 algo.backgroundAuto = true;
 algo.backgroundAlpha = 0.8;
 algo.framerate = 60;
-algo.circleResolution = 8;
+algo.circleResolution = 32;
 algo.blendMode = ALGO.BLEND_ALPHA;
 
 ALGO.log(algo);
 
-var shape;
-var rot = 0;
+var circles = [];
 
 algo.bind('setup', function() {
+  var aw = algo.width;
+  var ah = algo.height;
 
-  shape = new ALGO.Shape(0, 0, 250);
-  shape.color = 0x0066cc;
-  shape.scale = 1;
-  // shape.width = 150;
-  // shape.height = 10;
-  shape.alpha = 0.3;
-  algo.add(shape);
+  for (var i = 0; i < num; i++) {
+    var x = Math.random() * aw;
+    var y = Math.random() * ah;
+    var radius = Math.floor(Math.random() * 3) + 3;
+    var t = new ALGO.Circle( x, y, radius );
+    t.dx = Math.random() * 4 - 2;
+    t.dy = Math.random() * 4 - 2;
+    var r = ALGO.ColorUtil.getRandomColor(30,40);
+    var g = ALGO.ColorUtil.getRandomColor(150,230);
+    var b = ALGO.ColorUtil.getRandomColor(230,255);
+    // ALGO.log(r, g, b);
+    t.color = ALGO.ColorUtil.rgbToHex(r, g, b);
+    algo.add(t);
+    circles.push(t);
+  }
 });
 
 algo.bind('frame', function() {
   var aw = algo.width;
   var ah = algo.height;
 
-  rot += 2;
+  for (var i = 0; i < num; i++) {
+    var t = circles[i];
+    t.x += t.dx;
+    t.y += t.dy;
 
-  shape.x = aw * 0.5;
-  shape.y = ah * 0.5;
-  shape.rotate = rot;
+    if( t.x > aw ){
+      t.x = 0;
+    } else if( t.x < 0 ){
+      t.x = aw;
+    }
 
-  // shape.scale = Math.sin( rot * Math.PI / 180 );
-  shape.radius = Math.sin( rot * Math.PI / 180 ) * 100;
+    if( t.y > ah ){
+      t.y = 0;
+    } else if( t.y < 0 ){
+      t.y = ah;
+    }
+  }
 
-  // shape.width = Math.sin( rot * Math.PI / 180 ) * 300;
-  // shape.height = Math.cos( rot * Math.PI / 180 ) * 100;
-
-  shape.needsUpdate = true;
 });
 
 algo.bind('resize', function() {

@@ -10,7 +10,7 @@ body {
   margin: 0;
   padding: 0;
   font-size: 0;
-  background-color: #000000;
+  background-color: #ffffff;
 }
 
 canvas {
@@ -29,77 +29,76 @@ canvas {
 var param = {
   id: 'canvas',
   width: window.innerWidth,
-  height: window.innerHeight
+  height: window.innerHeight,
+  backgroundAuto: false
 };
 var algo = new ALGO(param);
 algo.width = window.innerWidth;
 algo.height = window.innerHeight;
 algo.background = 0xffffff;
-algo.backgroundAuto = true;
-algo.backgroundAlpha = 0.8;
+algo.backgroundAlpha = 0.5;
 algo.framerate = 60;
 algo.circleResolution = 8;
 algo.blendMode = ALGO.BLEND_ALPHA;
 
 ALGO.log(algo);
 
-var path;
-var mx;
-var my;
+var rect;
+var bg;
 
 algo.bind('setup', function() {
+  var aw = algo.width;
+  var ah = algo.height;
 
-  var p1 = { x: 0, y: 0 };
-  var p2 = { x: 100, y: 100 };
-  path = new ALGO.Path( p1, p2 );
-  path.color = 0xcccccc;
-  path.lineColor = 0x000000;
-  path.line = true;
+  rect = new ALGO.Rectangle(0, 0, 100, 30);
+  rect.color = 0xffffff;
+  rect.scale = 2.0;
+  rect.width = 150;
+  rect.height = 1.5;
+  rect.tx = 0;
+  rect.ty = 0;
+  rect.alpha = 1.0;
+  algo.add(rect);
 
-  // path.fill = false;
-  // path.fillColor = 0x00ffff;
-
-  // path.line = true;
-  // path.lineWidth = 3;
-  // path.lineColor = 0x0000ff;
-
-  // var resolution = 120;
-  // var angle = 360 / resolution;
-  // for( var i = 0; i < resolution; i++ ){
-  //   var x = Math.sin( Math.PI / 180 * i * angle ) * 200 + 300;
-  //   var y = Math.cos( Math.PI / 180 * i * angle ) * 200 + 300;
-  //   path.lineTo( x, y );
-  // }
-
-  algo.add(path);
-
-  // ALGO.log( path.geometry.length );
-  // ALGO.log( path.vertexPosition.length );
-  // ALGO.log( path.vertexColors.length );
+  bg = new ALGO.Rectangle(aw*0.5, ah*0.5, aw, ah);
+  bg.color = 0xffffff;
+  bg.alpha = 0.001;
+  algo.add(bg);
 });
 
 algo.bind('frame', function() {
   var aw = algo.width;
   var ah = algo.height;
 
-  path.needsUpdate = true;
-});
+  rect.x += (rect.tx - rect.x) * 0.1;
+  rect.y += (rect.ty - rect.y) * 0.1;
 
-algo.bind('mousemove', function( mousex, mousey ) {
-  mx = mousex;
-  my = mousey;
-  path.lineTo( mx, my );
-});
-
-algo.bind('mousedown', function( mousex, mousey ) {
-  path.clear();
+  rect.rotate += 1;
+  rect.width = Math.sin( rect.rotate * Math.PI / 180 ) * 100;
+  var h = rect.rotate;
+  var s = 180;
+  var v = 230;
+  var rgb = ALGO.ColorUtil.hsvToRgb(h,s,v);
+  rect.color = ALGO.ColorUtil.rgbToHex(rgb.r,rgb.g,rgb.b);
+  // rect.height = Math.cos( rect.rotate * Math.PI / 180 ) * 100;
+  rect.needsUpdate = true;
+  if(rect.rotate >= 360) rect.rotate = 0;
 });
 
 algo.bind('resize', function() {
-  // ALGO.log('resize after');
   var w = window.innerWidth;
   var h = window.innerHeight;
   algo.size(w, h);
+
+  bg.x = w * 0.5;
+  bg.y = h * 0.5;
+  bg.width = w;
+  bg.height = h;
+});
+
+algo.bind('mousemove', function(mousex, mousey) {
+  rect.tx = mousex;
+  rect.ty = mousey;
 });
 </script>
 </body>

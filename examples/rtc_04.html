@@ -40,7 +40,7 @@ var param = {
 var algo = new ALGO(param);
 algo.background = 0xffffff;
 algo.circleResolution = 32;
-algo.framerate = 60;
+algo.framerate = 30;
 algo.backgroundAuto = true;
 
 ALGO.log(algo);
@@ -48,71 +48,52 @@ ALGO.log(algo);
 var rtc;
 var image;
 var particles;
-var step = 20;
+var step = 2;
 var isSet = false;
 
 algo.bind('setup', function() {
-
   // rtc
   rtc = new ALGO.RTC(false, true);
   rtc.setupOpticalFlow(step);
-  ALGO.log(rtc);
-
-  // image
-  image = new ALGO.Image(algo.width*0.5, algo.height*0.5, algo.width, algo.height, null);
-  image.needsUpdate = true;
-  algo.add(image);
-
-  // particle
-  particles = new ALGO.Particle(0, 0);
-  particles.pointsize = 3;
-  particles.color = ALGO.ColorUtil.getRandomColorHex();
-  var geometry = [];
-  for( var yi = 0; yi < algo.height; yi += step){
-    for( var xi = 0; xi < algo.width; xi += step){
-      var vec = {
-        x: xi, y: yi
-      }
-      geometry.push(vec);
-    }
-  }
-  particles.setGeometry( geometry );
-  particles.vertexUpdate();
-  particles.needsUpdate = true;
-  algo.add(particles);
-
-  ALGO.log('geometry', geometry.length);
 });
 
 algo.bind('frame', function() {
   // rtc
   rtc.update();
 
-  var buffer = algo.readPixels();
-  var oflow = rtc.updateOpticalFlow(buffer, algo.width, algo.height);
-  // ALGO.log(oflow);
-  if(oflow && oflow.u != 0 && oflow.v != 0 && particles.geometry.length){
-    // ALGO.log('oflow.zones.length', oflow.zones.length);
-    // ALGO.log(particles.geometry);
+  var imagedata = rtc.readVideoPixels(640, 480);
+  var oflow = rtc.updateOpticalFlow(imagedata.data, 640, 480);
+
+  var xRatio = algo.width / 640;
+  var yRatio = algo.height / 480;
+
+  if(oflow){
+    var geometry = [];
+
     for(var i = 0, l = oflow.zones.length; i < l; i++){
       var z = oflow.zones[i];
-      // ALGO.log(i, z);
-      particles.geometry[i].x = z.x;
-      particles.geometry[i].y = z.y;
+      if(z.v > 0.5 || z.u > 0.5 || z.v < -0.5 ||z.u < -0.5){
+        var vec = {};
+        vec.x = z.x * xRatio;
+        vec.y = z.y * yRatio;
+        geometry.push(vec);
+      }
     }
-  }
 
-  if(rtc.isPlaying && !isSet){
-    image.setLoaded(true);
-    image.image = rtc.videoElement;
-    image.needsUpdate = true;
-    isSet = true;
-    ALGO.log(image);
+    if(particles){
+      algo.remove(particles);
+    }
+
+    particles = new ALGO.Particle(0, 0);
+    particles.pointsize = 4;
+    particles.color = 0x000000;
+    particles.setGeometry(geometry);
+    particles.needsUpdate = true;
+    algo.add(particles);
   }
 });
 
 algo.bind('resize', function() {
-  // ALGO.log('resize after');
   var w = window.innerWidth;
   var h = window.innerHeight;
   algo.size(w, h);

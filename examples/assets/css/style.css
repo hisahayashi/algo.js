@@ -109,7 +109,8 @@ body {
     #index #button a {
       display: block;
       padding: 10px;
-      background: #fff; }
+      background: #fff;
+      border: #eee solid 1px; }
   #index #nav {
     position: fixed;
     left: 0;

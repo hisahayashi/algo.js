@@ -39,61 +39,60 @@ algo.background = 0xffffff;
 algo.backgroundAuto = true;
 algo.backgroundAlpha = 0.8;
 algo.framerate = 60;
-algo.circleResolution = 8;
+algo.circleResolution = 32;
 algo.blendMode = ALGO.BLEND_ALPHA;
 
 ALGO.log(algo);
 
-var t1, t2, t3, t4;
+var s1, s2, s3, s4;
 
 algo.bind('setup', function() {
-  t1 = new ALGO.Circle(0, 0, 10);
-  t1.color = 0x99ffcc;
-  t1.scale = 10;
-  t1.radius = 100;
-  t1.alpha = 0.3;
-  algo.add(t1);
+  s1 = new ALGO.Circle(0, 0, 10);
+  s1.color = 0x99ffcc;
+  s1.scale = 8;
+  s1.radius = 100;
+  algo.add(s1);
 
-  t2 = new ALGO.Polygon(0, 0, 5, 10);
-  t2.color = 0x3399cc;
-  t2.scale = 10;
-  algo.add(t2);
+  s2 = new ALGO.Polygon(0, 0, 6, 10);
+  s2.color = 0x3399cc;
+  s2.scale = 8;
+  algo.add(s2);
 
-  t3 = new ALGO.Polygon(0, 0, 4, 10);
-  t3.color = 0xff6600;
-  t3.scale = 10;
-  t3.rotate = 30;
-  algo.add(t3);
+  s3 = new ALGO.Rectangle(0, 0, 8, 20);
+  s3.color = 0xff6600;
+  s3.scale = 8;
+  s3.rotate = 30;
+  algo.add(s3);
 
-  t4 = new ALGO.Polygon(0, 0, 8, 10);
-  t4.color = 0xff0033;
-  t4.scale = 10;
-  algo.add(t4);
+  s4 = new ALGO.Polygon(0, 0, 8, 10);
+  s4.color = 0xff0033;
+  s4.scale = 8;
+  algo.add(s4);
 });
 
 algo.bind('frame', function() {
   var aw = algo.width;
   var ah = algo.height;
 
-  t1.x = aw * 0.2;
-  t1.y = ah * 0.5;
-  t1.rotate += 1;
-  t1.needsUpdate = true;
+  s1.x = aw * 0.2;
+  s1.y = ah * 0.5;
+  s1.rotate += 1;
+  s1.needsUpdate = true;
 
-  t2.x = aw * 0.4;
-  t2.y = ah * 0.5;
-  t2.rotate += 1;
-  t2.needsUpdate = true;
+  s2.x = aw * 0.4;
+  s2.y = ah * 0.5;
+  s2.rotate += 1;
+  s2.needsUpdate = true;
 
-  t3.x = aw * 0.6;
-  t3.y = ah * 0.5;
-  t3.rotate += 1;
-  t3.needsUpdate = true;
+  s3.x = aw * 0.6;
+  s3.y = ah * 0.5;
+  s3.rotate += 1;
+  s3.needsUpdate = true;
 
-  t4.x = aw * 0.8;
-  t4.y = ah * 0.5;
-  t4.rotate += 1;
-  t4.needsUpdate = true;
+  s4.x = aw * 0.8;
+  s4.y = ah * 0.5;
+  s4.rotate += 1;
+  s4.needsUpdate = true;
 });
 
 algo.bind('resize', function() {
