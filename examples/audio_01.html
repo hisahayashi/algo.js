@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<title>algo.js examples: </title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+<style>
+body {
+  margin: 0;
+  padding: 0;
+  font-size: 0;
+  background-color: #000000;
+}
+
+canvas {
+  width: 100%;
+  height: 100%;
+}
+</style>
+</head>
+
+<body>
+<canvas id="canvas"></canvas>
+<script type="text/javascript" src="../build/algo.js"></script>
+<!-- <script type="text/javascript" src="../src/algo.js"></script> -->
+<script type="text/javascript" src="assets/js/libs/dat.gui.min.js"></script>
+<script type="text/javascript">
+var param = {
+  id: 'canvas',
+  width: window.innerWidth,
+  height: window.innerHeight
+};
+var algo = new ALGO(param);
+algo.background = 0xffffff;
+algo.circleResolution = 32;
+algo.framerate = 60;
+algo.backgroundAuto = true;
+
+ALGO.log(algo);
+
+var sound;
+var step = 100;
+
+algo.bind('setup', function() {
+  var hstep = step * 0.5;
+  for( var yi = 0; yi < algo.height - hstep; yi += step){
+    for( var xi = 0; xi < algo.width - hstep; xi += step){
+      var circle = new ALGO.Circle(xi + hstep, yi + hstep, 5);
+      circle.color = 0x003399;
+      circle.dx = circle.x;
+      circle.dy = circle.y;
+      algo.add(circle);
+    }
+  }
+
+  ALGO.log(algo.children.length);
+
+  // sound
+  sound = new ALGO.Sound('assets/sound/sample.mp3', 'assets/sound/sample.ogg', 95);
+
+  sound.noteEvent = function(){
+  };
+
+  sound.halfNoteEvent = function(){
+    // var length = algo.children.length;
+    // var color = ALGO.ColorUtil.getRandomColorHex();
+    // for(var i = 0; i < length; i++){
+    //   var circle = algo.children[i];
+    //   circle.color = color;
+    //   circle.needsUpdate = true;
+    // }
+  };
+
+  ALGO.log(sound);
+});
+
+algo.bind('frame', function() {
+  // sound
+  sound.update();
+  var timedomain = sound.getFrequencyTotal();
+
+  // shape
+  var length = algo.children.length;
+  for(var i = 0; i < length; i++){
+    var circle = algo.children[i];
+    circle.scale = timedomain * 10;
+  }
+});
+
+algo.bind('resize', function() {
+  // ALGO.log('resize after');
+  var w = window.innerWidth;
+  var h = window.innerHeight;
+  algo.size(w, h);
+});
+
+</script>
+</body>
+
+</html>

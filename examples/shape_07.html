@@ -25,9 +25,7 @@ canvas {
 <script type="text/javascript" src="../build/algo.js"></script>
 <!-- <script type="text/javascript" src="../src/algo.js"></script> -->
 <script type="text/javascript" src="assets/js/libs/dat.gui.min.js"></script>
-<script type="text/javascript" src="assets/js/libs/stats.min.js"></script>
 <script type="text/javascript">
-var stats = new Stats();
 var param = {
   id: 'canvas',
   width: window.innerWidth,
@@ -104,12 +102,6 @@ algo.bind('setup', function() {
   var aw = algo.width;
   var ah = algo.height;
 
-  // stats
-  stats.domElement.style.position = 'fixed';
-  stats.domElement.style.left = '0px';
-  stats.domElement.style.top = '0px';
-  document.body.appendChild(stats.domElement);
-
   // gui
   var FizzyText = function() {
     this.noise_type = 'perlin';
@@ -135,6 +127,7 @@ algo.bind('setup', function() {
   f2.add(gui_val, 'accely', 0.01, 1.0);
   f2.add(gui_val, 'vectorx', 0.01, 1.0);
   f2.add(gui_val, 'vectory', 0.01, 1.0);
+  gui.close();
 
   ctrl_noise.onFinishChange(function(value) {
     noise_type = value;
@@ -250,9 +243,6 @@ algo.bind('frame', function() {
   particles.vertexUpdate();
 
   particles.needsUpdate = true;
-
-  // stats
-  stats.update();
 });
 
 algo.bind('mousemove', function( mousex, mousey ) {

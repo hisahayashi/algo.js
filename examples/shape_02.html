@@ -25,9 +25,7 @@ canvas {
 <script type="text/javascript" src="../build/algo.js"></script>
 <!-- <script type="text/javascript" src="../src/algo.js"></script> -->
 <script type="text/javascript" src="assets/js/libs/dat.gui.min.js"></script>
-<script type="text/javascript" src="assets/js/libs/stats.min.js"></script>
 <script type="text/javascript">
-var stats = new Stats();
 var param = {
   id: 'canvas',
   width: window.innerWidth,
@@ -71,12 +69,6 @@ algo.bind('setup', function() {
   t4.color = 0xff0033;
   t4.scale = 10;
   algo.add(t4);
-
-  // stats
-  stats.domElement.style.position = 'fixed';
-  stats.domElement.style.right = '0px';
-  stats.domElement.style.top = '0px';
-  document.body.appendChild(stats.domElement);
 });
 
 algo.bind('frame', function() {
@@ -102,9 +94,6 @@ algo.bind('frame', function() {
   t4.y = ah * 0.5;
   t4.rotate += 1;
   t4.needsUpdate = true;
-
-  // stats
-  stats.update();
 });
 
 algo.bind('resize', function() {

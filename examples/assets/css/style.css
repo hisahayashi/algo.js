@@ -1,0 +1,146 @@
+/*------------------------------------------------
+   Reset
+------------------------------------------------*/
+html, body, div, span, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, abbr, address, cite, code, del, dfn, em, img, ins, kbd, q, samp, small, strong, sub, sup, var, b, i, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td, article, aside, canvas, details, figcaption, figure, footer, header, hgroup, menu, nav, section, summary, time, mark, audio, video {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  font-size: 100%;
+  vertical-align: baseline;
+  background: transparent; }
+
+body {
+  line-height: 1; }
+
+article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, section {
+  display: block; }
+
+ul, ol {
+  list-style: none; }
+
+blockquote, q {
+  quotes: none; }
+
+blockquote:before, blockquote:after, q:before, q:after {
+  content: '';
+  content: none; }
+
+a {
+  margin: 0;
+  padding: 0;
+  font-size: 100%;
+  vertical-align: baseline;
+  background: transparent; }
+
+/* change colours to suit your needs */
+ins {
+  background-color: #ff9;
+  color: #000;
+  text-decoration: none; }
+
+/* change colours to suit your needs */
+mark {
+  background-color: #ff9;
+  color: #000;
+  font-style: italic;
+  font-weight: bold; }
+
+del {
+  text-decoration: line-through; }
+
+abbr[title], dfn[title] {
+  border-bottom: 1px dotted;
+  cursor: help; }
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0; }
+
+/* change border colour to suit your needs */
+hr {
+  display: block;
+  height: 1px;
+  border: 0;
+  border-top: 1px solid #cccccc;
+  margin: 1em 0;
+  padding: 0; }
+
+input, select {
+  vertical-align: middle; }
+
+em {
+  font-style: normal; }
+
+b {
+  font-weight: normal; }
+
+a {
+  color: #000;
+  text-decoration: none; }
+  a:hover {
+    opacity: 0.7; }
+
+/* --------------------------------------------- */
+/* html */
+/* --------------------------------------------- */
+html {
+  width: 100%;
+  height: 100%; }
+
+body {
+  width: 100%;
+  height: 100%;
+  font-family: 'Decima W01 Regular1352469', sans-serif; }
+
+/* --------------------------------------------- */
+/* index */
+/* --------------------------------------------- */
+#index {
+  width: 100%;
+  height: 100%;
+  font-size: 0;
+  box-sizing: border-box; }
+  #index #button {
+    position: absolute;
+    right: 15px;
+    bottom: 15px;
+    font-size: 14px; }
+    #index #button a {
+      display: block;
+      padding: 10px;
+      background: #fff; }
+  #index #nav {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 260px;
+    height: 100%;
+    padding: 25px 30px;
+    font-size: 14px;
+    line-height: 1.6;
+    box-sizing: border-box;
+    border-right: #eee solid 1px;
+    overflow: auto; }
+    #index #nav h2 {
+      margin: 0 0 15px 0;
+      font-size: 18px;
+      font-weight: normal; }
+    #index #nav h3 {
+      margin: 0 0 5px 0;
+      font-size: 16px;
+      font-weight: normal; }
+    #index #nav ul.nav {
+      margin: 0 0 20px 12px; }
+      #index #nav ul.nav li a {
+        color: #666; }
+    #index #nav ul.foot {
+      padding: 20px 0 20px 0;
+      border-top: #eee solid 1px; }
+  #index #iframe {
+    width: 100%;
+    height: 100%;
+    padding: 0 0 0 260px;
+    box-sizing: border-box; }
+
+/*# sourceMappingURL=style.css.map */

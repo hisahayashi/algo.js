@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<title>algo.js examples: </title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+<style>
+body {
+  margin: 0;
+  padding: 0;
+  font-size: 0;
+  background-color: #000000;
+}
+
+canvas {
+  width: 100%;
+  height: 100%;
+}
+</style>
+</head>
+
+<body>
+<canvas id="canvas"></canvas>
+<script type="text/javascript" src="../build/algo.js"></script>
+<!-- <script type="text/javascript" src="../src/algo.js"></script> -->
+<script type="text/javascript" src="assets/js/libs/dat.gui.min.js"></script>
+<script type="text/javascript">
+var param = {
+  id: 'canvas',
+  width: window.innerWidth,
+  height: window.innerHeight
+};
+var algo = new ALGO(param);
+algo.width = window.innerWidth;
+algo.height = window.innerHeight;
+algo.background = 0xffffff;
+algo.backgroundAuto = true;
+algo.backgroundAlpha = 0.8;
+algo.framerate = 60;
+algo.circleResolution = 8;
+algo.blendMode = ALGO.BLEND_ALPHA;
+
+ALGO.log(algo);
+
+var shape;
+var rot = 0;
+
+algo.bind('setup', function() {
+
+  shape = new ALGO.Shape(0, 0, 250);
+  shape.color = 0x0066cc;
+  shape.scale = 1;
+  // shape.width = 150;
+  // shape.height = 10;
+  shape.alpha = 0.3;
+  algo.add(shape);
+});
+
+algo.bind('frame', function() {
+  var aw = algo.width;
+  var ah = algo.height;
+
+  rot += 2;
+
+  shape.x = aw * 0.5;
+  shape.y = ah * 0.5;
+  shape.rotate = rot;
+
+  // shape.scale = Math.sin( rot * Math.PI / 180 );
+  shape.radius = Math.sin( rot * Math.PI / 180 ) * 100;
+
+  // shape.width = Math.sin( rot * Math.PI / 180 ) * 300;
+  // shape.height = Math.cos( rot * Math.PI / 180 ) * 100;
+
+  shape.needsUpdate = true;
+});
+
+algo.bind('resize', function() {
+  // ALGO.log('resize after');
+  var w = window.innerWidth;
+  var h = window.innerHeight;
+  algo.size(w, h);
+});
+</script>
+</body>
+
+</html>

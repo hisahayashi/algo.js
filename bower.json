@@ -1,0 +1,27 @@
+{
+  "name": "ALGO.JS",
+  "homepage": "http://algojs.org/",
+  "description": "JavaScript WebGL Framework",
+  "main": "build/algo.js",
+  "keywords": [
+    "algo",
+    "algojs",
+    "algo.js",
+    "algo.js",
+    "creative",
+    "webgl"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "*.md",
+    "doc",
+    "editor",
+    "examples/*",
+    "!examples/js",
+    "src",
+    "test",
+    "utils",
+    "LICENSE"
+  ]
+}

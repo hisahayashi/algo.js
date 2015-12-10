@@ -31,9 +31,7 @@ video{
 <script type="text/javascript" src="../build/algo.js"></script>
 <!-- <script type="text/javascript" src="../src/algo.js"></script> -->
 <script type="text/javascript" src="assets/js/libs/dat.gui.min.js"></script>
-<script type="text/javascript" src="assets/js/libs/stats.min.js"></script>
 <script type="text/javascript">
-var stats = new Stats();
 var param = {
   id: 'canvas',
   width: window.innerWidth,
@@ -97,7 +95,7 @@ algo.bind('setup', function() {
   }
 
   // image
-  image = new ALGO.Image(550, 260, 1024, 512, 'sample_two.jpg');
+  image = new ALGO.Image(550, 260, 1024, 512, 'assets/img/sample_two.jpg');
   algo.add(image);
 
   // tiles
@@ -108,12 +106,6 @@ algo.bind('setup', function() {
   // rect = new ALGO.Rectangle(200, 200, 300, 300);
   // rect.color = ALGO.ColorUtil.getRandomColorHex();
   // algo.add(rect);
-
-  // stats
-  stats.domElement.style.position = 'fixed';
-  stats.domElement.style.right = '0px';
-  stats.domElement.style.top = '0px';
-  document.body.appendChild(stats.domElement);
 });
 
 algo.bind('frame', function() {
@@ -153,9 +145,6 @@ algo.bind('frame', function() {
       }
     }
   }
-
-  // stats
-  stats.update();
 });
 
 algo.bind('resize', function() {

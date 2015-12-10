@@ -12,10 +12,16 @@ body {
   font-size: 0;
   background-color: #000000;
 }
-
 canvas {
   width: 100%;
   height: 100%;
+}
+video{
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  width: 120px;
+  height: auto;
 }
 </style>
 </head>
@@ -25,9 +31,7 @@ canvas {
 <script type="text/javascript" src="../build/algo.js"></script>
 <!-- <script type="text/javascript" src="../src/algo.js"></script> -->
 <script type="text/javascript" src="assets/js/libs/dat.gui.min.js"></script>
-<script type="text/javascript" src="assets/js/libs/stats.min.js"></script>
 <script type="text/javascript">
-var stats = new Stats();
 var param = {
   id: 'canvas',
   width: window.innerWidth,
@@ -42,50 +46,34 @@ algo.backgroundAuto = true;
 ALGO.log(algo);
 
 var rtc;
-var step = 3;
+var image;
+var particles;
+var step = 20;
+var isSet = false;
 
 algo.bind('setup', function() {
-  var hstep = step * 0.5;
-  for( var xi = 0; xi < algo.width - hstep; xi += step){
-    var circle = new ALGO.Circle(xi + hstep, algo.height * 0.5, 2);
-    circle.color = 0x003399;
-    circle.dx = circle.x;
-    circle.dy = circle.y;
-    algo.add(circle);
-  }
-
-  ALGO.log(algo.children.length);
-
   // rtc
-  rtc = new ALGO.RTC(true, true);
-
+  rtc = new ALGO.RTC(false, true);
+  rtc.setupOpticalFlow(step);
   ALGO.log(rtc);
 
-  // stats
-  stats.domElement.style.position = 'fixed';
-  stats.domElement.style.right = '0px';
-  stats.domElement.style.top = '0px';
-  document.body.appendChild(stats.domElement);
+  // image
+  image = new ALGO.Image(algo.width*0.5, algo.height*0.5, algo.width, algo.height, null);
+  image.needsUpdate = true;
+  algo.add(image);
 });
 
 algo.bind('frame', function() {
   // rtc
   rtc.update();
-  var frequency = rtc.getFrequencyValues();
-  var timedomain = rtc.getTimeDomainValues();
 
-  var audioStep = Math.floor(frequency.length / algo.children.length);
-  // ALGO.log('frequency.length', frequency.length, 'children.length', algo.children.length, 'audioStep', audioStep);
-
-  // shape
-  var length = algo.children.length;
-  for(var i = 0; i < length; i++){
-    var circle = algo.children[i];
-    circle.y = frequency[i*audioStep] * 200 + algo.height * 0.5;
+  if(rtc.isPlaying && !isSet){
+    image.setLoaded(true);
+    image.image = rtc.videoElement;
+    image.needsUpdate = true;
+    isSet = true;
+    ALGO.log(image);
   }
-
-  // stats
-  stats.update();
 });
 
 algo.bind('resize', function() {

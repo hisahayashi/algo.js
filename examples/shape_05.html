@@ -25,9 +25,7 @@ canvas {
 <script type="text/javascript" src="../build/algo.js"></script>
 <!-- <script type="text/javascript" src="../src/algo.js"></script> -->
 <script type="text/javascript" src="assets/js/libs/dat.gui.min.js"></script>
-<script type="text/javascript" src="assets/js/libs/stats.min.js"></script>
 <script type="text/javascript">
-var stats = new Stats();
 var param = {
   id: 'canvas',
   width: window.innerWidth,
@@ -45,46 +43,56 @@ algo.blendMode = ALGO.BLEND_ALPHA;
 
 ALGO.log(algo);
 
-var shape;
-var rot = 0;
+var path;
+var mx;
+var my;
 
 algo.bind('setup', function() {
 
-  shape = new ALGO.Shape(0, 0, 250);
-  shape.color = 0x0066cc;
-  shape.scale = 1;
-  // shape.width = 150;
-  // shape.height = 10;
-  shape.alpha = 0.3;
-  algo.add(shape);
+  var p1 = { x: 0, y: 0 };
+  var p2 = { x: 100, y: 100 };
+  path = new ALGO.Path( p1, p2 );
+  path.color = 0xcccccc;
+  path.lineColor = 0x000000;
+  path.line = true;
 
-  // stats
-  stats.domElement.style.position = 'fixed';
-  stats.domElement.style.right = '0px';
-  stats.domElement.style.top = '0px';
-  document.body.appendChild(stats.domElement);
+  // path.fill = false;
+  // path.fillColor = 0x00ffff;
+
+  // path.line = true;
+  // path.lineWidth = 3;
+  // path.lineColor = 0x0000ff;
+
+  // var resolution = 120;
+  // var angle = 360 / resolution;
+  // for( var i = 0; i < resolution; i++ ){
+  //   var x = Math.sin( Math.PI / 180 * i * angle ) * 200 + 300;
+  //   var y = Math.cos( Math.PI / 180 * i * angle ) * 200 + 300;
+  //   path.lineTo( x, y );
+  // }
+
+  algo.add(path);
+
+  // ALGO.log( path.geometry.length );
+  // ALGO.log( path.vertexPosition.length );
+  // ALGO.log( path.vertexColors.length );
 });
 
 algo.bind('frame', function() {
   var aw = algo.width;
   var ah = algo.height;
 
-  rot += 2;
+  path.needsUpdate = true;
+});
 
-  shape.x = aw * 0.5;
-  shape.y = ah * 0.5;
-  shape.rotate = rot;
+algo.bind('mousemove', function( mousex, mousey ) {
+  mx = mousex;
+  my = mousey;
+  path.lineTo( mx, my );
+});
 
-  // shape.scale = Math.sin( rot * Math.PI / 180 );
-  shape.radius = Math.sin( rot * Math.PI / 180 ) * 100;
-
-  // shape.width = Math.sin( rot * Math.PI / 180 ) * 300;
-  // shape.height = Math.cos( rot * Math.PI / 180 ) * 100;
-
-  shape.needsUpdate = true;
-
-  // stats
-  stats.update();
+algo.bind('mousedown', function( mousex, mousey ) {
+  path.clear();
 });
 
 algo.bind('resize', function() {

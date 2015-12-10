@@ -45,9 +45,7 @@ video#video {
 <script type="text/javascript" src="../build/algo.js"></script>
 <!-- <script type="text/javascript" src="../src/algo.js"></script> -->
 <script type="text/javascript" src="assets/js/libs/dat.gui.min.js"></script>
-<script type="text/javascript" src="assets/js/libs/stats.min.js"></script>
 <script type="text/javascript">
-var stats = new Stats();
 var param = {
   id: 'canvas',
   width: window.innerWidth,
@@ -181,12 +179,6 @@ algo.bind('setup', function() {
   var aw = algo.width;
   var ah = algo.height;
 
-  // stats
-  stats.domElement.style.position = 'fixed';
-  stats.domElement.style.left = '0px';
-  stats.domElement.style.top = '0px';
-  document.body.appendChild(stats.domElement);
-
   // gui
   var FizzyText = function() {
     this.gap = 10;
@@ -270,8 +262,6 @@ algo.bind('frame', function() {
     }
     frame_count++;
   }
-  // stats
-  stats.update();
 });
 
 algo.bind('mousemove', function(mousex, mousey) {

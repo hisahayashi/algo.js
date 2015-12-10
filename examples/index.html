@@ -1,112 +1,188 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-<title>algo.js examples: </title>
+<title>algo.js examples</title>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-<style>
-body {
-  margin: 0;
-  padding: 0;
-  font-size: 0;
-  background-color: #000000;
-}
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="keywords" content="">
+<meta name="description" content="">
+<meta name="viewport" content="width=device-width" />
+<meta name="format-detection" content="telephone=no">
+<link rel="start" href="http://algojs.org/examples/" title="Home">
+<link rel="shortcut icon" href="http://algojs.org/examples/assets/img/common/favicon.ico">
 
-canvas {
-  width: 100%;
-  height: 100%;
-}
-</style>
-</head>
+<meta property="og:title" content="ALGO.JS">
+<meta property="og:type" content="website">
+<meta property="og:description" content="">
+<meta property="og:url" content="http://algojs.org/examples/">
+<meta property="og:image" content="http://algojs.org/examples/assets/img/common/share.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:site_name" content="ALGO.JS">
+<meta property="og:locale" content="ja_JP">
+<meta property="fb:app_id" content="1526448911003424">
 
-<body>
-<canvas id="canvas"></canvas>
-<script type="text/javascript" src="../build/algo.js"></script>
-<!-- <script type="text/javascript" src="../src/algo.js"></script> -->
-<script type="text/javascript" src="assets/js/libs/dat.gui.min.js"></script>
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="ALGO.JS Examples">
+<meta name="twitter:description" content="ALGO.JS Examples">
+<meta name="twitter:site" content="ALGO.JS Examples">
+<meta name="twitter:image" content="http://algojs.org/examples/assets/img/common/share.jpg">
+
+<link type="text/css" rel="stylesheet" href="http://fast.fonts.net/cssapi/99cb7d98-7781-479b-9cbe-17b60b3aba87.css"/>
+<link rel="stylesheet" href="assets/css/style.min.css" media="all">
+<script type="text/javascript" src="assets/js/libs/jquery.js"></script>
 <script type="text/javascript" src="assets/js/libs/stats.min.js"></script>
-<script type="text/javascript">
-var stats = new Stats();
-var param = {
-  id: 'canvas',
-  width: window.innerWidth,
-  height: window.innerHeight
+<script>
+window.fbAsyncInit = function() {
+  FB.init({
+    appId      : '1526448911003424',
+    xfbml      : true,
+    version    : 'v2.5'
+  });
 };
-var algo = new ALGO(param);
-algo.background = 0xffffff;
-algo.circleResolution = 32;
-algo.framerate = 60;
-algo.backgroundAuto = true;
 
-ALGO.log(algo);
+(function(d, s, id){
+   var js, fjs = d.getElementsByTagName(s)[0];
+   if (d.getElementById(id)) {return;}
+   js = d.createElement(s); js.id = id;
+   js.src = "//connect.facebook.net/en_US/sdk.js";
+   fjs.parentNode.insertBefore(js, fjs);
+ }(document, 'script', 'facebook-jssdk'));
+</script>
+<script type="text/javascript">
+$(function(){
+  init();
+});
 
-var sound;
-var step = 100;
+var stats = new Stats();
 
-algo.bind('setup', function() {
-  var hstep = step * 0.5;
-  for( var yi = 0; yi < algo.height - hstep; yi += step){
-    for( var xi = 0; xi < algo.width - hstep; xi += step){
-      var circle = new ALGO.Circle(xi + hstep, yi + hstep, 5);
-      circle.color = 0x003399;
-      circle.dx = circle.x;
-      circle.dy = circle.y;
-      algo.add(circle);
-    }
+function init(){
+  $('#button').on('click', onButtonClick);
+  $('#nav > ul.nav > li > a').on('click', onNavButtonClick);
+  $('#statsButton').on('click', onStatsButtonClick);
+
+  var hash = location.hash.substring(1, location.hash.length);
+  if(hash.length){
+    var url = hash + '.html';
+    setViewer(url);
   }
-
-  ALGO.log(algo.children.length);
-
-  // sound
-  sound = new ALGO.Sound('sample.mp3', 'sample.ogg', 95);
-
-  sound.noteEvent = function(){
-  };
-
-  sound.halfNoteEvent = function(){
-    // var length = algo.children.length;
-    // var color = ALGO.ColorUtil.getRandomColorHex();
-    // for(var i = 0; i < length; i++){
-    //   var circle = algo.children[i];
-    //   circle.color = color;
-    //   circle.needsUpdate = true;
-    // }
-  };
-
-  ALGO.log(sound);
 
   // stats
   stats.domElement.style.position = 'fixed';
   stats.domElement.style.right = '0px';
   stats.domElement.style.top = '0px';
   document.body.appendChild(stats.domElement);
-});
 
-algo.bind('frame', function() {
-  // sound
-  sound.update();
-  var timedomain = sound.getFrequencyTotal();
+  update();
+}
 
-  // shape
-  var length = algo.children.length;
-  for(var i = 0; i < length; i++){
-    var circle = algo.children[i];
-    circle.scale = timedomain * 10;
-  }
-
+function update(){
   // stats
   stats.update();
-});
 
-algo.bind('resize', function() {
-  // ALGO.log('resize after');
-  var w = window.innerWidth;
-  var h = window.innerHeight;
-  algo.size(w, h);
-});
+  requestAnimationFrame(update);
+}
 
+function onButtonClick(e){
+  var selected = location.hash.substring(1, location.hash.length);
+  var array = location.href.split( '/' );
+  array.pop();
+  window.open( 'view-source:' + array.join( '/' ) + '/' + selected + '.html' );
+  return false;
+}
+
+function onNavButtonClick(e){
+  var $t = $(e.currentTarget);
+  var href = $t.attr('href');
+  setViewer(href);
+  return false;
+}
+
+function onStatsButtonClick(e){
+  var $t = $(e.currentTarget);
+  var $s = $(stats.domElement);
+  if($s.css('display') == 'none'){
+    $s.css('display', 'block');
+  }
+  else{
+    $s.css('display', 'none');
+  }
+  return false;
+}
+
+function setViewer(url){
+  location.hash = url.replace('.html', '');
+  var viewer = $('#iframe')[0];
+  viewer.src = url;
+  viewer.focus();
+}
+
+/*------------------------------------------------------------*/
+/* set requestAnimationFrame to window (with vendor prefixes) */
+;
+( function( w, r ) {
+  w[ 'r' + r ] = w[ 'r' + r ] || w[ 'webkitR' + r ] || w[ 'mozR' + r ] || w[ 'msR' + r ] || w[ 'oR' + r ] || function( c ) {
+    w.setTimeout( c, 1000 / 60 );
+  };
+} )( window, 'equestAnimationFrame' );
 </script>
-</body>
+</head>
+<body id="index">
 
+<iframe id="iframe" name="iframe" src="basic.html"></iframe>
+
+<p id="button"><a href="#">View Code</a></p>
+
+<nav id="nav">
+
+<h2>ALGO.JS Examples</h2>
+
+<h3>Basic Usage</h3>
+<ul class="nav">
+<li><a href="basic.html" target="iframe">Basic</a></li>
+</ul>
+
+<h3>Shape</h3>
+<ul class="nav">
+<li><a href="shape_01.html" target="iframe">Many shapes</a></li>
+<li><a href="shape_02.html" target="iframe">Shape type</a></li>
+<li><a href="shape_03.html" target="iframe">Circle move</a></li>
+<li><a href="shape_04.html" target="iframe">Rotate triangle</a></li>
+<li><a href="shape_05.html" target="iframe">Draw Path</a></li>
+<li><a href="shape_06.html" target="iframe">Rotate Rectangle</a></li>
+<li><a href="shape_07.html" target="iframe">Particles - Vector Field</a></li>
+<li><a href="shape_08.html" target="iframe">Image - readPixels</a></li>
+</ul>
+
+<h3>Loader</h3>
+<ul class="nav">
+<li><a href="svg_01.html" target="iframe">SVG Loader</a></li>
+</ul>
+
+<h3>Web RTC</h3>
+<ul class="nav">
+<li><a href="rtc_01.html" target="iframe">Web Camera</a></li>
+<li><a href="rtc_02.html" target="iframe">Web Camera - Mosaic</a></li>
+<li><a href="rtc_03.html" target="iframe">Mic - FFT</a></li>
+</ul>
+
+<h3>Web Audio</h3>
+<ul class="nav">
+<li><a href="audio_01.html" target="iframe">Audio - FFT - Circle</a></li>
+</ul>
+
+<ul class="foot">
+<li><a href="#" id="statsButton">Toggle Stats</a></li>
+</ul>
+
+<ul class="foot">
+<li><a href="https://github.com/hisahayashi/algo.js" target="_blank">GitHub</a></li>
+<li><a href="http://algojs.org" target="_blank">Official Page</a></li>
+</ul>
+
+<div class="fb-like" data-share="true" data-width="200" data-show-faces="false"></div>
+
+</nav>
+
+</body>
 </html>

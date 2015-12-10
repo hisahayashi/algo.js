@@ -31,9 +31,7 @@ video{
 <script type="text/javascript" src="../build/algo.js"></script>
 <!-- <script type="text/javascript" src="../src/algo.js"></script> -->
 <script type="text/javascript" src="assets/js/libs/dat.gui.min.js"></script>
-<script type="text/javascript" src="assets/js/libs/stats.min.js"></script>
 <script type="text/javascript">
-var stats = new Stats();
 var param = {
   id: 'canvas',
   width: window.innerWidth,
@@ -84,12 +82,6 @@ algo.bind('setup', function() {
   algo.add(particles);
 
   ALGO.log('geometry', geometry.length);
-
-  // stats
-  stats.domElement.style.position = 'fixed';
-  stats.domElement.style.right = '0px';
-  stats.domElement.style.top = '0px';
-  document.body.appendChild(stats.domElement);
 });
 
 algo.bind('frame', function() {
@@ -117,9 +109,6 @@ algo.bind('frame', function() {
     isSet = true;
     ALGO.log(image);
   }
-
-  // stats
-  stats.update();
 });
 
 algo.bind('resize', function() {
