@@ -1,13 +1,15 @@
 describe('ALGO', function() {
-  describe('init', function() {
-    var param = {
-      id: 'canvas',
-      width: 320,
-      height: 320,
-      backgroundAuto: true
-    };
+  describe('constructor', function() {
+    it ('should create ALGO', function() {
+      var param = {
+        id: 'canvas',
+        width: 320,
+        height: 320,
+        backgroundAuto: true
+      };
 
-    var algo = new ALGO(param);
-    assert(algo !== null);
+      var algo = new ALGO(param);
+      assert(algo !== null);
+    });
   });
 });
