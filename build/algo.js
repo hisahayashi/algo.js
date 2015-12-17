@@ -3891,7 +3891,7 @@ var ALGO = (function () {
   function ALGO(_param) {
     // ALGO.log('ALGO Constructor');
     that = this;
-    params = ALGO.ObjectUtil.extend(param, _param);
+    params = ALGO.ObjectUtil.extend(params, _param);
     init();
   };
 
@@ -3913,10 +3913,9 @@ var ALGO = (function () {
      */
     that.width = params.width;
     that.height = params.height;
-    that.backgroundAuto = param.backgroundAuto;
+    that.backgroundAuto = params.backgroundAuto;
     // that.framerate = ALGO.prototype.framerate;
-
-    ALGO.log( that );
+    // ALGO.log( that );
   };
 
   /**
@@ -6756,7 +6755,7 @@ ALGO.WebGLRenderer = (function(ALGO) {
       is_preserve = true;
     }
 
-    ALGO.log('that.backgroundAuto: ' + that.backgroundAuto);
+    // ALGO.log('that.backgroundAuto: ' + that.backgroundAuto);
 
     // webglコンテキストを取得
     var param = {
@@ -6884,7 +6883,7 @@ ALGO.WebGLRenderer = (function(ALGO) {
               object.setTexture(object_texture);
             }
             else{
-              gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA,gl.UNSIGNED_BYTE, object.image);
+              // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA,gl.UNSIGNED_BYTE, object.image);
             }
 
           }
@@ -7387,7 +7386,7 @@ ALGO.Sound = (function(ALGO) {
   };
 
   function updateFFT(){
-    // this.analyser.getByteTimeDomainData( this.timeDomainData ); // 時間
+    this.analyser.getByteTimeDomainData( this.timeDomainData ); // 時間
     this.analyser.getByteFrequencyData( this.frequencyData ); // 周波数
 
     this.timeDomainTotal = 0;
@@ -7397,15 +7396,15 @@ ALGO.Sound = (function(ALGO) {
     this.frequencyValues = [];
 
     var length = this.timeDomainData.length;
-    for( i = 0; i < length; i++ ){
+    for( var i = 0; i < length; i++ ){
       // 正規化
-      // this.timeDomainValues[i] = parseInt( this.timeDomainData[i] ) / 255;
-      // this.timeDomainTotal += this.timeDomainValues[i];
+      this.timeDomainValues[i] = parseInt( this.timeDomainData[i] ) / 255;
+      this.timeDomainTotal += this.timeDomainValues[i];
       this.frequencyValues[i] = parseInt( this.frequencyData[i] ) / 255;
       this.frequencyTotal += this.frequencyValues[i];
     }
 
-    // this.timeDomainTotal = this.timeDomainTotal / length; // 正規化
+    this.timeDomainTotal = this.timeDomainTotal / length; // 正規化
     this.frequencyTotal = this.frequencyTotal / length; // 正規化
   };
 
@@ -8115,17 +8114,17 @@ ALGO.ObjectUtil = {
 
   /**
    * [extend description]
-   * @param  {[type]} base_obj [description]
-   * @param  {[type]} over_obj [description]
+   * @param  {[type]} baseObj [description]
+   * @param  {[type]} overObj [description]
    * @return {[type]}          [description]
    */
-  extend: function ( base_obj, over_obj ) {
-    var new_obj = ALGO.ObjectUtil.clone( base_obj );
-    for( key in over_obj ){
-      var value = ( over_obj[ key ] )? over_obj[ key ] : base_obj[ key ];
-      base_obj[ key ] = value;
+  extend: function(baseObj, overObj) {
+    var newObj = ALGO.ObjectUtil.clone(baseObj);
+    for (key in overObj) {
+      var value = (overObj[key] != undefined) ? overObj[key] : baseObj[key];
+      baseObj[key] = value;
     }
-    return base_obj;
+    return baseObj;
   },
 
   /**
@@ -8133,12 +8132,12 @@ ALGO.ObjectUtil = {
    * @param  {[type]} obj [description]
    * @return {[type]}     [description]
    */
-  clone: function ( obj ) {
-    var new_obj = {};
-    for( key in obj ){
-      new_obj[ key ] = obj[ key ];
+  clone: function(obj) {
+    var newObj = {};
+    for (key in obj) {
+      newObj[key] = obj[key];
     }
-    return new_obj;
+    return newObj;
   }
 
 
@@ -8332,6 +8331,17 @@ ALGO.ColorUtil = {
    * @return {[type]} [description]
    */
   getRandomColorHex: function(){
+    var r = ALGO.ColorUtil.getRandomColor(0, 256);
+    var g = ALGO.ColorUtil.getRandomColor(0, 256);
+    var b = ALGO.ColorUtil.getRandomColor(0, 256);
+    return ALGO.ColorUtil.rgbToHex(r, g, b);
+  },
+
+  /**
+   * [getRandomColorHex description]
+   * @return {[type]} [description]
+   */
+  getRandomColorHexLight: function(){
     var r = ALGO.ColorUtil.getRandomColor(0, 256);
     var g = ALGO.ColorUtil.getRandomColor(0, 256);
     var b = ALGO.ColorUtil.getRandomColor(0, 256);

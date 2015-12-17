@@ -28,7 +28,7 @@
 <meta name="twitter:site" content="ALGO.JS Examples">
 <meta name="twitter:image" content="http://algojs.org/examples/assets/img/common/share.jpg">
 
-<link type="text/css" rel="stylesheet" href="http://fast.fonts.net/cssapi/99cb7d98-7781-479b-9cbe-17b60b3aba87.css"/>
+<link type="text/css" rel="stylesheet" href="https://fast.fonts.net/cssapi/99cb7d98-7781-479b-9cbe-17b60b3aba87.css"/>
 <link rel="stylesheet" href="assets/css/style.min.css" media="all">
 <script type="text/javascript" src="assets/js/libs/jquery.js"></script>
 <script type="text/javascript" src="assets/js/libs/stats.min.js"></script>
@@ -58,8 +58,9 @@ var stats = new Stats();
 
 function init(){
   $('#button').on('click', onButtonClick);
-  $('#nav > ul.nav > li > a').on('click', onNavButtonClick);
+  $('#nav ul.nav > li > a').on('click', onNavButtonClick);
   $('#statsButton').on('click', onStatsButtonClick);
+  $('#spNavButton').on('click', onSpNavButtonClick);
 
   var hash = location.hash.substring(1, location.hash.length);
   if(hash.length){
@@ -94,8 +95,11 @@ function onButtonClick(e){
 function onNavButtonClick(e){
   var $t = $(e.currentTarget);
   var href = $t.attr('href');
-  setViewer(href);
-  return false;
+  var target = $t.attr('target');
+  if( target == 'iframe' ){
+    setViewer(href);
+    return false;
+  }
 }
 
 function onStatsButtonClick(e){
@@ -115,6 +119,19 @@ function setViewer(url){
   var viewer = $('#iframe')[0];
   viewer.src = url;
   viewer.focus();
+}
+
+function onSpNavButtonClick(e){
+  var flag = $('#spNavButton').hasClass('show');
+  if(flag){
+    $('#nav').hide();
+    $('#spNavButton').removeClass('show');
+  }
+  else{
+    $('#nav').show();
+    $('#spNavButton').addClass('show');
+  }
+  return false;
 }
 
 /*------------------------------------------------------------*/
@@ -137,41 +154,62 @@ function setViewer(url){
 
 <h2>ALGO.JS Examples</h2>
 
+<div class="category">
 <h3>Basic Usage</h3>
 <ul class="nav">
 <li><a href="basic.html" target="iframe">Basic</a></li>
 </ul>
+</div>
 
+<div class="category">
 <h3>Shape</h3>
 <ul class="nav">
 <li><a href="shape_many_shapes.html" target="iframe">Many shapes</a></li>
+<li><a href="shape_many_shapes2.html" target="iframe">Many shapes2</a></li>
 <li><a href="shape_types.html" target="iframe">Shape types</a></li>
 <li><a href="shape_circle_move.html" target="iframe">Circle move</a></li>
 <li><a href="shape_particle_move.html" target="iframe">Paticle move</a></li>
 <li><a href="shape_rotate_tri.html" target="iframe">Rotate triangle</a></li>
-<li><a href="shape_draw_path.html" target="iframe">Draw Path</a></li>
-<li><a href="shape_rotate_rect.html" target="iframe">Rotate Rectangle</a></li>
+<li class="pc"><a href="shape_draw_path.html" target="iframe">Draw Path</a></li>
+<li class="pc"><a href="shape_rotate_rect.html" target="iframe">Rotate Rectangle</a></li>
 <li><a href="shape_particles_vf.html" target="iframe">Particles - Vector Field</a></li>
-<li><a href="shape_image_readpixels.html" target="iframe">Image - readPixels</a></li>
+<li class="pc"><a href="shape_image_readpixels.html" target="iframe">Image - readPixels</a></li>
 </ul>
+</div>
 
+<div class="category pc">
 <h3>Loader</h3>
 <ul class="nav">
 <li><a href="svg_01.html" target="iframe">SVG Loader</a></li>
 </ul>
+</div>
 
-<h3>Web RTC</h3>
+<!-- <h3>Web RTC</h3>
 <ul class="nav">
 <li><a href="rtc_01.html" target="iframe">Web Camera</a></li>
 <li><a href="rtc_04.html" target="iframe">Web Camera - Optical Flow</a></li>
 <li><a href="rtc_02.html" target="iframe">Web Camera - Mosaic</a></li>
 <li><a href="rtc_03.html" target="iframe">Mic - FFT</a></li>
-</ul>
+</ul> -->
 
+<div class="category pc">
+<h3>Web RTC</h3>
+<ul class="nav">
+<li><a href="https://hys.heteml.jp/algojs.org/examples/rtc_01.html" target="_blank">Web Camera</a></li>
+<li><a href="https://hys.heteml.jp/algojs.org/examples/rtc_04.html" target="_blank">Web Camera - Optical Flow</a></li>
+<li><a href="https://hys.heteml.jp/algojs.org/examples/rtc_02.html" target="_blank">Web Camera - Mosaic</a></li>
+<li><a href="https://hys.heteml.jp/algojs.org/examples/rtc_03.html" target="_blank">Mic - FFT</a></li>
+</ul>
+</div>
+
+<div class="category pc">
 <h3>Web Audio</h3>
 <ul class="nav">
 <li><a href="audio_01.html" target="iframe">Audio - FFT - Circle</a></li>
+<li><a href="audio_02.html" target="iframe">Audio - FFT - Path</a></li>
+<li><a href="audio_03.html" target="iframe">Audio - FFT - Particle</a></li>
 </ul>
+</div>
 
 <ul class="foot">
 <li><a href="#" id="statsButton">Toggle Stats</a></li>
@@ -185,6 +223,7 @@ function setViewer(url){
 <div class="fb-like" data-share="true" data-width="200" data-show-faces="false"></div>
 
 </nav>
+<div class="nav_button"><a href="#" id="spNavButton"></a></div>
 
 </body>
 </html>

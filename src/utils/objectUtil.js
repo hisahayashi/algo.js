@@ -5,17 +5,17 @@ ALGO.ObjectUtil = {
 
   /**
    * [extend description]
-   * @param  {[type]} base_obj [description]
-   * @param  {[type]} over_obj [description]
+   * @param  {[type]} baseObj [description]
+   * @param  {[type]} overObj [description]
    * @return {[type]}          [description]
    */
-  extend: function ( base_obj, over_obj ) {
-    var new_obj = ALGO.ObjectUtil.clone( base_obj );
-    for( key in over_obj ){
-      var value = ( over_obj[ key ] )? over_obj[ key ] : base_obj[ key ];
-      base_obj[ key ] = value;
+  extend: function(baseObj, overObj) {
+    var newObj = ALGO.ObjectUtil.clone(baseObj);
+    for (key in overObj) {
+      var value = (overObj[key] != undefined) ? overObj[key] : baseObj[key];
+      baseObj[key] = value;
     }
-    return base_obj;
+    return baseObj;
   },
 
   /**
@@ -23,12 +23,12 @@ ALGO.ObjectUtil = {
    * @param  {[type]} obj [description]
    * @return {[type]}     [description]
    */
-  clone: function ( obj ) {
-    var new_obj = {};
-    for( key in obj ){
-      new_obj[ key ] = obj[ key ];
+  clone: function(obj) {
+    var newObj = {};
+    for (key in obj) {
+      newObj[key] = obj[key];
     }
-    return new_obj;
+    return newObj;
   }
 
 

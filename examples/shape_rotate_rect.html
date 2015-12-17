@@ -100,6 +100,15 @@ algo.bind('mousemove', function(mousex, mousey) {
   rect.tx = mousex;
   rect.ty = mousey;
 });
+
+algo.bind('mousedown', function(mousex, mousey) {
+  if(algo.backgroundAuto){
+    algo.setBackgroundAuto(false);
+  }
+  else{
+    algo.setBackgroundAuto(true);
+  }
+});
 </script>
 </body>
 

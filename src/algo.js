@@ -28,7 +28,7 @@ var ALGO = (function () {
   function ALGO(_param) {
     // ALGO.log('ALGO Constructor');
     that = this;
-    params = ALGO.ObjectUtil.extend(param, _param);
+    params = ALGO.ObjectUtil.extend(params, _param);
     init();
   };
 
@@ -50,10 +50,9 @@ var ALGO = (function () {
      */
     that.width = params.width;
     that.height = params.height;
-    that.backgroundAuto = param.backgroundAuto;
+    that.backgroundAuto = params.backgroundAuto;
     // that.framerate = ALGO.prototype.framerate;
-
-    ALGO.log( that );
+    // ALGO.log( that );
   };
 
   /**

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>algo.js examples: </title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+<style>
+body { margin: 0; padding: 0; font-size: 0; background-color: #ffffff; }
+canvas { width: 100%; height: 100%; }
+</style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<script type="text/javascript" src="../build/algo.js"></script>
+<script type="text/javascript" src="assets/js/libs/dat.gui.min.js"></script>
+<script type="text/javascript">
+var num = 46490;
+
+// initialize
+var param = {
+  id: 'canvas',
+  width: window.innerWidth,
+  height: window.innerHeight,
+  backgroundAuto: false
+};
+
+var particles;
+var geometry = [];
+var sound;
+
+// scene
+var algo = new ALGO( param );
+algo.background = 0xffffff;
+algo.circleResolution = 32;
+
+// setup
+algo.bind('setup', function(){
+  var aw = algo.width;
+  var ah = algo.height;
+  algo.setBackgroundAuto(true);
+
+  for (var i = 0; i < num; i++) {
+    var vec = {};
+    vec.x = Math.random() * aw;
+    vec.y = Math.random() * ah;
+    vec.tx = vec.x;
+    vec.ty = vec.y;
+    vec.dx = Math.random() * 8;
+    vec.dy = Math.random() * 8;
+    geometry.push(vec);
+  }
+
+  particles = new ALGO.Particle(0, 0);
+  particles.color = 0x000000;//getRandomColorHexLight();
+  particles.needsUpdate = true;
+  particles.pointsize = 3;
+  algo.add(particles);
+
+  particles.setGeometry( geometry );
+  particles.vertexUpdate();
+
+  sound = new ALGO.Sound('assets/sound/sample.mp3', 'assets/sound/sample.ogg', 95);
+});
+
+// frame
+algo.bind('frame', function(){
+  var aw = algo.width;
+  var ah = algo.height;
+
+  sound.update();
+  var total = sound.getFrequencyTotal();
+
+  particles.pointsize = Math.floor(total * 10) + 1;
+
+  if(total > 0.3){
+    particles.color = getRandomColorHexLight();
+  }
+
+  if(total > 0.23){
+    algo.setBackgroundAuto(false);
+  }
+  else{
+    algo.setBackgroundAuto(true);
+  }
+
+  for (var i = 0; i < num; i++) {
+    var vec = particles.geometry[i];
+    vec.tx = vec.tx + vec.dx;
+    vec.ty = vec.ty + vec.dy;
+
+    if( vec.tx > aw ){
+      vec.tx = 0;
+    }
+    else if( vec.tx < 0 ){
+      vec.tx = aw;
+    }
+    if( vec.ty > ah ){
+      vec.ty = 0;
+    }
+    else if( vec.ty < 0 ){
+      vec.ty = ah;
+    }
+
+    vec.x = vec.tx;
+    vec.y = vec.ty;
+  }
+
+  particles.needsUpdate = true;
+  particles.vertexUpdate();
+
+});
+
+// resize
+algo.bind('resize', function(){
+  var w = window.innerWidth;
+  var h = window.innerHeight;
+  algo.size( w, h );
+});
+
+algo.bind('mousedown', function(mousex, mousey) {
+  algo.setBackgroundAuto(false);
+});
+
+algo.bind('mouseup', function(mousex, mousey) {
+  algo.setBackgroundAuto(true);
+});
+
+function getRandomColorHexLight(){
+  var r = ALGO.ColorUtil.getRandomColor(50, 150);
+  var g = ALGO.ColorUtil.getRandomColor(50, 250);
+  var b = ALGO.ColorUtil.getRandomColor(200, 250);
+  return ALGO.ColorUtil.rgbToHex(r, g, b);
+}
+
+</script>
+</body>
+</html>

@@ -105,7 +105,7 @@ ALGO.Sound = (function(ALGO) {
   };
 
   function updateFFT(){
-    // this.analyser.getByteTimeDomainData( this.timeDomainData ); // 時間
+    this.analyser.getByteTimeDomainData( this.timeDomainData ); // 時間
     this.analyser.getByteFrequencyData( this.frequencyData ); // 周波数
 
     this.timeDomainTotal = 0;
@@ -115,15 +115,15 @@ ALGO.Sound = (function(ALGO) {
     this.frequencyValues = [];
 
     var length = this.timeDomainData.length;
-    for( i = 0; i < length; i++ ){
+    for( var i = 0; i < length; i++ ){
       // 正規化
-      // this.timeDomainValues[i] = parseInt( this.timeDomainData[i] ) / 255;
-      // this.timeDomainTotal += this.timeDomainValues[i];
+      this.timeDomainValues[i] = parseInt( this.timeDomainData[i] ) / 255;
+      this.timeDomainTotal += this.timeDomainValues[i];
       this.frequencyValues[i] = parseInt( this.frequencyData[i] ) / 255;
       this.frequencyTotal += this.frequencyValues[i];
     }
 
-    // this.timeDomainTotal = this.timeDomainTotal / length; // 正規化
+    this.timeDomainTotal = this.timeDomainTotal / length; // 正規化
     this.frequencyTotal = this.frequencyTotal / length; // 正規化
   };
 

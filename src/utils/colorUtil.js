@@ -193,6 +193,17 @@ ALGO.ColorUtil = {
   },
 
   /**
+   * [getRandomColorHex description]
+   * @return {[type]} [description]
+   */
+  getRandomColorHexLight: function(){
+    var r = ALGO.ColorUtil.getRandomColor(0, 256);
+    var g = ALGO.ColorUtil.getRandomColor(0, 256);
+    var b = ALGO.ColorUtil.getRandomColor(0, 256);
+    return ALGO.ColorUtil.rgbToHex(r, g, b);
+  },
+
+  /**
    * [getRandomColorRGB description]
    * @return {[type]} [description]
    */

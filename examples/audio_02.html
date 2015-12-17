@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>algo.js examples: </title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+<style>
+body { margin: 0; padding: 0; font-size: 0; background-color: #ffffff; }
+canvas { width: 100%; height: 100%; }
+</style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<script type="text/javascript" src="../build/algo.js"></script>
+<script type="text/javascript" src="assets/js/libs/dat.gui.min.js"></script>
+<script type="text/javascript">
+// initialize
+var param = {
+  id: 'canvas',
+  width: window.innerWidth,
+  height: window.innerHeight,
+  backgroundAuto: false
+};
+
+// scene
+var algo = new ALGO( param );
+algo.framerate = 30;
+algo.background = 0x000000;
+algo.circleResolution = 64;
+algo.blendMode = ALGO.BLEND_ALPHA;
+
+// display object
+var path;
+var radius = 1;
+var resolution = 32;
+var angle = 360 / resolution;
+var sound;
+
+// setup
+algo.bind('setup', function(){
+  var aw = algo.width;
+  var ah = algo.height;
+  var cx = aw * 0.5;
+  var cy = ah * 0.5;
+
+  path = new ALGO.Path();
+  path.fill = false;
+  path.color = 0xffffff;
+  path.line = true;
+  path.lineWidth = 1;
+  path.lineColor = 0x000000;
+  path.alpha = 0.1;
+  algo.add(path);
+
+  sound = new ALGO.Sound('assets/sound/sample.mp3', 'assets/sound/sample.ogg', 95);
+});
+
+// frame
+algo.bind('frame', function(){
+  var aw = algo.width;
+  var ah = algo.height;
+  var cx = aw * 0.5;
+  var cy = ah * 0.5;
+
+  // sound
+  sound.update();
+  var timedomain = sound.getTimeDomainValues();
+  var length = timedomain.length;
+  var pointLength = Math.floor(length / resolution);
+  var pointValues = [];
+  for(var i = 0; i < resolution; i++){
+      pointValues[i] = 0;
+    for(var j = 0; j < pointLength; j++){
+      var num = i * pointLength + j;
+      pointValues[i] += timedomain[num];
+    }
+    pointValues[i] = pointValues[i] / pointLength;
+  }
+
+  path.clear();
+
+  var geometry = [];
+  for( var i = 0, l = resolution; i < l; i++ ){
+    var value = 0;
+    value = pointValues[i];
+    var radian = Math.PI / 180 * i * angle;
+    var x = Math.sin( radian ) * (radius + value * 500) + cx;
+    var y = Math.cos( radian ) * (radius + value * 500) + cy;
+    path.lineTo( x, y );
+  }
+  path.lineColor = ALGO.ColorUtil.getRandomColorHex();
+  path.close();
+  path.needsUpdate = true;
+});
+
+// resize
+algo.bind('resize', function(){
+  var w = window.innerWidth;
+  var h = window.innerHeight;
+  algo.size( w, h );
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<title>algo.js examples: </title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+<style>
+body {
+margin: 0;
+padding: 0;
+font-size: 0;
+background-color: #ffffff;
+}
+canvas {
+width: 100%;
+height: 100%;
+}
+</style>
+</head>
+
+<body>
+<canvas id="canvas"></canvas>
+<script type="text/javascript" src="../build/algo.js"></script>
+<!-- <script type="text/javascript" src="../src/algo.js"></script> -->
+<script type="text/javascript" src="assets/js/libs/dat.gui.min.js"></script>
+<script type="text/javascript">
+var NUM = 300;
+var param = {
+  id: 'canvas',
+  width: window.innerWidth,
+  height: window.innerHeight
+};
+var algo = new ALGO( param );
+algo.width = window.innerWidth;
+algo.height = window.innerHeight;
+algo.background = 0xffffff;
+algo.backgroundAuto = true;
+algo.backgroundAlpha = 0.5;
+algo.framerate = 60;
+algo.circleResolution = 32;
+algo.blendMode = ALGO.BLEND_NONE;
+
+var shapes = [];
+
+var colors = [];
+
+algo.bind('setup', function(){
+  var aw = algo.width;
+  var ah = algo.height;
+
+  colors = [
+    // ALGO.ColorUtil.getRandomColorHex(),
+    // ALGO.ColorUtil.getRandomColorHex(),
+    // ALGO.ColorUtil.getRandomColorHex()
+    0xd0f33e, 0xff6b9f
+  ];
+  angles = [
+    5, 8
+  ];
+
+  for( var i = 0; i < NUM; i++ ){
+    var ran = Math.floor(Math.random() * 2);
+    var x = Math.random() * aw;
+    var y = Math.random() * ah;
+    var angle = Math.floor(Math.random() * 10) + 3;
+    angle = angles[ran];
+    var radius = Math.floor(Math.random() * 40) + 10;
+    var shape = new ALGO.Polygon( x, y, angle, radius );
+    shape.dx = Math.random() * 2;
+    shape.dy = Math.random() * 2;
+    shape.drot = Math.random();
+    shape.color = colors[ran];
+    shape.alpha = 1.0;
+    algo.add( shape );
+    shapes.push( shape );
+  }
+});
+
+algo.bind('frame', function(){
+  var aw = algo.width;
+  var ah = algo.height;
+
+  for( var i = 0; i < NUM; i++ ){
+    var shape = shapes[i];
+    shape.x += shape.dx;
+    shape.y += shape.dy;
+    shape.rotate -= shape.drot;
+    if(shape.x > aw + shape.radius) shape.x = 0 - shape.radius;
+    if(shape.x < 0 - shape.radius) shape.x = aw + shape.radius;
+    if(shape.y > ah + shape.radius) shape.y = 0 - shape.radius;
+    if(shape.y < 0 - shape.radius) shape.y = ah + shape.radius;
+  }
+});
+
+algo.bind('resize', function(){
+  var w = window.innerWidth;
+  var h = window.innerHeight;
+  algo.size( w, h );
+});
+</script>
+</body>
+
+</html>

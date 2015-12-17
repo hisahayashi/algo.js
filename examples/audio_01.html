@@ -63,13 +63,13 @@ algo.bind('setup', function() {
   };
 
   sound.halfNoteEvent = function(){
-    // var length = algo.children.length;
-    // var color = ALGO.ColorUtil.getRandomColorHex();
-    // for(var i = 0; i < length; i++){
-    //   var circle = algo.children[i];
-    //   circle.color = color;
-    //   circle.needsUpdate = true;
-    // }
+    var length = algo.children.length;
+    for(var i = 0; i < length; i++){
+      var circle = algo.children[i];
+      circle.color = ALGO.ColorUtil.getRandomColorHex();
+      circle.scale = 50;
+      circle.needsUpdate = true;
+    }
   };
 
   ALGO.log(sound);

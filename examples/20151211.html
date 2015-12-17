@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>algo.js examples: </title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+<style>
+body { margin: 0; padding: 0; font-size: 0; background-color: #ffffff; }
+canvas { width: 100%; height: 100%; }
+#debug{ position: absolute; ;left: 20px; top: 10px; z-index: 1; font-size: 14px; }
+</style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<p id="debug">00000</p>
+<script type="text/javascript" src="../build/algo.js"></script>
+<script type="text/javascript" src="assets/js/libs/dat.gui.min.js"></script>
+<script type="text/javascript">
+// initialize
+var param = {
+  id: 'canvas',
+  width: window.innerWidth,
+  height: window.innerHeight,
+  backgroundAuto: true
+};
+
+// scene
+var algo = new ALGO( param );
+algo.background = 0xffffff;
+algo.circleResolution = 8;
+
+// var sound;
+var rtc;
+var circles = [];
+
+// setup
+algo.bind('setup', function(){
+  // sound = new ALGO.Sound('assets/sound/sample.mp3', 'assets/sound/sample.ogg', 95);
+  rtc = new ALGO.RTC(true, true);
+
+  setInterval(function(){
+    rtc.update();
+    var total = rtc.getFrequencyTotal();
+    var num = Math.floor(total * 30);
+
+    var x = algo.width * 0.5;
+    var y = algo.height * 0.5;
+    var rand = total * 50;
+    for(var i = 0; i < num; i++){
+      var circle = new ALGO.Circle(x, y, rand);
+      circle.dx = Math.random() * 10 - 5;
+      circle.dy = Math.random() * 10 - 5;
+      // circle.color = ALGO.ColorUtil.getRandomColorHex();
+      algo.add(circle);
+      circles.push(circle);
+    }
+
+    document.getElementById('debug').innerText = circles.length;
+  }, 200);
+});
+
+// frame
+algo.bind('frame', function(){
+  // sound.update();
+  // var total = sound.getFrequencyTotal();
+
+  var w = algo.width;
+  var h = algo.height;
+  var length = circles.length;
+  for( var i = 0; i < length; i++){
+    var circle = circles[i];
+    circle.x += circle.dx;
+    circle.y += circle.dy;
+    circle.rotate += circle.dx + circle.dy;
+
+    if(circle.x > w || circle.x < 0 || circle.y > h || circle.y < 0){
+      algo.remove(circle);
+      circles.splice(i, 1);
+      length--;
+    }
+  }
+});
+
+// resize
+algo.bind('resize', function(){
+  var w = window.innerWidth;
+  var h = window.innerHeight;
+  algo.size( w, h );
+});
+</script>
+</body>
+</html>

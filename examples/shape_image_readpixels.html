@@ -35,13 +35,13 @@ video{
 var param = {
   id: 'canvas',
   width: window.innerWidth,
-  height: window.innerHeight
+  height: window.innerHeight,
+  backgroundAuto: false
 };
 var algo = new ALGO(param);
 algo.background = 0xffffff;
 algo.circleResolution = 32;
 algo.framerate = 30;
-algo.backgroundAuto = true;
 
 ALGO.log(algo);
 
@@ -55,14 +55,10 @@ var firstWidth = 0;
 var rect;
 
 algo.bind('setup', function() {
-
-  // ALGO.log('width', image.width, 'height', image.height);
-
   // tiles
   particles = new ALGO.Particle(0, 0);
-  particles.pointsize = step;
-  particles.color = ALGO.ColorUtil.getRandomColorHex();
-  // p.color = 0xffffff;
+  particles.pointsize = Math.floor(step * 0.3);
+  particles.color = 0xffffff;
   algo.add(particles);
   var geometry = [];
   for( var yi = 0; yi < algo.height; yi += step){
@@ -78,34 +74,9 @@ algo.bind('setup', function() {
   particles.needsUpdate = true;
   firstWidth = algo.width;
 
-  var vc = particles.vertexColors;
-  for(var i = 0; i < particles.vertexColors.length; i += 4){
-    var color = ALGO.ColorUtil.getRandomColorRGB();
-    color = ALGO.ColorUtil.rgbNormalize(color);
-    var r = color.r;
-    var g = color.g;
-    var b = color.b;
-    var a = 255;
-    var num = i;
-    vc[num] = r;
-    vc[num + 1] = g;
-    vc[num + 2] = b;
-    vc[num + 3] = a;
-    particles.needsUpdate = true;
-  }
-
   // image
-  image = new ALGO.Image(550, 260, 1024, 512, 'assets/img/sample_two.jpg');
+  image = new ALGO.Image(550, 290, 1024, 512, 'assets/img/sample_two.jpg');
   algo.add(image);
-
-  // tiles
-  // rect = new ALGO.Circle(700, 200, 200);
-  // rect.color = ALGO.ColorUtil.getRandomColorHex();
-  // algo.add(rect);
-
-  // rect = new ALGO.Rectangle(200, 200, 300, 300);
-  // rect.color = ALGO.ColorUtil.getRandomColorHex();
-  // algo.add(rect);
 });
 
 algo.bind('frame', function() {
@@ -139,12 +110,23 @@ algo.bind('frame', function() {
         vc[num] = r;
         vc[num + 1] = g;
         vc[num + 2] = b;
-
-        particles.needsUpdate = true;
         // ALGO.log(index, 'x', x, 'y', y, 'r', r, 'g', g, 'b', b, 'a', a);
       }
+
+      particles.needsUpdate = true;
     }
   }
+
+  // ALGO.log(pixels);
+  var vc = particles.vertexColors;
+  for(var i = 0; i < particles.geometry.length; i++){
+    var g = particles.geometry[i];
+    var x = g.x;
+    var y = g.y;
+    particles.geometry.x = x * (Math.random() * 10) - 5;
+    particles.geometry.x = y * (Math.random() * 10) - 5;
+  }
+  particles.needsUpdate = true;
 });
 
 algo.bind('resize', function() {

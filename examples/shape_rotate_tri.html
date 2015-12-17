@@ -90,10 +90,18 @@ function createTriangles(aw, ah){
       t.drot = 2;
       t.x = xi + step * 0.5;
       t.y = yi + step * 0.5;
+      t.color = getRandomColorHexLight();
       algo.add(t);
       triangles.push(t);
     }
   }
+}
+
+function getRandomColorHexLight(){
+  var r = ALGO.ColorUtil.getRandomColor(50, 150);
+  var g = ALGO.ColorUtil.getRandomColor(50, 250);
+  var b = ALGO.ColorUtil.getRandomColor(200, 250);
+  return ALGO.ColorUtil.rgbToHex(r, g, b);
 }
 </script>
 </body>

@@ -65,7 +65,7 @@ ALGO.WebGLRenderer = (function(ALGO) {
       is_preserve = true;
     }
 
-    ALGO.log('that.backgroundAuto: ' + that.backgroundAuto);
+    // ALGO.log('that.backgroundAuto: ' + that.backgroundAuto);
 
     // webglコンテキストを取得
     var param = {
@@ -193,7 +193,7 @@ ALGO.WebGLRenderer = (function(ALGO) {
               object.setTexture(object_texture);
             }
             else{
-              gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA,gl.UNSIGNED_BYTE, object.image);
+              // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA,gl.UNSIGNED_BYTE, object.image);
             }
 
           }
