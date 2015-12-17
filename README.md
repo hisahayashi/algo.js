@@ -37,12 +37,20 @@ algo.jsはメディアアートやモーションの実験を行うシンプル�
 - 各種アルゴリズムの包括（Noise, Delauny, Boronoi etc..）
 
 
-### basic usage
+### Basic Usage
 
 - <a href="http://algojs.org/examples/index.html#basic" target="_blank">demo</a>
 
-### デモ
+### Web Site
 
-- <a href="http://algojs.org/examples/" target="_blank">Example</a>
+- <a href="http://algojs.org/" target="_blank">Web Site</a>
+
+### Examples
+
+- <a href="http://algojs.org/examples/" target="_blank">Examples</a>
+
+### Document
+
+- <a href="http://algojs.org/documents/" target="_blank">Document</a>
 
 <img alt="" src="https://raw.githubusercontent.com/hisahayashi/cdn/master/algojs/algojs_document.001.jpg" width="100%" height="auto">
